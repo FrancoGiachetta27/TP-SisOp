@@ -9,7 +9,13 @@
 enum MODULOS {
 	FILESYSTEM = 1,
 	CPU = 2,
-	KERNEL = 3
+	KERNEL = 3,
+	KERNEL_CPU = 4,
+	KERNEL_FILESYSTEM = 5,
+	KERNEL_MEMORY = 6,
+	CPU_MEMORY = 7,
+	FILESYSTEM_MEMORY = 8,
+	MEMORY_FILESYSTEM = 9
 };
 
 int receive_handshake(int cliente, t_log* logger);
