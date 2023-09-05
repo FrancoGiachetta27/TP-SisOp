@@ -34,7 +34,17 @@ int main(int argc, char* argv[]) {
 	check_if_config_value_exists(config, "PUERTO_ESCUCHA", logger);
 	int server_fd = start_server(config_get_string_value(config, "PUERTO_ESCUCHA"), logger);
 	log_trace(logger, "Se inicio correctamente el server");
-	wait_for_initial_handshake(server_fd, logger);
+	int socket_kernel = wait_for_initial_handshake(server_fd, logger);
+
+	int handshake = receive_handshake(socket_kernel,logger);
+	switch(handshake)  {
+		case KERNEL_FILESYSTEM:
+			char* message = receive_package(socket_kernel);
+
+				break;
+			default:
+				log_error(logger, "Error al interseptar el paquete");
+			}
 
 	finish_program(logger, config, conexion);
     return 0;
