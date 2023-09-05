@@ -17,11 +17,14 @@ typedef struct
 	t_buffer* buffer;
 } t_package;
 
-static void create_buffer(t_package* package);
-t_package*  create_package(void);
-void send_package(t_package* package, int socket_cliente);
-static void* serialize_package(t_package* package, int bytes);
-void recieve_package();
-void destroy_package(t_package* paquete);
+void create_buffer(t_package* package);
+void* receive_buffer(int* size, int client_socket);
+void* serialize_package(t_package* package, int bytes);
+
+t_package*  create_package(int op_code);
+void add_to_package(t_package* package, void* value, int size);
+void send_package(t_package* package, int client_socket, t_log* logger);
+char* receive_package(int client_socket);
+void destroy_package(t_package* package);
 
 #endif /* SRC_PACKAGE_PACKAGE_H_ */
