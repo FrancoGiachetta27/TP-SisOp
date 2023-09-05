@@ -5,6 +5,7 @@
 #include <config/config.h>
 #include <connection/connection.h>
 #include <handshake/handshake.h>
+#include <package/package.h>
 #include <unistd.h>
 
 #define LOGS_KERNEL "kernel.log"
@@ -59,6 +60,34 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 	}
+
+		// Kernel - Memoria
+		t_package* package = create_package(KERNEL_MEMORY);
+
+		char* message_kernel_memory = "hola memoria, soy kernel";
+
+		add_to_package(package, message_kernel_memory , strlen(message_kernel_memory )+1);
+
+		send_package(package, memory_socket, logger);
+
+		// Kernel - CPU - Memoria
+//		t_package* package = create_package(KERNEL_MEMORY);
+//
+//		char* message_kernel_cpu_memory = "hola memoria, soy CPU, me mando kernel";
+//
+//		add_to_package(package, message_kernel_cpu_memory, strlen(message_kernel_cpu_memory)+1);
+//
+//		send_package(package, cpu_socket, logger);
+
+		// Kernel - FS - Memoria
+
+		t_package* package = create_package(KERNEL_MEMORY);
+
+		char* message_kernel_fs_memory = "hola memoria, soy kernel";
+
+		add_to_package(package, message_kernel_fs_memory, strlen(message_kernel_fs_memory)+1);
+
+		send_package(package, filesystem_socket, logger);
 
 	close(memory_socket);
 	close(filesystem_socket);
