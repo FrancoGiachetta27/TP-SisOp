@@ -13,9 +13,9 @@ enum MODULOS {
 };
 
 int receive_handshake(int cliente, t_log* logger);
-void send_handshake(int conexion, int handshake, t_log* logger);
-void send_handshake_success(int cliente, t_log* logger);
-void send_handshake_error(int cliente, t_log* logger);
-void check_handshake_result(int servidor, t_log* logger);
+int send_handshake(int conexion, int handshake, t_log* logger);
+int send_handshake_success(int cliente, t_log* logger);
+int send_handshake_error(int cliente, t_log* logger);
+int check_handshake_result(int servidor, t_log* logger);
 
 #endif /* SRC_HANDSHAKE_HANDSHAKE_H_ */
