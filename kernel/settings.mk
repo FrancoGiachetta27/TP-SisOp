@@ -1,5 +1,5 @@
 # Libraries
-LIBS=utils commons
+LIBS=utils commons readline
 
 # Custom libraries' paths
 SHARED_LIBPATHS=
@@ -10,7 +10,7 @@ CDEBUG=-g -Wall -DDEBUG -fcommon -fdiagnostics-color=always
 CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 
 # Arguments when executing with start, memcheck or helgrind
-ARGS=./config/kernel.config
+ARGS=./config/kernel.config -lreadline
 
 # Valgrind flags
 MEMCHECK_FLAGS=--track-origins=yes --leak-check=full --show-leak-kinds=all

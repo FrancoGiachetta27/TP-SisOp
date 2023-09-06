@@ -7,6 +7,7 @@
 #include <handshake/handshake.h>
 #include <utils/finish_program.h>
 #include <unistd.h>
+#include "consola/consola.h"
 
 #define LOGS_KERNEL "kernel.log"
 #define NUMERO_DE_ARGUMENTOS_NECESARIOS 2
@@ -39,6 +40,7 @@ int main(int argc, char* argv[]) {
 	int cpu_dispatcher_socket;
 	int cpu_interrupt_socket;
 	int connected_modules;
+	consola_interactiva();
 	for (connected_modules = 0; connected_modules < NUMERO_DE_CONNECTION_KEYS; connected_modules = connected_modules + 2) {
 		char* port_key = connection_config[connected_modules];
 		char* ip_key = connection_config[connected_modules + 1];
