@@ -1,0 +1,8 @@
+#ifndef SRC_HEARDERS_CONNECTION_H_
+#define SRC_HEARDERS_CONNECTION_H_
+
+enum {
+
+};
+
+#endif /* SRC_HEARDERS_CONNECTION_H_ */

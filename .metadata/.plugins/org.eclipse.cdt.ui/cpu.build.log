@@ -1,0 +1,8 @@
+23:54:55 **** Incremental Build of configuration Default for project cpu ****
+make all 
+gcc -g -Wall -DDEBUG -fcommon -fdiagnostics-color=always -c -o "obj/main.o" src/main.c -I../utils/src -I./src
+gcc -g -Wall -DDEBUG -fcommon -fdiagnostics-color=always -c -o "obj/connection.o" src/connection.c -I../utils/src -I./src
+gcc -g -Wall -DDEBUG -fcommon -fdiagnostics-color=always -o "bin/cpu.out" obj/main.o obj/connection.o -I../utils/src -I./src -L../utils/bin  -lutils -lcommons
+
+23:54:55 Build Finished. 0 errors, 0 warnings. (took 938ms)
+

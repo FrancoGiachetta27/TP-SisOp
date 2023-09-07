@@ -5,6 +5,7 @@
 #include <config/config.h>
 #include <connection/connection.h>
 #include <handshake/handshake.h>
+#include <package/package.h>
 #include <headers/connection.h>
 #include <unistd.h>
 
@@ -26,10 +27,10 @@ int main(int argc, char* argv[]) {
 	check_if_config_value_exists(config, "IP_MEMORIA", logger);
 	char* ip = config_get_string_value(config, "IP_MEMORIA");
 	char* port = config_get_string_value(config, "PUERTO_MEMORIA");
-	int conexion = connect_to_server(ip, port, logger);
+	int socket_memory = connect_to_server(ip, port, logger);
 
-	send_handshake(conexion, FILESYSTEM, logger);
-	check_handshake_result(conexion, logger);
+	send_handshake(socket_memory, FILESYSTEM, logger);
+	check_handshake_result(socket_memory, logger);
 
 	check_if_config_value_exists(config, "PUERTO_ESCUCHA", logger);
 	int server_fd = start_server(config_get_string_value(config, "PUERTO_ESCUCHA"), logger);
@@ -37,16 +38,23 @@ int main(int argc, char* argv[]) {
 	int socket_kernel = wait_for_initial_handshake(server_fd, logger);
 
 	int handshake = receive_handshake(socket_kernel,logger);
+	char* package;
 	switch(handshake)  {
 		case KERNEL_FILESYSTEM:
-			char* message = receive_package(socket_kernel);
+			package = receive_package(socket_kernel);
+			log_info(logger, "%s", package);
+			free(package);
+			break;
+		case FILESYSTEM_MEMORY:
+			package = receive_package(socket_kernel);
+			redirect_package(package, socket_memory, FILESYSTEM_MEMORY);
+			free(package);
+			break;
+		default:
+			log_error(logger, "Error al interceptar el paquete");
+		}
 
-				break;
-			default:
-				log_error(logger, "Error al interseptar el paquete");
-			}
-
-	finish_program(logger, config, conexion);
+	finish_program(logger, config, socket_memory);
     return 0;
 }
 

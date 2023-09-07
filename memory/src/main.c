@@ -6,6 +6,7 @@
 #include <connection/connection.h>
 #include <handshake/handshake.h>
 #include <package/package.h>
+#include <headers/connection.h>
 #include <unistd.h>
 
 #define LOGS_MEMORIA "memoria.log"
@@ -57,20 +58,22 @@ int main(int argc, char* argv[]) {
 	}
 
 
-		int handshake = receive_handshake(socket_kernel,logger);
-
+		int handshake = receive_handshake(socket_filesystem, logger);
+		char* message;
 		log_info(logger, "%d",handshake);
 		switch(handshake)  {
 			case KERNEL_MEMORY:
-				char* message = receive_package(socket_kernel);
+				message = receive_package(socket_kernel);
 				log_info(logger, "%s",message);
+				free(message);
 				break;
 			case FILESYSTEM_MEMORY:
-				char* message = receive_package(socket_filesystem);
-				log_info(logger, "%s",message);
+				message = receive_package(socket_filesystem);
+				log_info(logger, "%s", message);
+				free(message);
 				break;
 			default:
-				log_error(logger, "Error al interseptar el paquete");
+				log_error(logger, "Error al interceptar el paquete");
 		}
 
 	log_trace(logger, "Se termina el programa");

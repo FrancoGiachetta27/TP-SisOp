@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;memory/src/headers/connnection.h&apos; to &apos;connection.h&apos;" description="Rename resource &apos;connnection.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/headers/connnection.h" name="connection.h" stamp="1694034837147" updateReferences="true"/>
+</session>

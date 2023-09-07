@@ -24,6 +24,7 @@ void* serialize_package(t_package* package, int bytes);
 t_package*  create_package(int op_code);
 void add_to_package(t_package* package, void* value, int size);
 void send_package(t_package* package, int client_socket, t_log* logger);
+void redirect_package(void* info, int receiver_socket, int op_code);
 char* receive_package(int client_socket);
 void destroy_package(t_package* package);
 

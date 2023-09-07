@@ -1,12 +1,5 @@
 #include "package.h"
 
-void create_buffer(t_package* package)
-{
-	package->buffer = malloc(sizeof(t_buffer));
-	package->buffer->size = 0;
-	package->buffer->stream = NULL;
-}
-
 t_package* create_package(int op_code)
 {
 	t_package* package = malloc(sizeof(t_package));
@@ -14,6 +7,7 @@ t_package* create_package(int op_code)
 	create_buffer(package);
 	return package;
 }
+
 
 
 void add_to_package(t_package* package, void* value, int size)
@@ -24,6 +18,26 @@ void add_to_package(t_package* package, void* value, int size)
 	memcpy(package->buffer->stream + package->buffer->size + sizeof(int), value, size);
 
 	package->buffer->size += size + sizeof(int);
+}
+
+// take the package serialized and resend it with a new operation code
+void redirect_package(void* info, int receiver_socket, int op_code)
+{
+	int bytes;
+
+	memcpy(&bytes, info, sizeof(int));
+
+	void* buffer = malloc(bytes + 2*sizeof(int));
+
+	printf("bytes %d\n",bytes);
+
+	memcpy(buffer, &op_code, sizeof(int)); // change the op_code
+	memcpy(buffer + sizeof(int), &bytes, sizeof(int));
+	memcpy(buffer + sizeof(int), info + sizeof(int), bytes);
+
+	send(receiver_socket, buffer, bytes + 2*sizeof(int), 0);
+
+	free(buffer);
 }
 
 void send_package(t_package* package, int client_socket, t_log* logger)
@@ -42,29 +56,34 @@ void send_package(t_package* package, int client_socket, t_log* logger)
 	destroy_package(package);
 }
 
-char* receive_package(int socket_cliente)
+// returns the package to be deserialized
+char* receive_package(int client_socket)
 {
 	int size;
 	int offset = 0;
 	void * buffer;
 	int buffer_size;
 
-	buffer = receive_buffer(&size, socket_cliente);
+	buffer = receive_buffer(&size, client_socket);
 
-	memcpy(&buffer_size, buffer + offset, sizeof(int));
-	offset+=sizeof(int);
-	char* value = malloc(buffer_size);
-	memcpy(value, buffer+offset, buffer_size);
-	offset+=buffer_size;
+//	memcpy(&buffer_size, buffer + offset, sizeof(int));
+//	offset+=sizeof(int);
+//	char* value = malloc(buffer_size);
+//	memcpy(value, buffer+offset, buffer_size);
+//	offset+=buffer_size;
 
-	free(buffer);
-	return value;
+	return buffer;
 }
 
-void* serialize_package(t_package* package)
+void destroy_package(t_package* paquete)
 {
-	int bytes = package->buffer->size + 2 * sizeof(int);
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+}
 
+void* serialize_package(t_package* package,int bytes)
+{
 	void * serde_pkg = malloc(bytes);
 	int desplazamiento = 0;
 
@@ -78,6 +97,14 @@ void* serialize_package(t_package* package)
 	return serde_pkg;
 }
 
+void create_buffer(t_package* package)
+{
+	package->buffer = malloc(sizeof(t_buffer));
+	package->buffer->size = 0;
+	package->buffer->stream = NULL;
+}
+
+// returns the actual package content
 void* receive_buffer(int* size, int client_socket)
 {
 	void *buffer;
@@ -88,11 +115,4 @@ void* receive_buffer(int* size, int client_socket)
 	recv(client_socket, buffer, *size, MSG_WAITALL);
 
 	return buffer;
-}
-
-void destroy_package(t_package* paquete)
-{
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
 }
