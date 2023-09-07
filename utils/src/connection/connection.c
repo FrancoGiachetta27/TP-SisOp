@@ -18,11 +18,11 @@ int connect_to_server(char *ip, char* puerto, t_log* logger)
 			server_info->ai_protocol);
 
 	int conexion = connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen);
+	freeaddrinfo(server_info);
 	if (conexion != 0) {
 		log_error(logger, "Fallo en la conexion al servidor");
-		abort();
+		return -1;
 	}
-	freeaddrinfo(server_info);
 	log_trace(logger, "Conecto correctamente al servidor");
 	return socket_cliente;
 }
@@ -45,17 +45,17 @@ int start_server(char* port, t_log* logger)
 	                         servinfo->ai_protocol);
 	if (socket_servidor == -1) {
 		log_error(logger, "Fallo al crear el servidor");
-		abort();
+		return -1;
 	}
 	int bind_result = bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
 	if (bind_result != 0) {
 		log_error(logger, "Fallo al hacer el bind en el servidor");
-		abort();
+		return -1;
 	}
 	int listen_result = listen(socket_servidor, SOMAXCONN);
 	if (listen_result != 0) {
 		log_error(logger, "Fallo al hacer el listen en el servidor");
-		abort();
+		return -1;
 	}
 	freeaddrinfo(servinfo);
 	return socket_servidor;
@@ -63,9 +63,6 @@ int start_server(char* port, t_log* logger)
 
 int wait_for_client(int server_fd, t_log* logger) {
 	int socket_cliente = accept(server_fd, NULL, NULL);
-	if (socket_cliente == -1) {
-		log_error(logger, "Error al aceptar un cliente");
-		abort();
-	}
+	if (socket_cliente == -1) log_error(logger, "Error al aceptar un cliente");
 	return socket_cliente;
 }
