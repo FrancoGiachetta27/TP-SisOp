@@ -50,7 +50,6 @@ void utils_destroy_with_connection(t_utils* utils, int connection) {
 bool check_if_config_value_exists(t_utils* utils, char* key)
 {
 	if (!config_has_property(utils->config, key)) {
-		puts("hola");
 		log_error(utils->logger, "No se encontro la propiedad %s en el archivo de config", key);
 		return false;
 	}
