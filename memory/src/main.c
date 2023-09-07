@@ -6,7 +6,6 @@
 #include <handshake/handshake.h>
 
 #define LOGS_MEMORIA "memoria.log"
-#define NUMERO_DE_ARGUMENTOS_NECESARIOS 2
 #define MODULOS_A_CONECTAR 3
 
 int main(int argc, char* argv[]) {

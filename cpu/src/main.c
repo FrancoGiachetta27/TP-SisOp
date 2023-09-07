@@ -4,39 +4,17 @@
 #include <config/config.h>
 #include <connection/connection.h>
 #include <handshake/handshake.h>
-#include <headers/connection.h>
+#include <initial_configuration/client_start.h>
 
 #define LOGS_CPU "cpu.log"
-#define NUMERO_DE_ARGUMENTOS_NECESARIOS 2
 #define NUMERO_DE_PORTS 2
 
 int main(int argc, char* argv[]) {
 	t_utils* utils = create_initial_config(argc, argv, LOGS_CPU, true, LOG_LEVEL_TRACE);
 	if (utils == NULL) return EXIT_FAILURE;
 
-	if (!check_if_config_value_exists(utils, "IP_MEMORIA") || !check_if_config_value_exists(utils, "PUERTO_MEMORIA")) {
-	    utils_destroy(utils);
-	    return EXIT_FAILURE;
-	}
-
-	char* ip = config_get_string_value(utils->config, "IP_MEMORIA");
-	char* port = config_get_string_value(utils->config, "PUERTO_MEMORIA");
-	int conexion = connect_to_server(ip, port, utils->logger);
-	if (conexion == -1) {
-		utils_destroy_with_connection(utils, conexion);
-	    return EXIT_FAILURE;
-	}
-
-	int handshake_send_result = send_handshake(conexion, CPU, utils->logger);
-	if (handshake_send_result == -1) {
-		utils_destroy_with_connection(utils, conexion);
-	    return EXIT_FAILURE;
-	}
-	int handshake_result = check_handshake_result(conexion, utils->logger);
-	if (handshake_result == -1) {
-		utils_destroy_with_connection(utils, conexion);
-	    return EXIT_FAILURE;
-	}
+	int memory_socket = connect_to_memory(utils);
+	if (memory_socket == -1) return EXIT_FAILURE;
 
 	int server_dispatch_fd;
 	int server_interrupt_fd;
@@ -60,14 +38,14 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	int result_dispatch_handshake = wait_for_initial_handshake(server_dispatch_fd, utils->logger);
+	int result_dispatch_handshake = wait_for_initial_handshake_from_kernel(server_dispatch_fd, utils->logger);
 	if (result_dispatch_handshake == -1) {
-		utils_destroy_with_connection(utils, conexion);
+		utils_destroy_with_connection(utils, memory_socket);
 	    return EXIT_FAILURE;
 	}
-	int result_interrupt_handshake = wait_for_initial_handshake(server_interrupt_fd, utils->logger);
+	int result_interrupt_handshake = wait_for_initial_handshake_from_kernel(server_interrupt_fd, utils->logger);
 	if (result_interrupt_handshake == -1) {
-		utils_destroy_with_connection(utils, conexion);
+		utils_destroy_with_connection(utils, memory_socket);
 	    return EXIT_FAILURE;
 	}
 
