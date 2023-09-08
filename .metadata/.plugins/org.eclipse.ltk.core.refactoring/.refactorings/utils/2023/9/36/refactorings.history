@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;utils/src/package/package&apos; to &apos;package.h&apos;" description="Rename resource &apos;package&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/package/package" name="package.h" stamp="1693857461697" updateReferences="true"/>
-</session>
