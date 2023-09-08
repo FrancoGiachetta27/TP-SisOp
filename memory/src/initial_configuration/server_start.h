@@ -7,6 +7,13 @@
 
 #define MODULOS_A_CONECTAR 3
 
+typedef enum {
+	KERNEL_MEMORY = 0,
+	FILESYSTEM_MEMORY,
+	MEMORY_FILESYSTEM,
+	CPU_MEMORY
+} op_code_memory;
+
 typedef struct {
 	int socket_filesystem;
 	int socket_cpu;

@@ -7,6 +7,14 @@
 
 #define NUMERO_DE_CONNECTION_KEYS 8
 
+typedef enum {
+	KERNEL_MEMORY = 0,
+	KERNEL_CPU,
+	KERNEL_FILESYSTEM = 2,
+	FILESYSTEM_MEMORY = 3,
+	CPU_MEMORY,
+} op_code_kernel;
+
 typedef struct {
 	int memory_socket;
 	int filesystem_socket;

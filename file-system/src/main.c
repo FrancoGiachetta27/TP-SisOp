@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <commons/string.h>
 #include <config/config.h>
-#include <connection/connection.h>
-#include <handshake/handshake.h>
+//#include <connection/connection.h>
+//#include <handshake/handshake.h>
+#include <package/package.h>
+#include <package_fs/package_fs.h>
 #include <initial_configuration/client_start.h>
 #include <initial_configuration/server_start.h>
 
@@ -22,6 +24,18 @@ int main(int argc, char* argv[]) {
 		close(memory_socket);
 		return EXIT_FAILURE;
 	}
+	log_info(utils->logger, "%d", server_fd);
+	int op_code_pkg = receive_op_code(server_fd, utils->logger);
+	log_info(utils->logger, "%d", op_code_pkg);
+	switch(op_code_pkg) {
+		case FILESYSTEM_MEMORY:
+			void* buffer = receive_package(memory_socket);
+			redirect_package(buffer, memory_socket, FILESYSTEM_MEMORY);
+			log_info(utils->logger, "Redireccionado mensaje...");
+			break;
+		default:
+			log_error(utils->logger, "Error codigo incorrecto");
+		}
 
 	utils_destroy_with_connection(utils, memory_socket);
     return 0;
