@@ -1,8 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "consola.h"
-#include <readline/readline.h>
-#include <commons/string.h>
+#include <consola/consola.h>
 
 void crear_proceso(){}
 void finalizar_proceso(){}
@@ -11,7 +7,7 @@ void reiniciar_planificacion(){}
 void cambiar_grado_multiprogramacion(){}
 void listar_procesos_por_estado(){}
 
-void consola_interactiva(){
+void consola_interactiva(t_log* logger, t_conn* conn){
 	char *linea;
 	char **parametros;
 	printf("[1]-INICIAR_PROCESO [PATH] [SIZE] [PRIORIDAD]\n");
@@ -20,6 +16,7 @@ void consola_interactiva(){
 	printf("[4]-INICIAR_PLANIFICACION \n");
 	printf("[5]-MULTIPROGRAMACION [VALOR]\n");
 	printf("[6]-PROCESO_ESTADO \n");
+	printf("[7]-ECHO [CASE] \n");
 	linea = readline(">");
 		while (strcmp(linea,"\0")!=0) {
 			parametros = string_split(linea, " ");
@@ -41,6 +38,14 @@ void consola_interactiva(){
 			}
 			else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
 				listar_procesos_por_estado();
+			}
+			else if(strcmp(parametros[0],"ECHO")==0){
+				int number = atoi(parametros[1]);
+				if (number == 0) {
+					log_error(logger, "Invalid CASE Input: %s", parametros[1]);
+				} else {
+					echo(number, conn, logger);
+				}
 			}
 			else {
 				printf("\nComando no reconocido, intente de nuevo corroborando espacios entre parametros y su sintaxis\n");

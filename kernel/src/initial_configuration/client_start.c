@@ -42,10 +42,11 @@ t_conn* connect_to_modules(t_utils* utils) {
 		}
 	}
 	if (connected_modules != NUMERO_DE_CONNECTION_KEYS) {
-		utils_destroy(utils);
+		log_error(utils->logger, "Error in module %d", connected_modules);
 		if (connected_modules >= 2) close(conn->memory_socket);
 		if (connected_modules >= 4) close(conn->filesystem_socket);
 		if (connected_modules >= 6) close(conn->cpu_dispatcher_socket);
+		utils_destroy(utils);
 		free(conn);
 	    return NULL;
 	}

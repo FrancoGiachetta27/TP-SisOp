@@ -66,3 +66,15 @@ int wait_for_client(int server_fd, t_log* logger) {
 	if (socket_cliente == -1) log_error(logger, "Error al aceptar un cliente");
 	return socket_cliente;
 }
+
+int check_recv(int result, t_log* logger) {
+	if (result == 0) {
+		log_trace(logger, "Se corto la conexion con el cliente");
+		return -1;
+	}
+	if (result == -1) {
+		log_error(logger, "Error al recibir el op_code");
+		return -1;
+	}
+	return 0;
+}
