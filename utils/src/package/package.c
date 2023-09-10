@@ -40,7 +40,6 @@ void send_package(t_package* package, int client_socket, t_log* logger)
 		log_error(logger, "Error al enviar el paquete");
 		abort();
 	}
-	log_trace(logger, "Se ha enviado el paquete con opCode %d", package->op_code);
 	free(a_enviar);
 	destroy_package(package);
 }

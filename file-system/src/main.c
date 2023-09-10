@@ -1,13 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <commons/string.h>
-#include <config/config.h>
-#include <connection/connection.h>
-#include <handshake/handshake.h>
-#include <package/package.h>
 #include <initial_configuration/client_start.h>
 #include <initial_configuration/server_start.h>
+#include <command/command.h>
 
 #define LOGS_FILE_SYSTEM "filesystem.log"
 
@@ -24,31 +19,8 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	int op_code = receive_op_code(socket_kernel, utils->logger);
-	if (op_code == -1) {
-		utils_destroy_with_connection(utils, memory_socket);
-		return EXIT_FAILURE;
-	}
-	while (op_code)
-	{
-		switch (op_code) {
-			case ECHO_FILESYSTEM:
-				char* message = receive_buffer(socket_kernel, utils->logger);
-				log_info(utils->logger, "OpCode: %d and Message: %s", op_code, message);
-				free(message);
-				break;
-			default:
-				log_error(utils->logger, "Unknown OpCode");
-				utils_destroy_with_connection(utils, memory_socket);
-				return EXIT_FAILURE;
-		}
-		int op_code = receive_op_code(socket_kernel, utils->logger);
-		if (op_code == -1) {
-			utils_destroy_with_connection(utils, memory_socket);
-			return EXIT_FAILURE;
-		}
-	}
+	int wait_for_commands_result = wait_for_commands(socket_kernel, memory_socket, utils);
 	
 	utils_destroy_with_connection(utils, memory_socket);
-    return 0;
+    return wait_for_commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

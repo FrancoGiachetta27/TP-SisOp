@@ -23,17 +23,19 @@ t_conn* start_server_ports(t_utils* utils) {
 		}
 	}
 
-	int result_dispatch_handshake = wait_for_initial_handshake_from_kernel(conn->dispatch_fd, utils->logger);
-	if (result_dispatch_handshake == -1) {
+	int socket_dispatch_fd = wait_for_initial_handshake_from_kernel(conn->dispatch_fd, utils->logger);
+	if (socket_dispatch_fd == -1) {
 		utils_destroy(utils);
 		free(conn);
 		return NULL;
 	}
-	int result_interrupt_handshake = wait_for_initial_handshake_from_kernel(conn->interrupt_fd, utils->logger);
-	if (result_interrupt_handshake == -1) {
+	conn->dispatch_fd = socket_dispatch_fd;
+	int socket_interrupt_fd = wait_for_initial_handshake_from_kernel(conn->interrupt_fd, utils->logger);
+	if (socket_interrupt_fd == -1) {
 		utils_destroy(utils);
 		free(conn);
 		return NULL;
 	}
+	conn->interrupt_fd = socket_interrupt_fd;
 	return conn;
 }

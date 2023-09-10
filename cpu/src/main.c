@@ -1,11 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <config/config.h>
-#include <connection/connection.h>
-#include <handshake/handshake.h>
 #include <initial_configuration/client_start.h>
 #include <initial_configuration/server_start.h>
+#include <command/dispatch.h>
 
 #define LOGS_CPU "cpu.log"
 
@@ -21,8 +19,9 @@ int main(int argc, char* argv[]) {
 		close(memory_socket);
 		return EXIT_FAILURE;
 	}
+	int commands_result = wait_for_dispatch_command(utils, ports, memory_socket);
 
 	utils_destroy_with_connection(utils, memory_socket);
 	free(ports);
-    return 0;
+    return commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
