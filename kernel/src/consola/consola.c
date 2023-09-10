@@ -4,7 +4,6 @@
 #include <readline/readline.h>
 #include <commons/string.h>
 
-void crear_proceso(){}
 void finalizar_proceso(){}
 void detener_planificacion(){}
 void reiniciar_planificacion(){}
@@ -25,7 +24,7 @@ void consola_interactiva(){
 			parametros = string_split(linea, " ");
 			if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 				printf("%s\n", parametros[2]);
-				crear_proceso(); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+				t_pcb* pcb = crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 			}
 			else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 				finalizar_proceso();
