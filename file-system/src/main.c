@@ -1,12 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <commons/string.h>
-#include <config/config.h>
-#include <connection/connection.h>
-#include <handshake/handshake.h>
 #include <initial_configuration/client_start.h>
 #include <initial_configuration/server_start.h>
+#include <command/command.h>
 
 #define LOGS_FILE_SYSTEM "filesystem.log"
 
@@ -17,12 +13,14 @@ int main(int argc, char* argv[]) {
 	int memory_socket = connect_to_memory(utils);
 	if (memory_socket == -1) return EXIT_FAILURE;
 
-	int server_fd = start_server_port(utils);
-	if (server_fd == -1) {
+	int socket_kernel = start_server_port(utils);
+	if (socket_kernel == -1) {
 		close(memory_socket);
 		return EXIT_FAILURE;
 	}
 
+	int wait_for_commands_result = wait_for_commands(socket_kernel, memory_socket, utils);
+	
 	utils_destroy_with_connection(utils, memory_socket);
-    return 0;
+    return wait_for_commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

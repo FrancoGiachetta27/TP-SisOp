@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <config/config.h>
-#include <initial_configuration/server_start.h>
+#include <command/command.h>
 
 #define LOGS_MEMORIA "memoria.log"
 
@@ -12,8 +12,10 @@ int main(int argc, char* argv[]) {
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
 
+	wait_in_every_port(conn, utils->logger);
+
 	log_trace(utils->logger, "Se termina el programa");
 	free(conn);
 	utils_destroy(utils);
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -20,7 +20,7 @@ t_utils* create_initial_config(int arg_count, char* argv[], char* logger_path, b
 	t_utils* utils = malloc(sizeof(t_utils));
 	utils->logger = create_logger(logger_path, log_in_console, log_level);
 	if (utils->logger == NULL) return NULL;
-	if (arg_count != NUMERO_DE_ARGUMENTOS_NECESARIOS) {
+	if (arg_count < NUMERO_DE_ARGUMENTOS_NECESARIOS) {
 		log_error(utils->logger, "Cantidad de argumentos invalida.");
 	    log_destroy(utils->logger);
 	    free(utils);
