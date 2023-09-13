@@ -15,6 +15,16 @@ void* wait_for_command(t_thread* thread_info) {
 				log_info(thread_info->logger, "OpCode: %d and Message: %s", op_code, message);
 				free(message);
 				break;
+            case CREATE_PROCESS:
+                // void* package = receive_package(thread_info->port, thread_info->logger);
+                // t_process new_process = create_process(thread_info->logger, file_name);
+                // ...
+                break;
+            case FETCH_INSTRUCTION:
+                // void* package = receive_package(thread_info->port, thread_info->logger);
+                // t_instruction next_instruct = fetch_next_instruction(program_pointer);
+                // send_package(...);
+                break;
 			default:
 				log_error(thread_info->logger, "Unknown OpCode");
                 dictionary_remove(thread_info->dict, thread_info->dict_key);

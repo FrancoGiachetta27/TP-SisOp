@@ -47,6 +47,7 @@ int start_server(char* port, t_log* logger)
 		log_error(logger, "Fallo al crear el servidor");
 		return -1;
 	}
+
 	int bind_result = bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
 	if (bind_result != 0) {
 		log_error(logger, "Fallo al hacer el bind en el servidor");
