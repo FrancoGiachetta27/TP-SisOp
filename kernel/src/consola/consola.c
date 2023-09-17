@@ -9,7 +9,6 @@ void finalizar_proceso(){}
 void detener_planificacion(){}
 void reiniciar_planificacion(){}
 void cambiar_grado_multiprogramacion(){}
-void listar_procesos_por_estado(){}
 
 void consola_interactiva(){
 	char *linea;
@@ -25,8 +24,8 @@ void consola_interactiva(){
 			parametros = string_split(linea, " ");
 			if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 				prueba_agregar_proceso_a_NEW();
-				printf("%s\n", parametros[2]);
 				//crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+				printf("%s\n", parametros[2]);
 			}
 			else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 				finalizar_proceso();

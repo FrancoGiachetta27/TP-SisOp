@@ -8,5 +8,5 @@
 void iniciar_planificadores(void);
 void avisar_a_memoria_nuevo_proceso();
 void crear_proceso(char* source, char* tamanio, char* prioridad);
-uint32_t obtener_siguiente_pid(void);
 void prueba_agregar_proceso_a_NEW();
+void listar_procesos_por_estado();
