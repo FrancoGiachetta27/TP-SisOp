@@ -17,6 +17,22 @@ t_package* create_string_package(int op_code, char* message)
 	return package;
 }
 
+t_package* create_integer_package(int op_code, int message)
+{
+	t_package* package = create_empty_package(op_code);
+    package->size = sizeof(int);
+	package->buffer = message;
+	return package;
+}
+
+t_package* create_uint32_package(int op_code, uint32_t message)
+{
+	t_package* package = create_empty_package(op_code);
+    package->size = sizeof(uint32_t);
+	package->buffer = message;
+	return package;
+}
+
 void* serialize_package(t_package* package,int bytes)
 {
 	void * serde_pkg = malloc(bytes);
