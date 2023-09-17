@@ -3,6 +3,7 @@
 #include "consola.h"
 #include <readline/readline.h>
 #include <commons/string.h>
+#include <planificadores/planificador.h>
 
 void finalizar_proceso(){}
 void detener_planificacion(){}
@@ -23,8 +24,9 @@ void consola_interactiva(){
 		while (strcmp(linea,"\0")!=0) {
 			parametros = string_split(linea, " ");
 			if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
+				prueba_agregar_proceso_a_NEW();
 				printf("%s\n", parametros[2]);
-				t_pcb* pcb = crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+				//crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 			}
 			else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 				finalizar_proceso();
