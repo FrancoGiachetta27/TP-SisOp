@@ -12,7 +12,7 @@ t_memory_cfg memory_config;
 int main(int argc, char* argv[]) {
 	t_utils* utils = create_initial_config(argc, argv, LOGS_MEMORIA, true, LOG_LEVEL_TRACE);
 	if (utils == NULL) return EXIT_FAILURE;
-
+	
 	init_memory(utils, &memory_config);
 
 	t_conn* conn = start_server_ports(utils);

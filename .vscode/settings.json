@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "connection.h": "c",
+        "package.h": "c",
+        "decode.h": "c",
+        "log.h": "c",
+        "string.h": "c",
+        "list.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
