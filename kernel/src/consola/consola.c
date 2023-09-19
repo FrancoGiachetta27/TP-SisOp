@@ -23,7 +23,7 @@ void consola_interactiva(){
 		while (strcmp(linea,"\0")!=0) {
 			parametros = string_split(linea, " ");
 			if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
-				prueba_agregar_proceso_a_NEW();
+				//prueba_agregar_proceso_a_NEW();
 				//crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 				printf("%s\n", parametros[2]);
 			}
@@ -41,6 +41,7 @@ void consola_interactiva(){
 			}
 			else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
 				listar_procesos_por_estado();
+				prueba_elementos_cola_bloqueados();
 			}
 			else {
 				printf("\nComando no reconocido, intente de nuevo corroborando espacios entre parametros y su sintaxis\n");

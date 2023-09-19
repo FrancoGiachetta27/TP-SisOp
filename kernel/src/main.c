@@ -10,7 +10,7 @@
 int main(int argc, char* argv[]) {
 	t_utils* utils = create_initial_config(argc, argv, LOGS_KERNEL, true, LOG_LEVEL_TRACE);
 	if (utils == NULL) return EXIT_FAILURE;
-	iniciar_planificadores();
+	iniciar_planificadores(utils);
 	consola_interactiva(); //Mover luego de crear las conexiones
 
 
