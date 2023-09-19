@@ -1,0 +1,47 @@
+#include <instruction_memory/instructions/instructions.h>
+
+t_list *get_instructions_from_file(t_log *logger, char *file_path)
+{
+    string_trim(&file_path);
+    FILE *pseudo_code_file = fopen(file_path, "r");
+
+    if (pseudo_code_file == NULL)
+    {
+        log_error(logger, "Error al leer el archivo pseudo codigo");
+
+        return NULL;
+    }
+
+    char *line = NULL;
+    char *instruction;
+    size_t instruction_len = 0;
+    t_list *instructions = list_create();
+
+    while (getline(&line, &instruction_len, pseudo_code_file) != -1)
+    {
+        instruction = string_from_format("%s", line);
+        string_trim(&instruction);
+        list_add(instructions, instruction);
+    }
+
+    fclose(pseudo_code_file);
+    if (line)
+        free(line);
+
+    return instructions;
+}
+
+char *fetch_next_instruction(int pid, int program_pointer)
+{
+    int _is_pid(t_process * process)
+    {
+        return process->pid == pid;
+    };
+
+    t_process *current_process = (t_process *)list_find(active_processes, (void *)_is_pid);
+
+    if (current_process == NULL || list_size(current_process->instructions_set) == program_pointer)
+        return NULL;
+
+    return list_get(current_process->instructions_set, program_pointer);
+}
