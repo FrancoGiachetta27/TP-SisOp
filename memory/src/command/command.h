@@ -9,6 +9,7 @@
 #include <initial_configuration/server_start.h>
 #include <instruction_memory/process/process.h>
 #include <instruction_memory/instructions/instructions.h>
+#include <initial_configuration/memory_config.h>
 
 typedef struct {
     t_dictionary* dict;

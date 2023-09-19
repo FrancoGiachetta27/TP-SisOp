@@ -19,24 +19,25 @@ void *wait_for_command(t_thread *thread_info)
             free(message);
             break;
         case PAGE_SIZE:
-            t_package *package = NULL;
-            send_package(package, thread_info->port, thread_info->logger);
-            destroy_package(package);
+            t_package* package_page = create_integer_package(PAGE_SIZE, memory_config.page_size);
+            send_package(package_page, thread_info->port, thread_info->logger);
+            destroy_package(package_page);
             break;
         case CREATE_PROCESS:
             // void* package = receive_buffer(thread_info->port, thread_info->logger);
             // create_process(thread_info->logger, file_name);
-            // t_package* package = crate_string_package(MEMORY_OK, ("Se crea el proceso %d en NEW", pid));
-            // send_package(package, thread_info->port, thread_info->logger);
-            // destroy_package(package);
+            // t_package* package_process = crate_string_package(MEMORY_OK, ("Se crea el proceso %d en NEW", pid));
+            // send_package(package_process, thread_info->port, thread_info->logger);
+            // destroy_package(package_process);
             // ...
             break;
         case FETCH_INSTRUCTION:
-            // int program_pointer = receive_buffer(thread_info->port, thread_info->logger);
-            // char* next_instruction = fetch_next_instruction(program_pointer);
-            // t_package* package = crate_string_package(MEMORY_OK, next_instruction);
-            // send_package(package, thread_info->port, thread_info->logger);
-            // destroy_package(package);
+            int pid = *(int*) receive_buffer(thread_info->port, thread_info->logger);
+            int program_pointer = *(int*) receive_buffer(thread_info->port, thread_info->logger);
+            char* next_instruction = fetch_next_instruction(pid, program_pointer);
+            t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
+            send_package(package_instruct, thread_info->port, thread_info->logger);
+            destroy_package(package_instruct);
             break;
         default:
             log_error(thread_info->logger, "Unknown OpCode");

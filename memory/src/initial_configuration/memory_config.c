@@ -1,8 +1,9 @@
 #include <initial_configuration/memory_config.h>
 
-void init_memory(t_utils* utils, t_memory_cfg* memory_config) {
-    t_config* config = utils->config;
-    t_list* active_processes = list_create(); // a list to keep track of every active process 
+t_memory_cfg memory_config;
+
+void init_memory(t_config* config, t_memory_cfg* memory_config, t_list** active_processes) {
+    *active_processes = list_create(); // a list to keep track of every active process 
 
     memory_config->memory_size = config_get_int_value(config, "TAM_MEMORIA");
     memory_config->page_size = config_get_int_value(config, "TAM_PAGINA");
