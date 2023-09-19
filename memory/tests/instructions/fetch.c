@@ -20,7 +20,7 @@ context(example)
 
         before {
             init_memory(config, &memory_config, &active_processes);
-            create_process(logger, 1, "primero.txt");
+            create_process(logger, 1, "primero.txt", 0);
         }end
 
         it("Fetch next instruction"){
