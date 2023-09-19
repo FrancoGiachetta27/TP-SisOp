@@ -24,8 +24,9 @@ void consola_interactiva(){
 			parametros = string_split(linea, " ");
 			if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 				//prueba_agregar_proceso_a_NEW();
-				//crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+				crear_proceso(parametros[1],parametros[2],parametros[3]); //esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 				printf("%s\n", parametros[2]);
+
 			}
 			else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 				finalizar_proceso();

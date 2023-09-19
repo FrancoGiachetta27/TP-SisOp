@@ -10,7 +10,7 @@ typedef struct t_pcb {
 
 }t_pcb;
 
-
+extern uint32_t sig_PID;
 t_list* lista_estado_NEW;
 t_list* lista_estado_READY;
 t_list** cola_estado_BLOCKED;
@@ -18,7 +18,11 @@ t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
 void consultar_con_memoria_espacio_disp(){}; //Usar un bool con un if
-void avisar_a_memoria_nuevo_proceso(){};
+void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre){
+	char* nombreArchivo = string_from_format("%s\.%s",nombreArchivo, "txt" );
+
+	printf("\n%s", nombreArchivo);
+};
 
 uint32_t obtener_cantidad_dispositivos(char* dispositivos){
 	printf("%s", dispositivos);
@@ -73,7 +77,7 @@ void crear_proceso(char* source, char* tamanio, char* prioridad){
 	consultar_con_memoria_espacio_disp();
 	t_pcb* nuevoPCB = crear_pcb(sig_PID, atoi(tamanio), atoi(prioridad));
 	agregar_pcb_a_cola_NEW(nuevoPCB);
-	avisar_a_memoria_nuevo_proceso();
+	//avisar_a_memoria_nuevo_proceso(nuevoPCB->pid,nuevoPCB->tamanio,source);
 }
 void listar_procesos_por_estado(){}
 
