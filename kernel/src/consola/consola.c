@@ -1,13 +1,11 @@
 //#include <stdlib.h>
 //#include <stdio.h>
 //#include <readline/readline.h>
-
-#include "consola.h"
-
 //#include <commons/string.h>
 //#include <planificadores/planificador.h>
 //#include <planificadores/planificador.c>
 
+#include "consola.h"
 
 void consola_interactiva(t_log* logger, t_conn* conn){
 	printf("[1]-INICIAR_PROCESO [PATH] [SIZE] [PRIORIDAD]\n");
@@ -23,8 +21,9 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 		free(linea);
 		if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 			printf("%s\n", parametros[2]);
-			t_pcb* pcbCreado = crear_proceso(parametros[1], parametros[2], parametros[3]);
-			avisar_a_memoria_nuevo_proceso(pcbCreado->pid, pcbCreado->tamanio, parametros[1],logger ,conn);//esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+			prueba_agregar_proceso_a_NEW();
+			//t_pcb* pcbCreado = crear_proceso(parametros[1], parametros[2], parametros[3]);
+			//avisar_a_memoria_nuevo_proceso(pcbCreado->pid, pcbCreado->tamanio, parametros[1],logger ,conn);//esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 			finalizar_proceso();

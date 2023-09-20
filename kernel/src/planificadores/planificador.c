@@ -6,6 +6,8 @@ t_list** cola_estado_BLOCKED;
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
+uint32_t sig_PID;
+
 void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre,t_log* logger, t_conn* conn){
 	/*char* nombreArchivo = string_from_format("%s.%s",nombre, "txt" );
 	printf("\n%s", nombreArchivo);
@@ -28,13 +30,20 @@ void iniciar_planificadores(t_utils* config_kernel){
 	lista_estado_NEW =  list_create();
 	lista_estado_READY = list_create();
 	lista_estado_EXIT = list_create();
-	//cola_estado_BLOCKED = list_create();
+	cola_estado_BLOCKED = list_create();
 
 	uint32_t dispDeSalida = obtener_cantidad_dispositivos(config_get_string_value(config_kernel->config,"INSTANCIAS_RECURSOS"));
 	printf("cantidad de dispositivos = %d", dispDeSalida);
 	for(int i = 0; i <= dispDeSalida - 1; i++){
 		cola_estado_BLOCKED[i] = list_create();
 	}
+}
+
+uint32_t obt_sig_PID() {
+    pthread_mutex_lock(&siguientePIDmutex);
+    uint32_t nuevoPID = sig_PID + 1;
+    pthread_mutex_unlock(&siguientePIDmutex);
+    return nuevoPID;
 }
 
 /*t_list* obtener_lista_de_instrucciones(char* path_archivo){
@@ -74,6 +83,16 @@ t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
 }
 void listar_procesos_por_estado(){}
 
+void finalizar_proceso(){};
+
+void detener_planificacion(){};
+
+void reiniciar_planificacion(){};
+
+void cambiar_grado_multiprogramacion(){};
+
+void consultar_con_memoria_espacio_disp(){};
+
 void prueba_elementos_cola_bloqueados(){
 	printf("\n Llego aca\n");
 	t_pcb* nuevoPCB = crear_pcb(1,2,2);
@@ -108,12 +127,15 @@ void prueba_elementos_cola_bloqueados(){
 
 void prueba_agregar_proceso_a_NEW(){
 	printf("\n Llego aca\n");
-	t_pcb* nuevoPCB = crear_pcb(1,2,2);
+	t_pcb* nuevoPCB = crear_pcb(sig_PID,2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
-	nuevoPCB = crear_pcb(2,2,2);
+	sig_PID = obt_sig_PID();
+	nuevoPCB = crear_pcb(sig_PID,2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
-	nuevoPCB = crear_pcb(3,2,2);
+	sig_PID = obt_sig_PID();
+	nuevoPCB = crear_pcb(sig_PID,2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
+	sig_PID = obt_sig_PID();
 	uint32_t cantElem = list_size(lista_estado_NEW);
 	int i;
 	for (i = 0; i <= cantElem - 1; i++){
