@@ -10,7 +10,8 @@
 enum MODULOS {
 	FILESYSTEM = 1,
 	CPU = 2,
-	KERNEL = 3
+	MEMORY = 3,
+	KERNEL = 4
 };
 
 int receive_handshake(int cliente, t_log* logger);

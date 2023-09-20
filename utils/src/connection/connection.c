@@ -47,6 +47,7 @@ int start_server(char* port, t_log* logger)
 		log_error(logger, "Fallo al crear el servidor");
 		return -1;
 	}
+
 	int bind_result = bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
 	if (bind_result != 0) {
 		log_error(logger, "Fallo al hacer el bind en el servidor");
@@ -65,4 +66,16 @@ int wait_for_client(int server_fd, t_log* logger) {
 	int socket_cliente = accept(server_fd, NULL, NULL);
 	if (socket_cliente == -1) log_error(logger, "Error al aceptar un cliente");
 	return socket_cliente;
+}
+
+int check_recv(int result, t_log* logger) {
+	if (result == 0) {
+		log_trace(logger, "Se corto la conexion con el cliente");
+		return -1;
+	}
+	if (result == -1) {
+		log_error(logger, "Error al recibir el op_code");
+		return -1;
+	}
+	return 0;
 }

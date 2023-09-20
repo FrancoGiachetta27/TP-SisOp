@@ -11,10 +11,10 @@ int start_server_port(t_utils* utils) {
 		return -1;
 	}
 	log_trace(utils->logger, "Se inicio correctamente el server");
-	int initial_handshake_result = wait_for_initial_handshake_from_kernel(server_fd, utils->logger);
-	if (initial_handshake_result == -1) {
+	int socket_kernel = wait_for_initial_handshake_from_kernel(server_fd, utils->logger);
+	if (socket_kernel == -1) {
 		utils_destroy(utils);
 		return -1;
 	}
-	return server_fd;
+	return socket_kernel;
 }

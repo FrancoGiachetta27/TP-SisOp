@@ -1,27 +1,20 @@
 #include "planificador.h"
 
-typedef struct t_pcb {
-
-    uint32_t pid;
-    uint32_t tamanio;
-    uint32_t programCounter;
-    uint32_t prioridad;
-    char* nom_arch_inst;
-
-}t_pcb;
-
-extern uint32_t sig_PID;
 t_list* lista_estado_NEW;
 t_list* lista_estado_READY;
 t_list** cola_estado_BLOCKED;
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
-void consultar_con_memoria_espacio_disp(){}; //Usar un bool con un if
-void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre){
-	char* nombreArchivo = string_from_format("%s\.%s",nombreArchivo, "txt" );
-
+void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre,t_log* logger, t_conn* conn){
+	/*char* nombreArchivo = string_from_format("%s.%s",nombre, "txt" );
 	printf("\n%s", nombreArchivo);
+	t_package* nuevoPaquete = create_empty_package(CREATE_PROCESS);
+	void* buffer = serializar_proceso_nuevo(id, tamanio, nombre);
+	int tamanioBuffer = 2 * sizeof(uint32_t) + string_length(nombre) + 1;
+	nuevoPaquete->buffer = buffer;
+	send_package(nuevoPaquete, conn->memory_socket, logger);
+	destroy_package(nuevoPaquete);*/
 };
 
 uint32_t obtener_cantidad_dispositivos(char* dispositivos){
@@ -35,7 +28,7 @@ void iniciar_planificadores(t_utils* config_kernel){
 	lista_estado_NEW =  list_create();
 	lista_estado_READY = list_create();
 	lista_estado_EXIT = list_create();
-	cola_estado_BLOCKED = list_create();
+	//cola_estado_BLOCKED = list_create();
 
 	uint32_t dispDeSalida = obtener_cantidad_dispositivos(config_get_string_value(config_kernel->config,"INSTANCIAS_RECURSOS"));
 	printf("cantidad de dispositivos = %d", dispDeSalida);
@@ -73,11 +66,11 @@ void agregar_pcb_a_cola_NEW(t_pcb* pcb){
 
 
 
-void crear_proceso(char* source, char* tamanio, char* prioridad){
+t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
 	consultar_con_memoria_espacio_disp();
 	t_pcb* nuevoPCB = crear_pcb(sig_PID, atoi(tamanio), atoi(prioridad));
 	agregar_pcb_a_cola_NEW(nuevoPCB);
-	//avisar_a_memoria_nuevo_proceso(nuevoPCB->pid,nuevoPCB->tamanio,source);
+	return nuevoPCB;
 }
 void listar_procesos_por_estado(){}
 
