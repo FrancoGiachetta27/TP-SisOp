@@ -1,6 +1,6 @@
 #include <command/dispatch.h>
 
-int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket) {
+int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, t_reg* registers, int page_size) {
     int op_code = receive_op_code(ports->dispatch_fd, utils->logger);
 	if (op_code == -1) return -1;
 	while (op_code)
@@ -16,6 +16,12 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket) 
 				t_package* package = create_string_package(ECHO_MEMORY, "ECHO To Memory from CPU");
 				send_package(package, memory_socket, utils->logger);
 				break;
+			case INSTRUCTION:
+				int program_counter = 1;
+				int pid = 1;
+				char* instruction = fetch(&program_counter, pid, memory_socket, utils->logger);
+				t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
+				execute(registers, formatted_instruction, utils->logger);
 			default:
 				log_error(utils->logger, "Unknown OpCode");
 				return -1;

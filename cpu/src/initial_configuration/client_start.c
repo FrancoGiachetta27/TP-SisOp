@@ -25,3 +25,24 @@ int connect_to_memory(t_utils* utils) {
 	}
 	return memory_socket;
 }
+
+int* get_page_size_of_memory(int memory_socket, t_utils* utils) {
+	const int page_size_command = 4;
+	if (send(memory_socket, &page_size_command, sizeof(int), 0) == -1) {
+		log_error(utils->logger, "Error al enviar el comando");
+		utils_destroy_with_connection(utils, memory_socket);
+		return NULL;
+	}
+	int op_code = receive_op_code(memory_socket, utils->logger);
+	if (op_code != page_size_command) {
+		utils_destroy_with_connection(utils, memory_socket);
+		return NULL;
+	}
+	int* page_size = receive_buffer(memory_socket, utils->logger);
+	if (page_size != NULL) {
+		utils_destroy_with_connection(utils, memory_socket);
+		return NULL;
+	}
+	log_trace(utils->logger, "Page Size: %d", *page_size);
+	return page_size;
+}

@@ -33,5 +33,5 @@ t_pag* mmu_translate(char* logic_direction, int page_size) {
 }
 
 void destroy_instruction(t_ins ins) {
-    list_destroy_and_destroy_elements(ins.params);
+    list_destroy(ins.params);
 }

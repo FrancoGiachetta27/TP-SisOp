@@ -19,9 +19,19 @@ int main(int argc, char* argv[]) {
 		close(memory_socket);
 		return EXIT_FAILURE;
 	}
-	int commands_result = wait_for_dispatch_command(utils, ports, memory_socket);
+
+	int* page_size = get_page_size_of_memory(memory_socket, utils);
+	if (page_size == NULL) {
+		free(ports);
+		free(page_size);
+		return EXIT_FAILURE;
+	}
+
+	t_reg registers;
+	int commands_result = wait_for_dispatch_command(utils, ports, memory_socket, &registers, *page_size);
 
 	utils_destroy_with_connection(utils, memory_socket);
 	free(ports);
+	free(page_size);
     return commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

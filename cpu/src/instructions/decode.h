@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <commons/log.h>
-#include <commons/string.h>
+// #include <commons/string.h>
 #include <commons/collections/list.h>
 
 typedef struct {
@@ -14,9 +14,10 @@ typedef struct {
 typedef struct {
     char* instruction;
     t_list* params;
-    numero
 } t_ins;
 
-char** decode(char* instruction, int tamanio_pagina, int numero_pagina, t_log* logger);
+t_ins decode(char* instruction, int page_size, t_log* logger);
+t_pag* mmu_translate(char* logic_direction, int page_size);
+void destroy_instruction(t_ins ins);
 
 #endif /* SRC_INSTRUCTIONS_DECODE_H_ */

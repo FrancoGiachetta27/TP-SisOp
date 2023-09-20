@@ -5,7 +5,14 @@
         "decode.h": "c",
         "log.h": "c",
         "string.h": "c",
-        "list.h": "c"
-    },
-    "C_Cpp.errorSquiggles": "disabled"
+        "list.h": "c",
+        "execute.h": "c",
+        "cspec.h": "c",
+        "fetch.h": "c",
+        "dispatch.h": "c",
+        "interrupt.h": "c",
+        "server_start.h": "c",
+        "client_start.h": "c",
+        "handshake.h": "c"
+    }
 }

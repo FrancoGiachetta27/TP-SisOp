@@ -6,26 +6,35 @@
 context (example) {
     describe("Testing Execute") {
         it("SET instruction") {
-            char **inst = string_split("SET AX 55", " ");
+            t_list* params = list_create();
+            t_ins ins = { .instruction = "SET", .params = params };
+            list_add(ins.params, "AX");
+            list_add(ins.params, "55");
             t_reg reg;
-            execute(&reg, inst, NULL);
+            execute(&reg, ins, NULL);
             should_int(reg.AX) be equal to (55);
         } end
         it("SUM instruction") {
-            char** inst = string_split("SUM AX BX", " ");
+            t_list* params = list_create();
+            t_ins ins = { .instruction = "SUM", .params = params };
+            list_add(ins.params, "AX");
+            list_add(ins.params, "BX");
             t_reg reg;
             reg.AX = 20;
             reg.BX = 10;
-            execute(&reg, inst, NULL);
+            execute(&reg, ins, NULL);
             should_int(reg.BX) be equal to (10);
             should_int(reg.AX) be equal to (30);
         } end
         it("SUB instruction") {
-            char** inst = string_split("SUB AX BX", " ");
+            t_list* params = list_create();
+            t_ins ins = { .instruction = "SUB", .params = params };
+            list_add(ins.params, "AX");
+            list_add(ins.params, "BX");
             t_reg reg;
             reg.AX = 50;
             reg.BX = 10;
-            execute(&reg, inst, NULL);
+            execute(&reg, ins, NULL);
             should_int(reg.BX) be equal to (10);
             should_int(reg.AX) be equal to (40);
         } end
