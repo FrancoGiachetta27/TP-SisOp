@@ -39,7 +39,7 @@ int* get_page_size_of_memory(int memory_socket, t_utils* utils) {
 		return NULL;
 	}
 	int* page_size = receive_buffer(memory_socket, utils->logger);
-	if (page_size != NULL) {
+	if (page_size == NULL) {
 		utils_destroy_with_connection(utils, memory_socket);
 		return NULL;
 	}

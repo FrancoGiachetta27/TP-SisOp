@@ -21,7 +21,8 @@ t_package* create_integer_package(int op_code, int message)
 {
 	t_package* package = create_empty_package(op_code);
     package->size = sizeof(int);
-	package->buffer = message;
+	package->buffer = malloc(sizeof(int));
+	memcpy(package->buffer, &message, sizeof(int));
 	return package;
 }
 
@@ -29,7 +30,8 @@ t_package* create_uint32_package(int op_code, uint32_t message)
 {
 	t_package* package = create_empty_package(op_code);
     package->size = sizeof(uint32_t);
-	package->buffer = message;
+	package->buffer = malloc(sizeof(uint32_t));
+	memcpy(package->buffer, &message, sizeof(uint32_t));
 	return package;
 }
 
@@ -60,9 +62,10 @@ void send_package(t_package* package, int client_socket, t_log* logger)
 	destroy_package(package);
 }
 
-void destroy_package(t_package* paquete)
+void destroy_package(t_package* package)
 {
-	free(paquete);
+	free(package->buffer);
+	free(package);
 }
 
 int receive_op_code(int cliente, t_log* logger) {
