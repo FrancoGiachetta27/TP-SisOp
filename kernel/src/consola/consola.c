@@ -25,7 +25,7 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 			avisar_a_memoria_nuevo_proceso(pcbCreado->pid, pcbCreado->tamanio, parametros[1],logger ,conn);//esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
-			finalizar_proceso();
+			finalizar_proceso(atoi(parametros[1]));
 		}
 		else if(strcmp(parametros[0],"DETENER_PLANIFICACION")==0){
 			detener_planificacion();

@@ -13,6 +13,7 @@
 #include <config/config.h>
 #include <pthread.h>
 #include <initial_configuration/client_start.h>
+#include <semaphore.h>
 
 
 typedef struct pcb{
@@ -22,6 +23,7 @@ typedef struct pcb{
     uint32_t programCounter;
     uint32_t prioridad;
     char* nom_arch_inst;
+    char* estado;
 
 }t_pcb;
 
