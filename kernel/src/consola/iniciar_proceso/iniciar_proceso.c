@@ -4,18 +4,15 @@ uint32_t sig_PID;
 
 void iniciar_proceso(char* source, char* size, char* priority, t_log* logger, t_conn* conn) {
     t_pcb* pcbCreado = crear_proceso(source, size, priority);
-	avisar_a_memoria_nuevo_proceso(pcbCreado->pid, pcbCreado->tamanio, source, logger, conn);
+	avisar_a_memoria_nuevo_proceso(pcbCreado, logger, conn);
 }
 
-void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre,t_log* logger, t_conn* conn){
-	/*char* nombreArchivo = string_from_format("%s.%s",nombre, "txt" );
-	printf("\n%s", nombreArchivo);
+void avisar_a_memoria_nuevo_proceso(t_pcb* pcb, t_log* logger, t_conn* conn) {
 	t_package* nuevoPaquete = create_empty_package(CREATE_PROCESS);
-	void* buffer = serializar_proceso_nuevo(id, tamanio, nombre);
-	int tamanioBuffer = 2 * sizeof(uint32_t) + string_length(nombre) + 1;
+	void* buffer = serialize_pcb(pcb);
 	nuevoPaquete->buffer = buffer;
+	nuevoPaquete->size = serialized_pcb_size(pcb->nom_arch_inst);
 	send_package(nuevoPaquete, conn->memory_socket, logger);
-	destroy_package(nuevoPaquete);*/
 };
 
 void consultar_con_memoria_espacio_disp() {}

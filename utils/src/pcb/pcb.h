@@ -27,11 +27,12 @@ typedef struct pcb {
     uint32_t prioridad;
     char* nom_arch_inst;
     t_reg registers;
-    int estado;
+    uint32_t estado;
 } t_pcb;
 
-t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t prioridad);
-void* serializar_proceso_nuevo(uint32_t id, uint32_t tamanio, char* nombre);
+int serialized_pcb_size(char* arch_name);
+t_reg create_empty_registers();
+t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority);
 void* serialize_pcb(t_pcb* pcb);
 void* serialize_registers(t_reg registers);
 t_reg deserialize_registers(void* buffer);

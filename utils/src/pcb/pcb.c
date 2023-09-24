@@ -1,26 +1,30 @@
 #include "pcb.h"
 
-t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t prioridad){
+t_reg create_empty_registers() {
+	t_reg registers;
+	registers.AX = 0;
+	registers.BX = 0;
+	registers.CX = 0;
+	registers.DX = 0;
+	return registers;
+}
+
+t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority){
 	t_pcb* nuevoPCB = malloc(sizeof(*nuevoPCB));
 	nuevoPCB->pid = pid;
 	nuevoPCB->tamanio = tamanio;
 	nuevoPCB->programCounter = 0;
-	nuevoPCB->prioridad = prioridad;
+	nuevoPCB->prioridad = priority;
 	nuevoPCB->nom_arch_inst = name;
 	nuevoPCB->estado = NEW;
+	nuevoPCB->registers=create_empty_registers();
     printf("\n Nuevo PCB creado con id %d,tamanio %d y prioridad %d \n", nuevoPCB->pid,nuevoPCB->tamanio,nuevoPCB->prioridad);
 	return nuevoPCB;
 }
 
-void* serializar_proceso_nuevo(uint32_t id, uint32_t tamanio, char* nombre){
-	void* bufferNuevo;
-	int tamanioString = string_length(nombre) + 1;
-	bufferNuevo = malloc(2*sizeof(uint32_t) + tamanioString  + sizeof(int));
-	memcpy(bufferNuevo, &id, sizeof(uint32_t));
-	memcpy(bufferNuevo, &tamanio, sizeof(uint32_t));
-	memcpy(bufferNuevo, &tamanioString, sizeof(int));
-	memcpy(bufferNuevo, nombre, tamanioString);
-	return bufferNuevo;
+int serialized_pcb_size(char* arch_name) {
+	int arch_name_size = strlen(arch_name) + 1;
+	return 8*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int);
 }
 
 void* serialize_pcb(t_pcb* pcb){
@@ -74,7 +78,7 @@ t_reg deserialize_registers(void* buffer) {
 }
 
 t_pcb* deserialize_pcb(void* buffer) {
-	t_pcb* pcb = malloc(sizeof(t_pcb*));
+	t_pcb* pcb = malloc(sizeof(*pcb));
 	int offset = 0;
 	memcpy(&pcb->pid, buffer + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
@@ -102,6 +106,5 @@ t_pcb* deserialize_pcb(void* buffer) {
 }
 
 void destroy_pcb(t_pcb* pcb) {
-	free(pcb->nom_arch_inst);
 	free(pcb);
 }
