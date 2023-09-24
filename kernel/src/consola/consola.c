@@ -17,12 +17,9 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 	char* linea = readline(">");
 	while (!string_is_empty(linea)) {
 		char **parametros = string_split(linea, " ");
-
 		free(linea);
 		if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
-			printf("%s\n", parametros[2]);
-			t_pcb* pcbCreado = crear_proceso(parametros[1], parametros[2], parametros[3]);
-			avisar_a_memoria_nuevo_proceso(pcbCreado->pid, pcbCreado->tamanio, parametros[1],logger ,conn);//esto se va a cambiar por la instruccion de crear proceso o lo q hagamos
+			iniciar_proceso(parametros[1], parametros[2], parametros[3], logger, conn);
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 			finalizar_proceso(atoi(parametros[1]));
@@ -31,13 +28,13 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 			detener_planificacion();
 		}
 		else if(strcmp(parametros[0],"INICIAR_PLANIFICACION")==0){
-			reiniciar_planificacion();
+			iniciar_planificacion();
 		}
 		else if(strcmp(parametros[0],"MULTIPROGRAMACION")==0){
 			cambiar_grado_multiprogramacion();
 		}
 		else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
-			listar_procesos_por_estado();
+			listar_procesos_por_estados();
 		}
 		else if(strcmp(parametros[0],"ECHO")==0){
 			int number = atoi(parametros[1]);

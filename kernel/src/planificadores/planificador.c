@@ -11,19 +11,9 @@ pthread_mutex_t estados_mutex;
 sem_t grd_mult;
 sem_t nuevoPcbEnSist;
 sem_t nuevoPcbEnExit;
+sem_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
-
-void avisar_a_memoria_nuevo_proceso(uint32_t id, uint32_t tamanio, char* nombre,t_log* logger, t_conn* conn){
-	/*char* nombreArchivo = string_from_format("%s.%s",nombre, "txt" );
-	printf("\n%s", nombreArchivo);
-	t_package* nuevoPaquete = create_empty_package(CREATE_PROCESS);
-	void* buffer = serializar_proceso_nuevo(id, tamanio, nombre);
-	int tamanioBuffer = 2 * sizeof(uint32_t) + string_length(nombre) + 1;
-	nuevoPaquete->buffer = buffer;
-	send_package(nuevoPaquete, conn->memory_socket, logger);
-	destroy_package(nuevoPaquete);*/
-};
 
 uint32_t obtener_cantidad_dispositivos(char* dispositivos){
 	printf("%s", dispositivos);
@@ -40,7 +30,7 @@ void atender_procesos_en_EXIT(){
 	}
 }
 
-void  planificador_largo_plazo() {
+void planificador_largo_plazo() {
     pthread_t atenderExit;
     pthread_create(&atenderExit, NULL, (void*)atender_procesos_en_EXIT, NULL);
     pthread_detach(atenderExit);
@@ -93,67 +83,17 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb){
 void agregar_pcb_a_cola_EXIT(t_pcb* pcb){
 	//pensar manera de obtener la lista en la q se encuentra el pcb
 }
-void eliminar_proceso(t_pcb* pcb){
-	//borrar estructuras, avisar a memoria
-}
-t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
-	consultar_con_memoria_espacio_disp();
-	t_pcb* nuevoPCB = crear_pcb(sig_PID, atoi(tamanio), atoi(prioridad));
-	agregar_pcb_a_cola_NEW(nuevoPCB);
-	sem_post(&nuevoPcbEnSist);
-	return nuevoPCB;
-}
 
-void finalizar_proceso(uint32_t pid){
-	t_pcb* pcb = encontrarProcesoPorPID(pid);
-	agregar_pcb_a_cola_EXIT(pcb);
-	sem_post(&nuevoPcbEnExit);
-};
-
-void listar_proceso(t_list* lista){
-	int i = 0;
-	t_pcb* pcb;
-	int cantElem = lista->elements_count;
-	for(i = 0; i <= cantElem - 1; i++){
-		pcb = list_get(lista,i);
-		printf("Proceso : %d\n", pcb->pid);
-	}
-}
-
-void listar_procesos_por_estado(){
-	printf("Listado procesos en NEW:\n");
-	listar_proceso(lista_estado_NEW);
-	printf("Listado procesos en READY:\n");
-	listar_proceso(lista_estado_READY);
-	printf("Listado procesos en EXIT:\n");
-	listar_proceso(lista_estado_EXIT);
-	printf("Proceso en EXECUTE: %d", estado_EXEC->pid);
-	for(int j = 0; j <= dispDeSalida - 1; j++){
-		printf("Listado procesos en BLOCKED disp %d", j);
-		listar_proceso(cola_estado_BLOCKED[j]);
-	}
-
-}
-
-
-
-void detener_planificacion(){};
-
-void reiniciar_planificacion(){};
-
-void cambiar_grado_multiprogramacion(){};
-
-void consultar_con_memoria_espacio_disp(){};
-
+// Pasarlos a tests!!!
 void prueba_elementos_cola_bloqueados(){
 	printf("\n Llego aca\n");
-	t_pcb* nuevoPCB = crear_pcb(1,2,2);
+	t_pcb* nuevoPCB = crear_pcb(1,"name", 2,2);
 	list_add(cola_estado_BLOCKED[0], nuevoPCB);
-	nuevoPCB = crear_pcb(4,2,2);
+	nuevoPCB = crear_pcb(4,"name",2,2);
 	list_add(cola_estado_BLOCKED[0], nuevoPCB);
-	nuevoPCB = crear_pcb(2,2,2);
+	nuevoPCB = crear_pcb(2,"name",2,2);
 	list_add(cola_estado_BLOCKED[1], nuevoPCB);
-	nuevoPCB = crear_pcb(3,2,2);
+	nuevoPCB = crear_pcb(3,"name",2,2);
 	list_add(cola_estado_BLOCKED[2], nuevoPCB);
 	uint32_t cantElem0 = list_size(cola_estado_BLOCKED[0]);
 	uint32_t cantElem1 = list_size(cola_estado_BLOCKED[1]);
@@ -179,13 +119,13 @@ void prueba_elementos_cola_bloqueados(){
 
 void prueba_agregar_proceso_a_NEW(){
 	printf("\n Llego aca\n");
-	t_pcb* nuevoPCB = crear_pcb(sig_PID,2,2);
+	t_pcb* nuevoPCB = crear_pcb(sig_PID,"name",2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
 	sig_PID = obt_sig_PID();
-	nuevoPCB = crear_pcb(sig_PID,2,2);
+	nuevoPCB = crear_pcb(sig_PID,"name",2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
 	sig_PID = obt_sig_PID();
-	nuevoPCB = crear_pcb(sig_PID,2,2);
+	nuevoPCB = crear_pcb(sig_PID,"name",2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
 	sig_PID = obt_sig_PID();
 	uint32_t cantElem = list_size(lista_estado_NEW);

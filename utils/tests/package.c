@@ -3,7 +3,7 @@
 #include <cspecs/cspec.h>
 #include <package/package.h>
 
-context (example) {
+context (package) {
     describe("Testing Package") {
         it("Se puede crear un package y romperlo mientras no haya memory leak") {
             int op_code = 1;

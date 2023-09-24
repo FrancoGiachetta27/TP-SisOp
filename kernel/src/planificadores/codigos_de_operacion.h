@@ -1,0 +1,11 @@
+#ifndef SRC_PLANIFICADORES_CODIGO_DE_OPERACION_H_
+#define SRC_PLANIFICADORES_CODIGO_DE_OPERACION_H_
+
+#include <stdlib.h>
+#include <stdio.h>
+
+enum KERNEL_COMMAND {
+    CREATE_PROCESS = 2,
+};
+
+#endif /* SRC_PLANIFICADORES_CODIGO_DE_OPERACION_H_ */

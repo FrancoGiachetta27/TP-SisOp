@@ -6,14 +6,8 @@
 #include <string.h>
 #include <commons/log.h>
 #include <instructions/decode.h>
+#include <pcb/pcb.h>
 // #include <commons/string.h>
-
-typedef struct {
-    uint32_t AX;
-    uint32_t BX;
-    uint32_t CX;
-    uint32_t DX;
-} t_reg;
 
 void execute(t_reg* registers, t_ins complete_instruction, t_log* logger);
 uint32_t* select_register(t_reg* registers, char* reg);
