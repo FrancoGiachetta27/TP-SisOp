@@ -10,6 +10,7 @@
 #include <instruction_memory/process/process.h>
 #include <instruction_memory/instructions/instructions.h>
 #include <initial_configuration/memory_config.h>
+#include <pcb/pcb.h>
 
 typedef struct {
     t_dictionary* dict;
@@ -22,6 +23,7 @@ enum MEMORY_CODE_OP {
     CREATE_PROCESS = 2,
     FETCH_INSTRUCTION = 3,
     PAGE_SIZE = 4,
+    PROCESS_OK = 5,
 };
 
 void wait_in_every_port(t_conn* conn, t_log* logger);

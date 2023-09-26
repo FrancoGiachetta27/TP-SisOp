@@ -41,7 +41,7 @@ char *fetch_next_instruction(int pid, int program_pointer)
     t_process *current_process = (t_process *)list_find(active_processes, (void *)_is_pid);
 
     if (current_process == NULL || list_size(current_process->instructions_set) == program_pointer)
-        return NULL;
+        return "";
 
     return list_get(current_process->instructions_set, program_pointer);
 }
