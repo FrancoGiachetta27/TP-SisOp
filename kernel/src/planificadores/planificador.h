@@ -2,6 +2,7 @@
 #define SRC_PLANIFICADORES_PLANIFICADOR_H_
 
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <pcb/pcb.h>
 #include <package/package.h>
 #include <config/config.h>
@@ -9,23 +10,25 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+typedef struct {
+    int instances;
+    t_list* blocked_list;
+} t_block;
+
 t_list* lista_estado_NEW;
 t_list* lista_estado_READY;
-t_list** cola_estado_BLOCKED;
+t_dictionary* colas_BLOCKED; 
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
-uint32_t dispDeSalida;
-sem_t nuevoPcbEnSist;
-sem_t nuevoPcbEnExit;
+sem_t grd_mult;
+pthread_mutex_t estados_mutex;
+bool working;
 
-uint32_t obtener_cantidad_dispositivos(char* dispositivos);
-void  planificador_largo_plazo(void);
 void iniciar_planificadores(t_utils* utils);
+t_pcb* encontrar_proceso_por_PID(uint32_t pid);
 uint32_t obt_sig_PID();
 
-void agregar_pcb_a_cola_NEW(t_pcb* pcb);
 void agregar_pcb_a_cola_READY(t_pcb* pcb);
-void agregar_pcb_a_cola_EXIT(t_pcb* pcb);
 
 void prueba_agregar_proceso_a_NEW();
 

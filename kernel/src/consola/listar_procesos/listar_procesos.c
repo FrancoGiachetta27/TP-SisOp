@@ -17,10 +17,16 @@ void listar_procesos_por_estados(){
 	listar_proceso(lista_estado_READY);
 	printf("Listado procesos en EXIT:\n");
 	listar_proceso(lista_estado_EXIT);
-	printf("Proceso en EXECUTE: %d", estado_EXEC->pid);
-	for(int j = 0; j <= dispDeSalida - 1; j++){
-		printf("Listado procesos en BLOCKED disp %d", j);
-		listar_proceso(cola_estado_BLOCKED[j]);
+	if (estado_EXEC == NULL) {
+		printf("No hay proceso en EXECUTE\n");
+	} else {
+		printf("Proceso en EXECUTE: %d", estado_EXEC->pid);
 	}
 
+	void _list_process_in_blocked(char* key, t_block* block) {
+		printf("Listado procesos de recurso %s\n", key);
+		listar_proceso(block->blocked_list);
+    };
+
+	dictionary_iterator(colas_BLOCKED, (void*) _list_process_in_blocked);
 }

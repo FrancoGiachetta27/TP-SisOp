@@ -21,8 +21,14 @@ t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
 	consultar_con_memoria_espacio_disp();
 	t_pcb* nuevoPCB = crear_pcb(sig_PID, source, atoi(tamanio), atoi(prioridad));
 	agregar_pcb_a_cola_NEW(nuevoPCB);
-	sem_post(&nuevoPcbEnSist);
 	return nuevoPCB;
+}
+
+void agregar_pcb_a_cola_NEW(t_pcb* pcb) {
+	pthread_mutex_lock(&estados_mutex);
+	list_add(lista_estado_NEW, pcb);
+	pthread_mutex_unlock(&estados_mutex);
+	sig_PID = obt_sig_PID();
 }
 
 			
