@@ -1,0 +1,8 @@
+#ifndef SRC_INSTRUCTIONS_COMMANDS_H_
+#define SRC_INSTRUCTIONS_COMMANDS_H_
+
+enum kernel_commands {
+    EXECUTED_INSTRUCTION = 3
+};
+
+#endif /* SRC_INSTRUCTIONS_COMMANDS_H_ */

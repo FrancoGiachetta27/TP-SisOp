@@ -7,9 +7,6 @@ char* fetch(int* program_counter, int pid, int memory_socket, t_log* logger) {
     send_package(package, memory_socket, logger);
     char* instruction = receive_buffer(memory_socket, logger);
     free(serialized_fetch);
-    if (instruction != NULL) {
-        *program_counter++;
-    }
     return instruction;
 }
 

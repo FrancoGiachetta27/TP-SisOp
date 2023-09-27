@@ -1,10 +1,3 @@
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <readline/readline.h>
-//#include <commons/string.h>
-//#include <planificadores/planificador.h>
-//#include <planificadores/planificador.c>
-
 #include "consola.h"
 
 void consola_interactiva(t_log* logger, t_conn* conn){
@@ -31,7 +24,7 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 			iniciar_planificacion();
 		}
 		else if(strcmp(parametros[0],"MULTIPROGRAMACION")==0){
-			cambiar_grado_multiprogramacion();
+			cambiar_grado_multiprogramacion(parametros[1]);
 		}
 		else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
 			listar_procesos_por_estados();

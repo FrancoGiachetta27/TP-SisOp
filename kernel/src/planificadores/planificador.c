@@ -62,12 +62,14 @@ uint32_t obt_sig_PID() {
     return nuevoPID;
 }
 
-void agregar_pcb_a_cola_READY(t_pcb* pcb){
+void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
+	int previous_state = pcb->estado;
 	sem_wait(&grd_mult);
 	pthread_mutex_lock(&estados_mutex);
 	list_add(lista_estado_READY, pcb);
 	pcb->estado = READY;
 	pthread_mutex_unlock(&estados_mutex);
+	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
 }
 
 // Pasarlos a tests!!!

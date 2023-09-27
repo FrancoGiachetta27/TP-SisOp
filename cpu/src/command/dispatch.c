@@ -17,11 +17,17 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 				send_package(package, memory_socket, utils->logger);
 				break;
 			case INSTRUCTION:
-				int program_counter = 1;
-				int pid = 1;
-				char* instruction = fetch(&program_counter, pid, memory_socket, utils->logger);
+				void* buffer = receive_buffer(ports->dispatch_fd, utils->logger);
+				t_pcb* pcb = deserialize_pcb(buffer);
+				char* instruction = fetch(&(pcb->programCounter), pcb->pid, memory_socket, utils->logger);
 				t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
-				execute(registers, formatted_instruction, utils->logger);
+				int continue_executing = execute(pcb, ports, registers, formatted_instruction, utils->logger);
+				if (continue_executing == -1) break;
+				// check interrupt
+				pcb->registers = *registers;
+				pcb->programCounter++;
+				send_pcb(EXECUTED_INSTRUCTION, pcb, ports->dispatch_fd, utils->logger);
+				destroy_pcb(pcb);
 			default:
 				log_error(utils->logger, "Unknown OpCode");
 				return -1;

@@ -6,6 +6,7 @@
 #include <instructions/fetch.h>
 #include <instructions/decode.h>
 #include <instructions/execute.h>
+#include <instructions/commands.h>
 #include <initial_configuration/server_start.h>
 
 enum COMMANDS {

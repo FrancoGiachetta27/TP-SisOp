@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <package/package.h>
 
 typedef struct {
     uint32_t AX;
@@ -38,5 +39,7 @@ void* serialize_registers(t_reg registers);
 t_reg deserialize_registers(void* buffer);
 t_pcb* deserialize_pcb(void* buffer);
 void destroy_pcb(t_pcb* pcb);
+void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger);
+t_pcb* receive_pcb(int client_socket, t_log* logger);
 
 #endif /* SRC_PCB_PCB_H_ */

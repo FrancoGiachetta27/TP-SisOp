@@ -3,9 +3,9 @@
 
 #include <planificadores/planificador.h>
 
-void atender_procesos_en_EXIT();
-void planificador_largo_plazo();
-void iniciar_planificador_largo_plazo();
+void atender_procesos_en_EXIT(t_log* logger);
+void planificador_largo_plazo(t_log* logger);
+void iniciar_planificador_largo_plazo(t_log* logger);
 void eliminar_proceso(t_pcb* pcb);
 
 #endif /* SRC_PLANIFICADORES_LARGO_PLAZO_LARGO_PLAZO_H_ */

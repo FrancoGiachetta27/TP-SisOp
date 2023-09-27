@@ -1,6 +1,6 @@
 #include <instructions/execute.h>
 
-void execute(t_reg* registers, t_ins ins, t_log* logger) {
+int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger) {
     if (strcmp(ins.instruction,"SET")==0) {
         char* reg = list_get(ins.params, 0);
         char* value = list_get(ins.params, 1);
@@ -20,7 +20,7 @@ void execute(t_reg* registers, t_ins ins, t_log* logger) {
     } else if (strcmp(ins.instruction, "WAIT")==0) {
 
     } else if (strcmp(ins.instruction, "SIGNAL")==0) {
-
+        return -1;
     } else if (strcmp(ins.instruction, "MOV_IN")==0) {
 
     } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
@@ -38,9 +38,14 @@ void execute(t_reg* registers, t_ins ins, t_log* logger) {
     } else if (strcmp(ins.instruction, "F_TRUNCATE")==0) {
 
     } else if (strcmp(ins.instruction, "EXIT")==0) {
-
+        pcb->programCounter = -1;
+        destroy_instruction(ins);
+        send_pcb(EXECUTED_INSTRUCTION, pcb, conn->dispatch_fd, logger);
+        destroy_pcb(pcb);
+        return -1;
     }
     destroy_instruction(ins);
+    return 0;
 }
 
 uint32_t* select_register(t_reg* registers, char* string_register) {

@@ -28,7 +28,7 @@ void iniciar_planificadores(t_utils* utils);
 t_pcb* encontrar_proceso_por_PID(uint32_t pid);
 uint32_t obt_sig_PID();
 
-void agregar_pcb_a_cola_READY(t_pcb* pcb);
+void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger);
 
 void prueba_agregar_proceso_a_NEW();
 

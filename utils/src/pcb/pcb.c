@@ -22,6 +22,18 @@ t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority){
 	return nuevoPCB;
 }
 
+void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger) {
+	t_package* package = create_empty_package(op_code);
+    package->size = serialized_pcb_size(pcb->nom_arch_inst);
+    package->buffer = serialize_pcb(pcb);
+    send_package(package, client_socket, logger);
+}
+
+t_pcb* receive_pcb(int client_socket, t_log* logger) {
+	void* buffer = receive_buffer(client_socket, logger);
+   	return deserialize_pcb(buffer);
+}
+
 int serialized_pcb_size(char* arch_name) {
 	int arch_name_size = strlen(arch_name) + 1;
 	return 8*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int);
