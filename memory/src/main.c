@@ -16,10 +16,14 @@ int main(int argc, char* argv[]) {
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
 	
-	// send page whenever cpu is ready
-	receive_op_code(conn->socket_cpu, utils->logger);
-	t_package* package_page = create_integer_package(PAGE_SIZE, memory_config.page_size);
-	send_package(package_page, conn->socket_cpu, utils->logger);
+	int is_ok = send_page_size_to_cpu(conn, utils);
+
+	if(is_ok == NULL) {
+		utils_destroy(utils);
+		free(conn);
+		destroy_memory_config();
+		return EXIT_FAILURE;
+	}
 
 	wait_in_every_port(conn, utils->logger);
 
