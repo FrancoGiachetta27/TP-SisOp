@@ -21,6 +21,7 @@ t_dictionary* colas_BLOCKED;
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 sem_t grd_mult;
+sem_t in_ready;
 pthread_mutex_t estados_mutex;
 bool working;
 

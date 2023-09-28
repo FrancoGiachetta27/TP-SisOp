@@ -5,9 +5,9 @@ t_ins decode(char* instruction, int page_size, t_log* logger) {
     t_ins ins;
     ins.instruction = formatted_ins[0];
     ins.params = list_create();
-    for (int i = 1; i < string_array_size(formatted_ins) - 1; i++)
+    for (int i = 1; i < string_array_size(formatted_ins); i++)
     {
-        list_add(ins.params, formatted_ins);
+        list_add(ins.params, formatted_ins[i]);
     }
     if (strcmp(ins.instruction, "MOV_IN")==0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
         char* logic_direction = list_get(ins.params, 1);

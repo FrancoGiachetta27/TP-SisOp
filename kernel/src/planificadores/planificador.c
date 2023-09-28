@@ -9,6 +9,7 @@ t_pcb* estado_EXEC;
 pthread_mutex_t estados_mutex;
 
 sem_t grd_mult;
+sem_t in_ready;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
@@ -30,6 +31,7 @@ void iniciar_planificadores(t_utils* config_kernel){
 		dictionary_put(colas_BLOCKED, resources[i], block);
 	}
 	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
+	sem_init(&in_ready, 0, 0);
 }
 
 t_pcb* encontrar_proceso_por_PID(uint32_t pid) {
@@ -69,6 +71,7 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	list_add(lista_estado_READY, pcb);
 	pcb->estado = READY;
 	pthread_mutex_unlock(&estados_mutex);
+	sem_post(&in_ready);
 	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
 }
 

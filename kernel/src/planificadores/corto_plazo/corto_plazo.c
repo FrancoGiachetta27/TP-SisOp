@@ -1,7 +1,11 @@
 #include "corto_plazo.h"
 
 void planificador_fifo(t_planificador* info) {
-    while(working) {
+    sem_wait(&in_ready);
+    while(working /*&& sem_val != grad_mult*/) {
+        // int grad_mult = config_get_int_value(info->utils->config, "GRADO_MULTIPROGRAMACION_INI");
+        // int sem_val;
+        // sem_getvalue(&grd_mult, &sem_val);
         if (estado_EXEC == NULL && lista_estado_READY->elements_count != 0) {
             pthread_mutex_lock(&estados_mutex);
             t_pcb* pcb = list_remove(lista_estado_READY, 0);

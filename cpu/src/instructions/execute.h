@@ -12,7 +12,7 @@
 #include <package/package.h>
 #include "commands.h"
 
-// #include <commons/string.h>
+#include <commons/string.h>
 
 int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins complete_instruction, t_log* logger);
 uint32_t* select_register(t_reg* registers, char* reg);

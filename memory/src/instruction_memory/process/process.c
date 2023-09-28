@@ -18,4 +18,4 @@ int create_process(t_log *logger, int pid, char *file_name, int bytes)
     return 1;
 }
 
-void deallocate_process(void) {}
+void deallocate_porcess(void) {}

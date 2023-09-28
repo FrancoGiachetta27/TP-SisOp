@@ -31,7 +31,7 @@ t_list *get_instructions_from_file(t_log *logger, char *file_path)
     return instructions;
 }
 
-char *fetch_next_instruction(int pid, int program_pointer)
+char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
 {
     int _is_pid(t_process * process)
     {
@@ -40,8 +40,14 @@ char *fetch_next_instruction(int pid, int program_pointer)
 
     t_process *current_process = (t_process *)list_find(active_processes, (void *)_is_pid);
 
-    if (current_process == NULL || list_size(current_process->instructions_set) == program_pointer)
+    if(current_process == NULL) {
+        log_error(logger, "Error al obtener el proceso en ejecucion");
         return "";
+    }
+    if(list_size(current_process->instructions_set) == program_pointer) {
+        log_error(logger, "Todas las instrucciones del proceso con PID: %d han sido leidas", pid);
+        return "";
+    }
 
     return list_get(current_process->instructions_set, program_pointer);
 }
