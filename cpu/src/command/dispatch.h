@@ -9,7 +9,7 @@
 #include <instructions/commands.h>
 #include <initial_configuration/server_start.h>
 
-enum COMMANDS {
+enum DISPATCH_COMMANDS {
    INSTRUCTION = 3
 };
 

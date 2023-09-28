@@ -2,9 +2,9 @@
 #define SRC_INSTRUCTIONS_FETCH_H_
 
 #include <package/package.h>
+#include <pcb/pcb.h>
 #define FETCH_INSTRUCTION 3
 
-char* fetch(int* program_counter, int pid, int memory_socket, t_log* logger);
-void* serialize_fetch(int program_counter, int pid);
+char* fetch(t_pcb* pcb, int memory_socket, t_log* logger);
 
 #endif /* SRC_INSTRUCTIONS_FETCH_H_ */

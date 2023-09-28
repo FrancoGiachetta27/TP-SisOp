@@ -19,7 +19,7 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 			case INSTRUCTION:
 				void* buffer = receive_buffer(ports->dispatch_fd, utils->logger);
 				t_pcb* pcb = deserialize_pcb(buffer);
-				char* instruction = fetch(&(pcb->programCounter), pcb->pid, memory_socket, utils->logger);
+				char* instruction = fetch(pcb, memory_socket, utils->logger);
 				t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
 				int continue_executing = execute(pcb, ports, registers, formatted_instruction, utils->logger);
 				if (continue_executing == -1) break;
@@ -28,8 +28,9 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 				pcb->programCounter++;
 				send_pcb(EXECUTED_INSTRUCTION, pcb, ports->dispatch_fd, utils->logger);
 				destroy_pcb(pcb);
+				break;
 			default:
-				log_error(utils->logger, "Unknown OpCode");
+				log_error(utils->logger, "Unknown OpCode %d", op_code);
 				return -1;
 		}
 		int op_code = receive_op_code(ports->dispatch_fd, utils->logger);

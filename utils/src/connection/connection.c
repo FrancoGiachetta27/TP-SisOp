@@ -74,7 +74,7 @@ int check_recv(int result, t_log* logger) {
 		return -1;
 	}
 	if (result == -1) {
-		log_error(logger, "Error al recibir el op_code");
+		log_error(logger, "Error en el recv");
 		return -1;
 	}
 	return 0;

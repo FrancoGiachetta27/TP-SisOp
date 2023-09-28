@@ -4,7 +4,10 @@ uint32_t sig_PID;
 
 void iniciar_proceso(char* source, char* size, char* priority, t_log* logger, t_conn* conn) {
     t_pcb* pcbCreado = crear_proceso(source, size, priority);
+	free(size);
+	free(priority);
 	avisar_a_memoria_nuevo_proceso(pcbCreado, logger, conn);
+	agregar_pcb_a_cola_NEW(pcbCreado);
 }
 
 void avisar_a_memoria_nuevo_proceso(t_pcb* pcb, t_log* logger, t_conn* conn) {
@@ -13,6 +16,11 @@ void avisar_a_memoria_nuevo_proceso(t_pcb* pcb, t_log* logger, t_conn* conn) {
 	nuevoPaquete->buffer = buffer;
 	nuevoPaquete->size = serialized_pcb_size(pcb->nom_arch_inst);
 	send_package(nuevoPaquete, conn->memory_socket, logger);
+	int op_code = receive_op_code(conn->memory_socket, logger);
+	if (op_code != PROCESS_OK) log_warning(logger, "Received incorrect message %d", op_code);
+	int* result = receive_buffer(conn->memory_socket, logger); 
+	log_info(logger, "Result of creating process %d", *result);
+	free(result);
 };
 
 void consultar_con_memoria_espacio_disp() {}
@@ -20,7 +28,6 @@ void consultar_con_memoria_espacio_disp() {}
 t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
 	consultar_con_memoria_espacio_disp();
 	t_pcb* nuevoPCB = crear_pcb(sig_PID, source, atoi(tamanio), atoi(prioridad));
-	agregar_pcb_a_cola_NEW(nuevoPCB);
 	return nuevoPCB;
 }
 

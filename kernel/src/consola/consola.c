@@ -16,6 +16,7 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 			finalizar_proceso(atoi(parametros[1]));
+			free(parametros[1]);
 		}
 		else if(strcmp(parametros[0],"DETENER_PLANIFICACION")==0){
 			detener_planificacion();
@@ -40,7 +41,7 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 		else {
 			printf("\nComando no reconocido, intente de nuevo corroborando espacios entre parametros y su sintaxis\n");
 		}
-		string_array_destroy(parametros);
+		free(parametros[0]);
 		linea = readline(">");
 		//I.cambiar la condicion de los ifs por un strcmp y el array de parametros para evitar problemas con los espacios luego del split.
 		//II en vez de un encadenado de ifs, probar con un enum y un switch

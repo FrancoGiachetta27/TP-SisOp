@@ -4,14 +4,17 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
     if (strcmp(ins.instruction,"SET")==0) {
         char* reg = list_get(ins.params, 0);
         char* value = list_get(ins.params, 1);
+        log_info(logger, "PID: %d - Ejecutando: SET - %s, %s", pcb->pid, reg, value);
         set(registers, reg, value);
     } else if (strcmp(ins.instruction, "SUM")==0) {
         char* destination_reg = list_get(ins.params, 0);
         char* origin_reg = list_get(ins.params, 1);
+        log_info(logger, "PID: %d - Ejecutando: SUM - %s, %s", pcb->pid, destination_reg, origin_reg);
         sum(registers, destination_reg, origin_reg);
     } else if (strcmp(ins.instruction, "SUB")==0) {
         char* destination_reg = list_get(ins.params, 0);
         char* origin_reg = list_get(ins.params, 1);
+        log_info(logger, "PID: %d - Ejecutando: SUB - %s, %s", pcb->pid, destination_reg, origin_reg);
         sub(registers, destination_reg, origin_reg);
     } else if (strcmp(ins.instruction, "JNZ")==0) {
 
@@ -38,11 +41,14 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
     } else if (strcmp(ins.instruction, "F_TRUNCATE")==0) {
 
     } else if (strcmp(ins.instruction, "EXIT")==0) {
+        log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
         pcb->programCounter = -1;
         destroy_instruction(ins);
         send_pcb(EXECUTED_INSTRUCTION, pcb, conn->dispatch_fd, logger);
         destroy_pcb(pcb);
         return -1;
+    } else {
+        log_warning(logger, "Invalid instruction %s", ins.instruction);
     }
     destroy_instruction(ins);
     return 0;

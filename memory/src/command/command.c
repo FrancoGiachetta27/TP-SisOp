@@ -30,12 +30,11 @@ void *wait_for_command(t_thread *thread_info)
             send_package(package_process, thread_info->port, thread_info->logger);
             break;
         case FETCH_INSTRUCTION:
-            int pid = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            int program_pointer = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            char* next_instruction = fetch_next_instruction(pid, program_pointer);
+            t_pcb* instruction_pcb = receive_pcb(thread_info->port, thread_info->logger);
+            char* next_instruction = fetch_next_instruction(instruction_pcb->pid, instruction_pcb->programCounter);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
             send_package(package_instruct, thread_info->port, thread_info->logger);
-            destroy_pcb(pcb);
+            destroy_pcb(instruction_pcb);
             break;
         default:
             log_error(thread_info->logger, "Unknown OpCode");

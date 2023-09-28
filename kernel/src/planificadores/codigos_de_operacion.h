@@ -7,6 +7,7 @@
 enum KERNEL_COMMAND {
     CREATE_PROCESS = 2,
     EXECUTED_INSTRUCTION = 3,
+    PROCESS_OK = 5
 };
 
 enum CPU_OP_CODES {

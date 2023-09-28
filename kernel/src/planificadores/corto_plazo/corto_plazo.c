@@ -19,14 +19,13 @@ void planificador_fifo(t_planificador* info) {
             if (pcb->programCounter == -1) {
                 pthread_mutex_lock(&estados_mutex);
                 destroy_pcb(estado_EXEC);
-                estado_EXEC == NULL;
+                estado_EXEC = NULL;
                 list_add(lista_estado_EXIT, pcb);
 	            pthread_mutex_unlock(&estados_mutex);
                 log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, EXIT);
             } else {
                 pthread_mutex_lock(&estados_mutex);
                 destroy_pcb(estado_EXEC);
-                estado_EXEC == NULL;
                 estado_EXEC = pcb;
 	            pthread_mutex_unlock(&estados_mutex);
             }
@@ -46,6 +45,7 @@ void iniciar_planificador_corto_plazo(t_utils* utils, t_conn* conn) {
     planificador_info.conn = conn;
     planificador_info.utils = utils;
     char* algoritmo = config_get_string_value(utils->config, "ALGORITMO_PLANIFICACION");
+    log_info(utils->logger,"Usando algoritmo: %s", algoritmo);
     if (strcmp(algoritmo,"FIFO")==0) {
         pthread_create(&hilo_planificador_corto_plazo, NULL, (void*)planificador_fifo, &planificador_info);
     }
@@ -55,5 +55,6 @@ void iniciar_planificador_corto_plazo(t_utils* utils, t_conn* conn) {
     if (strcmp(algoritmo,"PRIORIDADES")==0) {
         pthread_create(&hilo_planificador_corto_plazo, NULL, (void*)planificador_prioridades, &planificador_info);
     }
+    free(algoritmo);
     pthread_detach(hilo_planificador_corto_plazo);
 }

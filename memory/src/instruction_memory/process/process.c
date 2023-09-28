@@ -9,16 +9,13 @@ int create_process(t_log *logger, int pid, char *file_name, int bytes)
 
     if (instructions_set == NULL) return -1;
     
-    t_process* process;
-
+    t_process* process = malloc(sizeof(*process));
     process->pid = pid;
     process->file_name = file_name;
     process->bytes = bytes;
     process->instructions_set = instructions_set;
-
-        list_add(active_processes, process);
-
-        return 1;
+    list_add(active_processes, process);
+    return 1;
 }
 
 void deallocate_process(void) {}
