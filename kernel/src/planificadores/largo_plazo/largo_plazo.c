@@ -3,10 +3,11 @@
 void atender_procesos_en_EXIT(t_log* logger) {
 	while(working) {
         if (lista_estado_EXIT->elements_count != 0) {
-            t_pcb* pcb = list_get(lista_estado_EXIT, 0);
+            t_pcb* pcb = list_remove(lista_estado_EXIT, 0);
             eliminar_proceso(pcb);
         }
 	}
+    sem_post(&planificadores_terminados);
 }
 
 void planificador_largo_plazo(t_log* logger) {
@@ -20,6 +21,7 @@ void planificador_largo_plazo(t_log* logger) {
 		    agregar_pcb_a_cola_READY(pcb_a_ready, logger);
         }
     }
+    sem_post(&planificadores_terminados);
 }
 
 void iniciar_planificador_largo_plazo(t_log* logger) {

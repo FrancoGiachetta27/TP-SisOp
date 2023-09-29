@@ -3,6 +3,8 @@
 
 #include <planificadores/planificador.h>
 
+pthread_t largo_plazo_hilo;
+
 void atender_procesos_en_EXIT(t_log* logger);
 void planificador_largo_plazo(t_log* logger);
 void iniciar_planificador_largo_plazo(t_log* logger);

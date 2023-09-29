@@ -9,13 +9,14 @@ t_pcb* estado_EXEC;
 pthread_mutex_t estados_mutex;
 
 sem_t grd_mult;
-sem_t in_ready;
+sem_t planificadores_terminados;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
 bool working = true;
 
-void iniciar_planificadores(t_utils* config_kernel){
+
+void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	sig_PID = 1;
 	lista_estado_NEW = list_create();
 	lista_estado_READY = list_create();
@@ -30,8 +31,27 @@ void iniciar_planificadores(t_utils* config_kernel){
     	block->blocked_list = list_create();
 		dictionary_put(colas_BLOCKED, resources[i], block);
 	}
+	string_array_destroy(resources_instances);
+	sem_init(&grd_mult,-2,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
 	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
-	sem_init(&in_ready, 0, 0);
+}
+
+void terminar_estructuras_planificadores() {
+	working = false;
+	sem_wait(&planificadores_terminados);
+	void* _remove_pcb_in_list(t_pcb* pcb) {
+		destroy_pcb(pcb);
+    };
+	list_destroy_and_destroy_elements(lista_estado_EXIT, _remove_pcb_in_list);
+	list_destroy_and_destroy_elements(lista_estado_NEW, _remove_pcb_in_list);
+	list_destroy_and_destroy_elements(lista_estado_READY, _remove_pcb_in_list);
+	destroy_pcb(estado_EXEC);
+	void* _remove_block_queue_in_dict(t_block* block) {
+		list_destroy_and_destroy_elements(block->blocked_list, _remove_pcb_in_list);
+		free(block);
+    };
+	dictionary_destroy_and_destroy_elements(colas_BLOCKED, _remove_block_queue_in_dict);
+	sem_destroy(&grd_mult);
 }
 
 t_pcb* encontrar_proceso_por_PID(uint32_t pid) {
@@ -71,7 +91,6 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	list_add(lista_estado_READY, pcb);
 	pcb->estado = READY;
 	pthread_mutex_unlock(&estados_mutex);
-	sem_post(&in_ready);
 	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
 }
 

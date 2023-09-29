@@ -11,6 +11,8 @@ typedef struct {
     t_conn* conn;
 } t_planificador;
 
+pthread_t hilo_planificador_corto_plazo;
+
 void planificador_fifo(t_planificador* info);
 void planificador_rr(t_planificador* info);
 void planificador_prioridades(t_planificador* info);
