@@ -42,6 +42,7 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 			printf("\nComando no reconocido, intente de nuevo corroborando espacios entre parametros y su sintaxis\n");
 		}
 		free(parametros[0]);
+		free(parametros);
 		linea = readline(">");
 		//I.cambiar la condicion de los ifs por un strcmp y el array de parametros para evitar problemas con los espacios luego del split.
 		//II en vez de un encadenado de ifs, probar con un enum y un switch

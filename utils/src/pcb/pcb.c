@@ -18,7 +18,6 @@ t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority){
 	nuevoPCB->nom_arch_inst = name;
 	nuevoPCB->estado = NEW;
 	nuevoPCB->registers=create_empty_registers();
-    printf("\n Nuevo PCB creado con id %d,tamanio %d y prioridad %d \n", nuevoPCB->pid,nuevoPCB->tamanio,nuevoPCB->prioridad);
 	return nuevoPCB;
 }
 
@@ -118,5 +117,6 @@ t_pcb* deserialize_pcb(void* buffer) {
 }
 
 void destroy_pcb(t_pcb* pcb) {
+	free(pcb->nom_arch_inst);
 	free(pcb);
 }

@@ -13,6 +13,7 @@ sem_t planificadores_terminados;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
+char* algoritmo;
 bool working = true;
 
 
@@ -22,6 +23,7 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	lista_estado_READY = list_create();
 	lista_estado_EXIT = list_create();
 	colas_BLOCKED = dictionary_create();
+    algoritmo = config_get_string_value(config_kernel->config, "ALGORITMO_PLANIFICACION");
 	char** resources = config_get_array_value(config_kernel->config,"RECURSOS");
 	char** resources_instances = config_get_array_value(config_kernel->config,"INSTANCIAS_RECURSOS");
 	for (int i = 0; resources[i] != NULL; i++)
@@ -31,8 +33,9 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
     	block->blocked_list = list_create();
 		dictionary_put(colas_BLOCKED, resources[i], block);
 	}
+	string_array_destroy(resources);
 	string_array_destroy(resources_instances);
-	sem_init(&grd_mult,-2,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
+	sem_init(&planificadores_terminados,0,-2);
 	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
 }
 
@@ -45,7 +48,7 @@ void terminar_estructuras_planificadores() {
 	list_destroy_and_destroy_elements(lista_estado_EXIT, _remove_pcb_in_list);
 	list_destroy_and_destroy_elements(lista_estado_NEW, _remove_pcb_in_list);
 	list_destroy_and_destroy_elements(lista_estado_READY, _remove_pcb_in_list);
-	destroy_pcb(estado_EXEC);
+	if (estado_EXEC != NULL) destroy_pcb(estado_EXEC);
 	void* _remove_block_queue_in_dict(t_block* block) {
 		list_destroy_and_destroy_elements(block->blocked_list, _remove_pcb_in_list);
 		free(block);
@@ -92,6 +95,21 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	pcb->estado = READY;
 	pthread_mutex_unlock(&estados_mutex);
 	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
+	mostrar_pids_en_ready(logger);
+}
+
+char* mostrar_pids_en_ready(t_log* logger) {
+	int i = 0;
+	char* pids = string_new();
+	int cantElem = lista_estado_READY->elements_count;
+	for(i = 0; i <= cantElem - 1; i++){
+		t_pcb* pcb = list_get(lista_estado_READY,i);
+		char* pid = string_itoa(pcb->pid);
+		string_append(&pids, pid);
+		free(pid);
+	}
+	log_info(logger, "Cola Ready %s: %s", algoritmo, pids);
+	free(pids);
 }
 
 // Pasarlos a tests!!!

@@ -46,7 +46,6 @@ void iniciar_planificador_corto_plazo(t_utils* utils, t_conn* conn) {
     t_planificador* planificador_info = malloc(sizeof(*planificador_info));
     planificador_info->conn = conn;
     planificador_info->utils = utils;
-    char* algoritmo = config_get_string_value(utils->config, "ALGORITMO_PLANIFICACION");
     log_info(utils->logger,"Usando algoritmo: %s", algoritmo);
     if (strcmp(algoritmo,"FIFO")==0) {
         pthread_create(&hilo_planificador_corto_plazo, NULL, (void*)planificador_fifo, planificador_info);

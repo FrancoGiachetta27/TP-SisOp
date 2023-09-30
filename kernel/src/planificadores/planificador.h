@@ -24,6 +24,7 @@ t_pcb* estado_EXEC;
 sem_t grd_mult;
 sem_t planificadores_terminados;
 pthread_mutex_t estados_mutex;
+char* algoritmo;
 bool working;
 
 void iniciar_estructuras_planificadores(t_utils* utils);
@@ -32,6 +33,7 @@ t_pcb* encontrar_proceso_por_PID(uint32_t pid);
 uint32_t obt_sig_PID();
 
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger);
+char* mostrar_pids_en_ready(t_log* logger);
 
 void prueba_agregar_proceso_a_NEW();
 
