@@ -4,6 +4,7 @@ void atender_procesos_en_EXIT(t_log* logger) {
 	while(working) {
         if (lista_estado_EXIT->elements_count != 0) {
             t_pcb* pcb = list_remove(lista_estado_EXIT, 0);
+            log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb->pid);
             eliminar_proceso(pcb);
         }
 	}

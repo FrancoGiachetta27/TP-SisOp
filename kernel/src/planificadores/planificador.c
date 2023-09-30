@@ -89,7 +89,6 @@ uint32_t obt_sig_PID() {
 
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	int previous_state = pcb->estado;
-	sem_wait(&grd_mult);
 	pthread_mutex_lock(&estados_mutex);
 	list_add(lista_estado_READY, pcb);
 	pcb->estado = READY;
@@ -105,7 +104,7 @@ char* mostrar_pids_en_ready(t_log* logger) {
 	for(i = 0; i <= cantElem - 1; i++){
 		t_pcb* pcb = list_get(lista_estado_READY,i);
 		char* pid = string_itoa(pcb->pid);
-		string_append(&pids, pid);
+  		string_append_with_format(&pids, i == 0 ? "%s" :",%s", pid);
 		free(pid);
 	}
 	log_info(logger, "Cola Ready %s: %s", algoritmo, pids);
