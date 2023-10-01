@@ -18,12 +18,11 @@ int main(int argc, char* argv[]) {
 	
 	int is_ok = send_page_size_to_cpu(conn, utils);
 
-	if(is_ok == NULL) {
-		utils_destroy(utils);
+	if(is_ok != 1) {
 		free(conn);
-		destroy_memory_config();
+		utils_destroy(utils);
 		return EXIT_FAILURE;
-	}
+	} 
 
 	wait_in_every_port(conn, utils->logger);
 

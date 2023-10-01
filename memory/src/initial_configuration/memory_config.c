@@ -11,9 +11,3 @@ void init_memory(t_config* config, t_memory_cfg* memory_config, t_list** active_
     memory_config->time_delay = config_get_int_value(config, "RETARDO_RESPUESTA");
     memory_config->algorithm = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
-
-void destroy_memory_config(t_memory_cfg* memory_config) {
-    free(memory_config->instructions_path);
-    free(memory_config->algorithm);
-    list_destroy(active_processes);
-}
