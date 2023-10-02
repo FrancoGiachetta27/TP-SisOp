@@ -23,7 +23,9 @@ t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 sem_t grd_mult;
 sem_t planificadores_terminados;
-pthread_mutex_t estados_mutex;
+sem_t proceso_en_cola_ready;
+sem_t executing_process;
+pthread_mutex_t cola_ready;
 char* algoritmo;
 bool working;
 

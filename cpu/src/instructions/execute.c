@@ -44,8 +44,6 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
         pcb->programCounter = -1;
         destroy_instruction(ins);
-        send_pcb(EXECUTED_INSTRUCTION, pcb, conn->dispatch_fd, logger);
-        destroy_pcb(pcb);
         return -1;
     } else {
         log_warning(logger, "Invalid instruction %s", ins.instruction);

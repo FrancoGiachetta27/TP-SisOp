@@ -6,10 +6,12 @@ t_dictionary* colas_BLOCKED;
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
-pthread_mutex_t estados_mutex;
+pthread_mutex_t cola_ready;
 
 sem_t grd_mult;
 sem_t planificadores_terminados;
+sem_t proceso_en_cola_ready;
+sem_t executing_process;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
@@ -35,7 +37,9 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	}
 	string_array_destroy(resources);
 	string_array_destroy(resources_instances);
-	sem_init(&planificadores_terminados,0,-2);
+	sem_init(&planificadores_terminados,0,-3);
+	sem_init(&proceso_en_cola_ready,0,0);
+	sem_init(&executing_process, 0, 0);
 	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
 }
 
@@ -54,6 +58,9 @@ void terminar_estructuras_planificadores() {
 		free(block);
     };
 	dictionary_destroy_and_destroy_elements(colas_BLOCKED, _remove_block_queue_in_dict);
+	sem_destroy(&planificadores_terminados);
+	sem_destroy(&proceso_en_cola_ready);
+	sem_destroy(&executing_process);
 	sem_destroy(&grd_mult);
 }
 
@@ -89,10 +96,11 @@ uint32_t obt_sig_PID() {
 
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	int previous_state = pcb->estado;
-	pthread_mutex_lock(&estados_mutex);
+	pthread_mutex_lock(&cola_ready);
 	list_add(lista_estado_READY, pcb);
+	pthread_mutex_unlock(&cola_ready);
+	sem_post(&proceso_en_cola_ready);
 	pcb->estado = READY;
-	pthread_mutex_unlock(&estados_mutex);
 	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
 	mostrar_pids_en_ready(logger);
 }
