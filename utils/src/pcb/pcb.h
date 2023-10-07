@@ -21,6 +21,15 @@ enum ESTADO {
     READY = 5
 };
 
+
+enum INSTRUCCION {
+    NORMAL = 0,
+    FINISH = 1,
+    SIGNAL = 2,
+    WAIT = 3,
+    SLEEP = 4,
+};
+
 typedef struct pcb {
     uint32_t pid;
     uint32_t tamanio;
@@ -29,9 +38,11 @@ typedef struct pcb {
     char* nom_arch_inst;
     t_reg registers;
     uint32_t estado;
+    uint32_t instruccion;
+    void* params; 
 } t_pcb;
 
-int serialized_pcb_size(char* arch_name);
+int serialized_pcb_size(t_pcb* pcb);
 t_reg create_empty_registers();
 t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority);
 void* serialize_pcb(t_pcb* pcb);

@@ -28,6 +28,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	t_reg registers;
+	registers.AX = 0;
+	registers.BX = 0;
+	registers.CX = 0;
+	registers.DX = 0;
 	int commands_result = wait_for_dispatch_command(utils, ports, memory_socket, &registers, *page_size);
 
 	utils_destroy_with_connection(utils, memory_socket);

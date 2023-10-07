@@ -14,7 +14,7 @@ void avisar_a_memoria_nuevo_proceso(t_pcb* pcb, t_log* logger, t_conn* conn) {
 	t_package* nuevoPaquete = create_empty_package(CREATE_PROCESS);
 	void* buffer = serialize_pcb(pcb);
 	nuevoPaquete->buffer = buffer;
-	nuevoPaquete->size = serialized_pcb_size(pcb->nom_arch_inst);
+	nuevoPaquete->size = serialized_pcb_size(pcb);
 	send_package(nuevoPaquete, conn->memory_socket, logger);
 	int op_code = receive_op_code(conn->memory_socket, logger);
 	if (op_code != PROCESS_OK) log_warning(logger, "Received incorrect message %d", op_code);
