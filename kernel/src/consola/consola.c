@@ -13,22 +13,34 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 		free(linea);
 		if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 			iniciar_proceso(parametros[1], parametros[2], parametros[3], logger, conn);
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
 			finalizar_proceso(atoi(parametros[1]));
 			free(parametros[1]);
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"DETENER_PLANIFICACION")==0){
 			detener_planificacion();
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"INICIAR_PLANIFICACION")==0){
 			iniciar_planificacion();
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"MULTIPROGRAMACION")==0){
 			cambiar_grado_multiprogramacion(parametros[1]);
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
 			listar_procesos_por_estados();
+			free(parametros[0]);
+			free(parametros);
 		}
 		else if(strcmp(parametros[0],"ECHO")==0){
 			int number = atoi(parametros[1]);
@@ -37,12 +49,13 @@ void consola_interactiva(t_log* logger, t_conn* conn){
 			} else {
 				echo(number, conn, logger);
 			}
+			free(parametros[0]);
+			free(parametros);
 		}
 		else {
 			printf("\nComando no reconocido, intente de nuevo corroborando espacios entre parametros y su sintaxis\n");
+			string_array_destroy(parametros);
 		}
-		free(parametros[0]);
-		free(parametros);
 		linea = readline(">");
 		//I.cambiar la condicion de los ifs por un strcmp y el array de parametros para evitar problemas con los espacios luego del split.
 		//II en vez de un encadenado de ifs, probar con un enum y un switch

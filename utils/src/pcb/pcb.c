@@ -18,12 +18,14 @@ t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority){
 	nuevoPCB->nom_arch_inst = name;
 	nuevoPCB->estado = NEW;
 	nuevoPCB->registers=create_empty_registers();
+	nuevoPCB->instruccion=NORMAL;
+	nuevoPCB->params=NULL;
 	return nuevoPCB;
 }
 
 void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger) {
 	t_package* package = create_empty_package(op_code);
-    package->size = serialized_pcb_size(pcb->nom_arch_inst);
+    package->size = serialized_pcb_size(pcb);
     package->buffer = serialize_pcb(pcb);
     send_package(package, client_socket, logger);
 }
@@ -33,16 +35,44 @@ t_pcb* receive_pcb(int client_socket, t_log* logger) {
    	return deserialize_pcb(buffer);
 }
 
-int serialized_pcb_size(char* arch_name) {
-	int arch_name_size = strlen(arch_name) + 1;
-	return 8*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int);
+int serialized_pcb_size(t_pcb* pcb) {
+	int arch_name_size = strlen(pcb->nom_arch_inst) + 1;
+	int instruction_size = 0;
+	switch (pcb->instruccion)
+	{
+		case WAIT:
+		case SIGNAL:
+			instruction_size = sizeof(char) * (strlen(pcb->params) + 1) + sizeof(int);
+			break;
+		case SLEEP:
+			instruction_size = sizeof(int);
+			break;
+	}
+	return 9*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int) + instruction_size;
 }
 
 void* serialize_pcb(t_pcb* pcb){
 	int arch_name_size = strlen(pcb->nom_arch_inst) + 1;
-	void* buffer = malloc(8*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int));
+	void* buffer = malloc(serialized_pcb_size(pcb));
 	void* buffer_registers = serialize_registers(pcb->registers);
 	int offset = 0;
+	memcpy(buffer + offset, &pcb->instruccion, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	switch (pcb->instruccion)
+	{
+		case WAIT:
+		case SIGNAL:
+			int param_size = strlen(pcb->params) + 1;
+			memcpy(buffer + offset, &param_size, sizeof(int));
+			offset += sizeof(int);
+			memcpy(buffer + offset, pcb->params, sizeof(char) * param_size);
+			offset += sizeof(char) * param_size;
+			break;
+		case SLEEP:
+			memcpy(buffer + offset, &pcb->params, sizeof(int));
+			offset += sizeof(int);
+			break;
+	}
 	memcpy(buffer + offset, &pcb->pid, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 	memcpy(buffer + offset, &pcb->tamanio, sizeof(uint32_t));
@@ -54,7 +84,7 @@ void* serialize_pcb(t_pcb* pcb){
 	memcpy(buffer + offset, &arch_name_size, sizeof(int));
 	offset += sizeof(int);
 	memcpy(buffer + offset, pcb->nom_arch_inst, sizeof(char) * arch_name_size);
-	offset += arch_name_size;
+	offset += sizeof(char) * arch_name_size;
 	memcpy(buffer + offset, buffer_registers, 4 * sizeof(uint32_t));
 	offset += 4 * sizeof(uint32_t);
 	free(buffer_registers);
@@ -91,6 +121,31 @@ t_reg deserialize_registers(void* buffer) {
 t_pcb* deserialize_pcb(void* buffer) {
 	t_pcb* pcb = malloc(sizeof(*pcb));
 	int offset = 0;
+	memcpy(&pcb->instruccion, buffer + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	switch (pcb->instruccion)
+	{
+		case FINISH:
+		case NORMAL:
+			pcb->params = NULL;
+			break;
+		case WAIT:
+		case SIGNAL:
+			int params_size;
+			memcpy(&params_size, buffer + offset, sizeof(int));
+			offset += sizeof(int);
+			char* param = malloc(sizeof(char) * params_size);
+			memcpy(param, buffer + offset, sizeof(char) * params_size);
+			pcb->params=param;
+			offset += params_size;
+			break;
+		case SLEEP:
+			int sleep_time;
+			memcpy(&sleep_time, buffer + offset, sizeof(int));
+			pcb->params = sleep_time;
+			offset += sizeof(int);
+			break;
+	}
 	memcpy(&pcb->pid, buffer + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 	memcpy(&pcb->tamanio, buffer + offset, sizeof(uint32_t));
@@ -117,6 +172,13 @@ t_pcb* deserialize_pcb(void* buffer) {
 }
 
 void destroy_pcb(t_pcb* pcb) {
+	switch (pcb->instruccion)
+	{
+	case WAIT:
+	case SIGNAL:
+		free(pcb->params);
+		break;
+	}
 	free(pcb->nom_arch_inst);
 	free(pcb);
 }

@@ -1,5 +1,12 @@
 #include "corto_plazo.h"
 
+void sleep_process(t_sleep* sleep_info) {
+    sleep(sleep_info->pcb->params);
+    sem_wait(&grd_mult);
+    agregar_pcb_a_cola_READY(sleep_info->pcb, sleep_info->logger);
+    free(sleep_info);
+}
+
 void execute_process(t_planificador* info) {
     while(working) {
         sem_wait(&executing_process);
@@ -8,11 +15,31 @@ void execute_process(t_planificador* info) {
             int op_code = receive_op_code(info->conn->cpu_dispatcher_socket, info->utils->logger);
             if (op_code != EXECUTED_INSTRUCTION) log_warning(info->utils->logger, "Received incorrect message %d", op_code);
             t_pcb* pcb = receive_pcb(info->conn->cpu_dispatcher_socket, info->utils->logger);
-            if (pcb->programCounter == -1) {
-                destroy_pcb(estado_EXEC);
-                estado_EXEC = NULL;
-                log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, EXIT);
-                list_add(lista_estado_EXIT, pcb);
+            switch (pcb->instruccion)
+            {
+                case FINISH:
+                    pthread_mutex_lock(&mtx_execute_process);
+                    destroy_pcb(estado_EXEC);
+                    estado_EXEC = NULL;
+                    pthread_mutex_unlock(&mtx_execute_process);
+                    log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, EXIT);
+                    list_add(lista_estado_EXIT, pcb);
+                    sem_post(&proceso_en_cola_ready);
+                break;
+                case SLEEP:
+                    pthread_mutex_lock(&mtx_execute_process);
+                    destroy_pcb(estado_EXEC);
+                    estado_EXEC = NULL;
+                    pthread_mutex_unlock(&mtx_execute_process);
+                    pcb->estado = BLOCKED;
+                    log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+                    pthread_t sleep_process_thread;
+                    t_sleep* sleep_info = malloc(sizeof(*sleep_info));
+                    sleep_info->pcb = pcb;
+                    sleep_info->logger = info->utils->logger;
+                    pthread_create(&sleep_process_thread, NULL, (void*)sleep_process, sleep_info);
+                    pthread_detach(sleep_process_thread);
+                break;
             }
         }
     }
@@ -29,7 +56,9 @@ void planificador_fifo(t_planificador* info) {
             pthread_mutex_unlock(&cola_ready);
             log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, READY, EXEC);
             pcb->estado = EXEC;
+            pthread_mutex_lock(&mtx_execute_process);
             estado_EXEC = pcb;
+            pthread_mutex_unlock(&mtx_execute_process);
             sem_post(&executing_process);
             sem_post(&grd_mult);
         }

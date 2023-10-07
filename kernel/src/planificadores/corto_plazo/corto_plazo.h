@@ -11,6 +11,11 @@ typedef struct {
     t_conn* conn;
 } t_planificador;
 
+typedef struct {
+    t_log* logger;
+    t_pcb* pcb;
+} t_sleep;
+
 pthread_t hilo_planificador_corto_plazo;
 
 void planificador_fifo(t_planificador* info);

@@ -34,6 +34,7 @@
         "command.h": "c",
         "pthread.h": "c",
         "stdio.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "stdlib.h": "c"
     }
 }

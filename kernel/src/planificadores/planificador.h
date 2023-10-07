@@ -26,6 +26,7 @@ sem_t planificadores_terminados;
 sem_t proceso_en_cola_ready;
 sem_t executing_process;
 pthread_mutex_t cola_ready;
+pthread_mutex_t mtx_execute_process;
 char* algoritmo;
 bool working;
 

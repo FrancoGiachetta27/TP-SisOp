@@ -19,7 +19,13 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
     } else if (strcmp(ins.instruction, "JNZ")==0) {
 
     } else if (strcmp(ins.instruction, "SLEEP")==0) {
-
+        char* sleep_time = list_get(ins.params, 0);
+        log_info(logger, "PID: %d - Ejecutando: SLEEP - %s", pcb->pid, sleep_time);
+        pcb->instruccion = SLEEP;
+        pcb->params = atoi(sleep_time);
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return -1;
     } else if (strcmp(ins.instruction, "WAIT")==0) {
 
     } else if (strcmp(ins.instruction, "SIGNAL")==0) {
@@ -42,7 +48,7 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
 
     } else if (strcmp(ins.instruction, "EXIT")==0) {
         log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
-        pcb->programCounter = -1;
+        pcb->instruccion = FINISH;
         destroy_instruction(ins);
         return -1;
     } else {

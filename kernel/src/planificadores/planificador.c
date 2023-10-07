@@ -7,6 +7,7 @@ t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
 pthread_mutex_t cola_ready;
+pthread_mutex_t mtx_execute_process;
 
 sem_t grd_mult;
 sem_t planificadores_terminados;
