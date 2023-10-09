@@ -4,6 +4,7 @@
 #include <command/command.h>
 #include <initial_configuration/memory_config.h>
 #include <instruction_memory/process/process.h>
+#include <user_space/pages/pages.h>
 
 #define LOGS_MEMORIA "memoria.log"
 
@@ -19,6 +20,7 @@ int main(int argc, char* argv[]) {
 	int is_ok = send_page_size_to_cpu(conn, utils);
 
 	if(is_ok != 1) {
+		log_error(utils->logger, "Error al enviar el tamanio de pagina");
 		free(conn);
 		utils_destroy(utils);
 		return EXIT_FAILURE;

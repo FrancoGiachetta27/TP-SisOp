@@ -33,6 +33,7 @@ void *wait_for_command(t_thread *thread_info)
             t_pcb* instruction_pcb = receive_pcb(thread_info->port, thread_info->logger);
             char* next_instruction = fetch_next_instruction(instruction_pcb->pid, instruction_pcb->programCounter, thread_info->logger);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
+            sleep(memory_config.time_delay);
             send_package(package_instruct, thread_info->port, thread_info->logger);
             destroy_pcb(instruction_pcb);
             break;
