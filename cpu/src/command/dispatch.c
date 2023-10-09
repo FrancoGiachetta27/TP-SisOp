@@ -19,13 +19,32 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 			case INSTRUCTION:
 				void* buffer = receive_buffer(ports->dispatch_fd, utils->logger);
 				t_pcb* pcb = deserialize_pcb(buffer);
-				char* instruction = fetch(pcb, memory_socket, utils->logger);
-				t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
-				int continue_executing = execute(pcb, ports, registers, formatted_instruction, utils->logger);
-				if (continue_executing == -1) break;
-				// check interrupt
+				bool continue_executing = true;
+				while (continue_executing == true)
+				{
+					char* instruction = fetch(pcb, memory_socket, utils->logger);
+					t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
+					int execute_result = execute(pcb, ports, registers, formatted_instruction, utils->logger);
+					if (execute_result != -1) {
+						pcb->programCounter++;
+						int check = check_interrupt(ports->interrupt_fd, utils->logger);
+						switch (check)
+						{
+							case FAIL_CONNECTION:
+								destroy_pcb(pcb);
+								return -1;						
+							case INTERRUPTION:
+								continue_executing = false;
+								break;
+							case NO_INTERRUPTION:
+								continue_executing = true;
+								break;
+						}
+					} else {
+						continue_executing = false;
+					}
+				}
 				pcb->registers = *registers;
-				pcb->programCounter++;
 				send_pcb(EXECUTED_INSTRUCTION, pcb, ports->dispatch_fd, utils->logger);
 				destroy_pcb(pcb);
 				break;

@@ -2,6 +2,7 @@
 
 t_ins decode(char* instruction, int page_size, t_log* logger) {
     char** formatted_ins = string_split(instruction, " ");
+    free(instruction);
     t_ins ins;
     ins.instruction = formatted_ins[0];
     ins.params = list_create();
@@ -33,5 +34,9 @@ t_pag* mmu_translate(char* logic_direction, int page_size) {
 }
 
 void destroy_instruction(t_ins ins) {
-    list_destroy(ins.params);
+    void* _destroy_element(void* element) {
+        free(element);
+    };
+    list_destroy_and_destroy_elements(ins.params, (void*) _destroy_element);
+    free(ins.instruction);
 }

@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 	int is_ok = send_page_size_to_cpu(conn, utils);
 
 	if(is_ok != 1) {
-		log_error(utils->logger, "Error al enviar el tamanio de pagina");
+		log_trace(utils->logger, "Error al leer el tamanio de pagina");
 		free(conn);
 		utils_destroy(utils);
 		return EXIT_FAILURE;

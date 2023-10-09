@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <initial_configuration/client_start.h>
-#include <initial_configuration/server_start.h>
+#include "initial_configuration/client_start.h"
+#include "initial_configuration/server_start.h"
 #include <command/dispatch.h>
 
 #define LOGS_CPU "cpu.log"
