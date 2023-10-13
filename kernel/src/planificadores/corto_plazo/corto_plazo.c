@@ -1,7 +1,7 @@
 #include "corto_plazo.h"
 
 void sleep_process(t_sleep* sleep_info) {
-    sleep(sleep_info->pcb->params);
+    sleep((int) sleep_info->pcb->params);
     sem_wait(&grd_mult);
     agregar_pcb_a_cola_READY(sleep_info->pcb, sleep_info->logger);
     free(sleep_info);
@@ -18,27 +18,37 @@ void execute_process(t_planificador* info) {
             switch (pcb->instruccion)
             {
                 case FINISH:
-                    pthread_mutex_lock(&mtx_execute_process);
-                    destroy_pcb(estado_EXEC);
-                    estado_EXEC = NULL;
-                    pthread_mutex_unlock(&mtx_execute_process);
-                    log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, EXIT);
-                    list_add(lista_estado_EXIT, pcb);
-                    sem_post(&proceso_en_cola_ready);
+                    destroy_executing_process();
+                    send_to_exit(pcb, info->utils->logger, SUCCESS);
                 break;
                 case SLEEP:
-                    pthread_mutex_lock(&mtx_execute_process);
-                    destroy_pcb(estado_EXEC);
-                    estado_EXEC = NULL;
-                    pthread_mutex_unlock(&mtx_execute_process);
+                    destroy_executing_process();
                     pcb->estado = BLOCKED;
                     log_info(info->utils->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+                    log_info(info->utils->logger, "PID: %d - Bloqueado por: SLEEP", pcb->pid);
                     pthread_t sleep_process_thread;
                     t_sleep* sleep_info = malloc(sizeof(*sleep_info));
                     sleep_info->pcb = pcb;
                     sleep_info->logger = info->utils->logger;
                     pthread_create(&sleep_process_thread, NULL, (void*)sleep_process, sleep_info);
                     pthread_detach(sleep_process_thread);
+                    sem_post(&proceso_en_cola_ready);
+                break;
+                case WAIT:
+                    if (!dictionary_has_key(colas_BLOCKED, pcb->params)) {
+                        destroy_executing_process();
+                        send_to_exit(pcb, info->utils->logger, INVALID_RESOURCE);
+                        break;
+                    }
+                    wait_instance_of_resource(pcb, info->utils->logger);
+                break;
+                case SIGNAL:
+                    if (!dictionary_has_key(colas_BLOCKED, pcb->params)) {
+                        destroy_executing_process();
+                        send_to_exit(pcb, info->utils->logger, INVALID_RESOURCE);
+                        break;
+                    }
+                    signal_instance_of_resource(pcb, info->utils->logger);
                 break;
             }
         }
@@ -76,6 +86,7 @@ void planificador_prioridades(t_planificador* info) {
 void iniciar_planificador_corto_plazo(t_utils* utils, t_conn* conn) {
     pthread_t hilo_planificador_corto_plazo;
     pthread_t hilo_execute;
+    pthread_t hilo_blocked_processes;
     t_planificador* planificador_info = malloc(sizeof(*planificador_info));
     planificador_info->conn = conn;
     planificador_info->utils = utils;
@@ -95,4 +106,6 @@ void iniciar_planificador_corto_plazo(t_utils* utils, t_conn* conn) {
     pthread_detach(hilo_planificador_corto_plazo);
     pthread_create(&hilo_execute, NULL, (void*)execute_process, execute_info);
     pthread_detach(hilo_execute);
+    pthread_create(&hilo_blocked_processes, NULL, (void*)unblock_processes, utils->logger);
+    pthread_detach(hilo_blocked_processes);
 }

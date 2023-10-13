@@ -2,9 +2,25 @@
 
 void atender_procesos_en_EXIT(t_log* logger) {
 	while(working) {
+        sem_wait(&process_in_exit);
         if (lista_estado_EXIT->elements_count != 0) {
+            pthread_mutex_lock(&cola_exit);
             t_pcb* pcb = list_remove(lista_estado_EXIT, 0);
-            log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb->pid);
+            pthread_mutex_unlock(&cola_exit);
+            switch (pcb->end_state)
+            {
+            case SUCCESS:
+                log_info(logger, "Finaliza el proceso %d - Motivo: SUCCESS", pcb->pid);
+                break;
+            case INVALID_RESOURCE:
+                log_info(logger, "Finaliza el proceso %d - Motivo: INVALID_RESOURCE", pcb->pid);
+                break;
+            case INVALID_WRITE:
+                log_info(logger, "Finaliza el proceso %d - Motivo: INVALID_WRITE", pcb->pid);
+            default:
+                log_error(logger, "Finaliza el proceso %d - Motivo: No deberia de haber llegado aca!", pcb->pid);
+                break;
+            }
             eliminar_proceso(pcb);
         }
 	}
@@ -29,10 +45,4 @@ void iniciar_planificador_largo_plazo(t_log* logger) {
     pthread_t largo_plazo_hilo;
     pthread_create(&largo_plazo_hilo, NULL, (void*)planificador_largo_plazo, logger);
     pthread_detach(largo_plazo_hilo);
-}
-
-void eliminar_proceso(t_pcb* pcb) {
-    // Liberar instancias de archivos
-    // Llamar a memoria para liberar
-    destroy_pcb(pcb);
 }

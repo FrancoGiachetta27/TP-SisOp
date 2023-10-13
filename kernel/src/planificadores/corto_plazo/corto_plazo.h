@@ -2,7 +2,8 @@
 #define SRC_PLANIFICADORES_CORTO_PLAZO_CORTO_PLAZO_H_
 
 #include <initial_configuration/client_start.h>
-#include <planificadores/planificador.h>
+#include <planificadores/corto_plazo/block/block.h>
+#include <planificadores/resources/resources.h>
 #include <planificadores/codigos_de_operacion.h>
 #include <string.h>
 

@@ -7,12 +7,15 @@ t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
 
 pthread_mutex_t cola_ready;
+pthread_mutex_t cola_exit;
 pthread_mutex_t mtx_execute_process;
 
 sem_t grd_mult;
 sem_t planificadores_terminados;
 sem_t proceso_en_cola_ready;
 sem_t executing_process;
+sem_t freed_resource;
+sem_t process_in_exit;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
@@ -33,14 +36,17 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	{
 		t_block* block = malloc(sizeof(*block));
 		block->instances = atoi(resources_instances[i]);
+		block->pids = dictionary_create();
     	block->blocked_list = list_create();
 		dictionary_put(colas_BLOCKED, resources[i], block);
 	}
 	string_array_destroy(resources);
 	string_array_destroy(resources_instances);
-	sem_init(&planificadores_terminados,0,-3);
+	sem_init(&planificadores_terminados,0,-4);
 	sem_init(&proceso_en_cola_ready,0,0);
 	sem_init(&executing_process, 0, 0);
+	sem_init(&freed_resource, 0, 0);
+	sem_init(&process_in_exit, 0, 0);
 	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
 }
 
@@ -54,15 +60,32 @@ void terminar_estructuras_planificadores() {
 	list_destroy_and_destroy_elements(lista_estado_NEW, _remove_pcb_in_list);
 	list_destroy_and_destroy_elements(lista_estado_READY, _remove_pcb_in_list);
 	if (estado_EXEC != NULL) destroy_pcb(estado_EXEC);
-	void* _remove_block_queue_in_dict(t_block* block) {
+	void* _remove_block_in_dict(t_block* block) {
 		list_destroy_and_destroy_elements(block->blocked_list, _remove_pcb_in_list);
+		dictionary_destroy(block->pids);
 		free(block);
     };
-	dictionary_destroy_and_destroy_elements(colas_BLOCKED, _remove_block_queue_in_dict);
+	dictionary_destroy_and_destroy_elements(colas_BLOCKED, _remove_block_in_dict);
 	sem_destroy(&planificadores_terminados);
 	sem_destroy(&proceso_en_cola_ready);
 	sem_destroy(&executing_process);
 	sem_destroy(&grd_mult);
+	sem_destroy(&freed_resource);
+	sem_destroy(&process_in_exit);
+}
+
+void destroy_executing_process() {
+	pthread_mutex_lock(&mtx_execute_process);
+	destroy_pcb(estado_EXEC);
+	estado_EXEC = NULL;
+	pthread_mutex_unlock(&mtx_execute_process);
+}
+
+void modify_executing_process(t_pcb* pcb) {
+	pthread_mutex_lock(&mtx_execute_process);
+	destroy_pcb(estado_EXEC);
+	estado_EXEC = pcb;
+	pthread_mutex_unlock(&mtx_execute_process);
 }
 
 t_pcb* encontrar_proceso_por_PID(uint32_t pid) {
@@ -120,6 +143,33 @@ char* mostrar_pids_en_ready(t_log* logger) {
 	free(pids);
 }
 
+void eliminar_proceso(t_pcb* pcb) {
+    // Liberar instancias de archivos
+    // Llamar a memoria para liberar
+	void* _free_instances_in_block(char* _, t_block* block) {
+		char* pid = string_itoa(pcb->pid);
+		bool has_resource_instances = dictionary_has_key(block->pids, pid);
+		if (has_resource_instances) {
+			block->instances += dictionary_remove(block->pids, pid);
+			sem_post(&freed_resource);
+		}
+		free(pid);
+    };
+
+	dictionary_iterator(colas_BLOCKED, (void*) _free_instances_in_block);
+    destroy_pcb(pcb);
+}
+
+void send_to_exit(t_pcb* pcb, t_log* logger, int end_state) {
+    pcb->estado = EXIT;
+    pcb->end_state = end_state;
+    pthread_mutex_lock(&cola_exit);
+    list_add(lista_estado_EXIT, pcb);
+    pthread_mutex_unlock(&cola_exit);
+    log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, EXIT);
+    sem_post(&proceso_en_cola_ready);
+    sem_post(&process_in_exit);
+}
 // Pasarlos a tests!!!
 // void prueba_elementos_cola_bloqueados(){
 // 	printf("\n Llego aca\n");

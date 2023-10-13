@@ -30,7 +30,14 @@ enum INSTRUCCION {
     SLEEP = 4,
 };
 
+enum END_STATE {
+    SUCCESS = 0,
+    INVALID_RESOURCE  = 1,
+    INVALID_WRITE = 2
+};
+
 typedef struct pcb {
+    uint32_t end_state; // Unicamente para el EXIT!
     uint32_t pid;
     uint32_t tamanio;
     uint32_t programCounter;
