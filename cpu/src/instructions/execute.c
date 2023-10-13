@@ -27,9 +27,21 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         destroy_instruction(ins);
         return -1;
     } else if (strcmp(ins.instruction, "WAIT")==0) {
-
+        char* resource = list_get(ins.params, 0);
+        log_info(logger, "PID: %d - Ejecutando: WAIT - %s", pcb->pid, resource);
+        pcb->instruccion = WAIT;
+        pcb->params = string_duplicate(resource);
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return -1;
     } else if (strcmp(ins.instruction, "SIGNAL")==0) {
-        // return -1;
+        char* resource = list_get(ins.params, 0);
+        log_info(logger, "PID: %d - Ejecutando: SIGNAL - %s", pcb->pid, resource);
+        pcb->instruccion = SIGNAL;
+        pcb->params = string_duplicate(resource);
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return -1;
     } else if (strcmp(ins.instruction, "MOV_IN")==0) {
 
     } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
