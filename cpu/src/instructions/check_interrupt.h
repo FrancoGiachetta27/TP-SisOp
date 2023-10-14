@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 #include <sys/socket.h>
-#include <commons/log.h>
 #include <sys/ioctl.h>
+#include <instructions/commands.h>
+#include <pcb/pcb.h>
 
 enum Checks {
     FAIL_CONNECTION = -1,
@@ -12,6 +13,6 @@ enum Checks {
     INTERRUPTION = 1,
 };
 
-int check_interrupt(int interrupt_fd, t_log* logger);
+int check_interrupt(t_pcb* pcb, int interrupt_fd, t_log* logger);
 
 #endif /* SRC_INSTRUCTIONS_CHECK_INTERRUPT_H_ */

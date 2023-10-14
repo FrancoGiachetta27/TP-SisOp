@@ -17,8 +17,7 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 				send_package(package, memory_socket, utils->logger);
 				break;
 			case INSTRUCTION:
-				void* buffer = receive_buffer(ports->dispatch_fd, utils->logger);
-				t_pcb* pcb = deserialize_pcb(buffer);
+				t_pcb* pcb = receive_pcb(ports->dispatch_fd, utils->logger);
 				bool continue_executing = true;
 				while (continue_executing == true)
 				{
@@ -27,7 +26,7 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 					int execute_result = execute(pcb, ports, registers, formatted_instruction, utils->logger);
 					if (execute_result != -1) {
 						pcb->programCounter++;
-						int check = check_interrupt(ports->interrupt_fd, utils->logger);
+						int check = check_interrupt(pcb, ports->interrupt_fd, utils->logger);
 						switch (check)
 						{
 							case FAIL_CONNECTION:

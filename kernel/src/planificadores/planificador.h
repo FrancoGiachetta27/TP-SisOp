@@ -41,6 +41,7 @@ void modify_executing_process(t_pcb* pcb);
 void send_to_exit(t_pcb* pcb, t_log* logger, int end_state);
 t_pcb* encontrar_proceso_por_PID(uint32_t pid);
 uint32_t obt_sig_PID();
+void execute_ready_process(t_pcb* pcb, t_log* logger);
 
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger);
 char* mostrar_pids_en_ready(t_log* logger);

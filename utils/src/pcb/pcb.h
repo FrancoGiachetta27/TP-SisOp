@@ -28,6 +28,7 @@ enum INSTRUCCION {
     SIGNAL = 2,
     WAIT = 3,
     SLEEP = 4,
+    INTERRUPTED = 5
 };
 
 enum END_STATE {
@@ -59,5 +60,6 @@ t_pcb* deserialize_pcb(void* buffer);
 void destroy_pcb(t_pcb* pcb);
 void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger);
 t_pcb* receive_pcb(int client_socket, t_log* logger);
+void destroy_params(t_pcb* pcb);
 
 #endif /* SRC_PCB_PCB_H_ */
