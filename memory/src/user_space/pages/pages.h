@@ -6,6 +6,6 @@
 #include <initial_configuration/memory_config.h>
 #include <command/command.h>
 
-int send_page_size_to_cpu(t_conn* conn, t_utils* utils);
+void send_page_size_to_cpu(t_conn* conn, t_utils* utils);
 
 #endif /* SRC_PAGES_PAGES_H */

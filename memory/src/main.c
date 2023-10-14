@@ -17,14 +17,7 @@ int main(int argc, char* argv[]) {
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
 	
-	int is_ok = send_page_size_to_cpu(conn, utils);
-
-	if(is_ok != 1) {
-		log_trace(utils->logger, "Error al leer el tamanio de pagina");
-		free(conn);
-		utils_destroy(utils);
-		return EXIT_FAILURE;
-	} 
+	send_page_size_to_cpu(conn, utils);
 
 	wait_in_every_port(conn, utils->logger);
 
