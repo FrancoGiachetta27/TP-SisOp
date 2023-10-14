@@ -1,6 +1,6 @@
 #include <instructions/check_interrupt.h>
 
-int check_interrupt(int interrupt_fd, t_log* logger) {
+int check_interrupt(t_pcb* pcb, int interrupt_fd, t_log* logger) {
     int bytes_read = 0;
     ioctl(interrupt_fd,FIONREAD,&bytes_read); 
     switch (bytes_read)
@@ -10,5 +10,18 @@ int check_interrupt(int interrupt_fd, t_log* logger) {
         case NO_INTERRUPTION:
             return NO_INTERRUPTION;
     }
+    int op_code = receive_op_code(interrupt_fd, logger);
+    if (op_code != INTERRUPT_INSTRUCTION) {
+        log_error(logger, "Incorrect op_code %d", op_code);
+        return FAIL_CONNECTION;
+    }
+    t_pcb* pcb_to_interrupt = receive_pcb(interrupt_fd, logger);
+    if (pcb_to_interrupt->pid != pcb->pid) {
+        log_warning(logger, "Different pcb to interrupt. In CPU: %d, To Interrupt: %d", pcb_to_interrupt->pid, pcb->pid);
+        return FAIL_CONNECTION;
+    }
+    destroy_pcb(pcb_to_interrupt);
+    pcb->instruccion = INTERRUPTED;
+    log_trace(logger, "Process Interrupted: %d", pcb->pid);
     return INTERRUPTION;
 }

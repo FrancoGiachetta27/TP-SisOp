@@ -4,7 +4,7 @@ t_list* lista_estado_NEW;
 t_list* lista_estado_READY;
 t_dictionary* colas_BLOCKED; 
 t_list* lista_estado_EXIT;
-t_pcb* estado_EXEC;
+t_pcb* estado_EXEC = NULL;
 
 pthread_mutex_t cola_ready;
 pthread_mutex_t cola_exit;
@@ -59,7 +59,7 @@ void terminar_estructuras_planificadores() {
 	list_destroy_and_destroy_elements(lista_estado_EXIT, _remove_pcb_in_list);
 	list_destroy_and_destroy_elements(lista_estado_NEW, _remove_pcb_in_list);
 	list_destroy_and_destroy_elements(lista_estado_READY, _remove_pcb_in_list);
-	if (estado_EXEC != NULL) destroy_pcb(estado_EXEC);
+	if (estado_EXEC != NULL) destroy_executing_process();
 	void* _remove_block_in_dict(t_block* block) {
 		list_destroy_and_destroy_elements(block->blocked_list, _remove_pcb_in_list);
 		dictionary_destroy(block->pids);
@@ -86,6 +86,16 @@ void modify_executing_process(t_pcb* pcb) {
 	destroy_pcb(estado_EXEC);
 	estado_EXEC = pcb;
 	pthread_mutex_unlock(&mtx_execute_process);
+}
+
+void execute_ready_process(t_pcb* pcb, t_log* logger) {
+	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, READY, EXEC);
+	pcb->estado = EXEC;
+	pthread_mutex_lock(&mtx_execute_process);
+	estado_EXEC = pcb;
+	pthread_mutex_unlock(&mtx_execute_process);
+	sem_post(&executing_process);
+	sem_post(&grd_mult);
 }
 
 t_pcb* encontrar_proceso_por_PID(uint32_t pid) {
@@ -125,7 +135,6 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	pthread_mutex_unlock(&cola_ready);
 	sem_post(&proceso_en_cola_ready);
 	pcb->estado = READY;
-	log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, previous_state, READY);
 	mostrar_pids_en_ready(logger);
 }
 

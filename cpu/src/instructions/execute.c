@@ -1,23 +1,27 @@
 #include <instructions/execute.h>
 
 int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger) {
+    destroy_params(pcb);
     if (strcmp(ins.instruction,"SET")==0) {
+        pcb->instruccion = NORMAL;
         char* reg = list_get(ins.params, 0);
         char* value = list_get(ins.params, 1);
         log_info(logger, "PID: %d - Ejecutando: SET - %s, %s", pcb->pid, reg, value);
         set(registers, reg, value);
     } else if (strcmp(ins.instruction, "SUM")==0) {
+        pcb->instruccion = NORMAL;
         char* destination_reg = list_get(ins.params, 0);
         char* origin_reg = list_get(ins.params, 1);
         log_info(logger, "PID: %d - Ejecutando: SUM - %s, %s", pcb->pid, destination_reg, origin_reg);
         sum(registers, destination_reg, origin_reg);
     } else if (strcmp(ins.instruction, "SUB")==0) {
+        pcb->instruccion = NORMAL;
         char* destination_reg = list_get(ins.params, 0);
         char* origin_reg = list_get(ins.params, 1);
         log_info(logger, "PID: %d - Ejecutando: SUB - %s, %s", pcb->pid, destination_reg, origin_reg);
         sub(registers, destination_reg, origin_reg);
     } else if (strcmp(ins.instruction, "JNZ")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "SLEEP")==0) {
         char* sleep_time = list_get(ins.params, 0);
         log_info(logger, "PID: %d - Ejecutando: SLEEP - %s", pcb->pid, sleep_time);
@@ -43,21 +47,21 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         destroy_instruction(ins);
         return -1;
     } else if (strcmp(ins.instruction, "MOV_IN")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_OPEN")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_CLOSE")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_SEEK")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_READ")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_WRITE")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "F_TRUNCATE")==0) {
-
+        pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "EXIT")==0) {
         log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
         pcb->instruccion = FINISH;

@@ -171,7 +171,7 @@ t_pcb* deserialize_pcb(void* buffer) {
 	return pcb;
 }
 
-void destroy_pcb(t_pcb* pcb) {
+void destroy_params(t_pcb* pcb) {
 	switch (pcb->instruccion)
 	{
 	case WAIT:
@@ -179,6 +179,10 @@ void destroy_pcb(t_pcb* pcb) {
 		free(pcb->params);
 		break;
 	}
+}
+
+void destroy_pcb(t_pcb* pcb) {
+	destroy_params(pcb);
 	free(pcb->nom_arch_inst);
 	free(pcb);
 }
