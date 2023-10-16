@@ -1,19 +1,21 @@
 #include "finalizar_proceso.h"
 
-void finalizar_proceso(uint32_t pid) {
+void finalizar_proceso(uint32_t pid, t_log* logger, int socket) {
 	t_pcb* pcb;
 	if (estado_EXEC->pid == pid) {
+		interrupt_finish_executing_process(socket, logger);
+		sem_wait(&finish_interrupted_process);
 		pthread_mutex_lock(&mtx_execute_process);
-		destroy_pcb(estado_EXEC);
+		pcb = estado_EXEC;
 		estado_EXEC = NULL;
 		pthread_mutex_unlock(&mtx_execute_process);
-		sem_post(&proceso_en_cola_ready);
 		eliminar_proceso(pcb);
+		sem_post(&proceso_en_cola_ready);
 		return;
 	}
 
-	bool _pcb_by_pid_in_list(t_pcb *pcb) {
-        return pcb->pid == pid;
+	bool _pcb_by_pid_in_list(t_pcb *pcb_in_list) {
+        return pcb_in_list->pid == pid;
     };
 
 	pcb = list_remove_by_condition(lista_estado_NEW, (void*) _pcb_by_pid_in_list);

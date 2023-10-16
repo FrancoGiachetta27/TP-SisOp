@@ -8,6 +8,7 @@ t_pcb* estado_EXEC = NULL;
 
 pthread_mutex_t cola_ready;
 pthread_mutex_t cola_exit;
+pthread_mutex_t cola_new;
 pthread_mutex_t mtx_execute_process;
 
 sem_t grd_mult;
@@ -19,6 +20,8 @@ sem_t process_in_exit;
 pthread_mutex_t siguientePIDmutex;
 uint32_t sig_PID;
 uint32_t dispDeSalida;
+sem_t process_in_new;
+sem_t finish_interrupted_process;
 char* algoritmo;
 bool working = true;
 int actual_grd_mult;
@@ -47,6 +50,8 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	sem_init(&executing_process, 0, 0);
 	sem_init(&freed_resource, 0, 0);
 	sem_init(&process_in_exit, 0, 0);
+	sem_init(&finish_interrupted_process, 0, 0);
+	sem_init(&process_in_new, 0, 0);
 	actual_grd_mult = config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI");
 	sem_init(&grd_mult,0, actual_grd_mult);
 }
@@ -73,6 +78,8 @@ void terminar_estructuras_planificadores() {
 	sem_destroy(&grd_mult);
 	sem_destroy(&freed_resource);
 	sem_destroy(&process_in_exit);
+	sem_destroy(&finish_interrupted_process);
+	sem_destroy(&process_in_new);
 }
 
 void destroy_executing_process() {
@@ -134,8 +141,8 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	pthread_mutex_lock(&cola_ready);
 	list_add(lista_estado_READY, pcb);
 	pthread_mutex_unlock(&cola_ready);
-	sem_post(&proceso_en_cola_ready);
 	pcb->estado = READY;
+	sem_post(&proceso_en_cola_ready);
 	mostrar_pids_en_ready(logger);
 }
 

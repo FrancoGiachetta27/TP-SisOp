@@ -10,5 +10,6 @@ typedef struct {
 } t_planificador;
 
 void interrupt_executing_process(int socket, t_log* logger);
+void interrupt_finish_executing_process(int socket, t_log* logger);
 
 #endif /* SRC_PLANIFICADORES_CORTO_PLAZO_COMMON_COMMON_H_ */

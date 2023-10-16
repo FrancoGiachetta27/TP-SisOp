@@ -32,11 +32,12 @@ void planificador_largo_plazo(t_log* logger) {
     pthread_create(&atender_exit, NULL, (void*)atender_procesos_en_EXIT, logger);
     pthread_detach(atender_exit);
     while(working) {
+        sem_wait(&process_in_new);
         if (lista_estado_NEW->elements_count != 0) {
             sem_wait(&grd_mult);
-            pthread_mutex_lock(&cola_exit);
+            pthread_mutex_lock(&cola_new);
             t_pcb* pcb_a_ready = list_remove(lista_estado_NEW, 0);
-            pthread_mutex_unlock(&cola_exit);
+            pthread_mutex_unlock(&cola_new);
             log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb_a_ready->pid, NEW, READY);
 		    agregar_pcb_a_cola_READY(pcb_a_ready, logger);
         }

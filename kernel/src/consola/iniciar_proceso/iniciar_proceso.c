@@ -32,9 +32,12 @@ t_pcb* crear_proceso(char* source, char* tamanio, char* prioridad){
 }
 
 void agregar_pcb_a_cola_NEW(t_pcb* pcb, t_log* logger) {
+	pthread_mutex_lock(&cola_new);
 	list_add(lista_estado_NEW, pcb);
+	pthread_mutex_unlock(&cola_new);
 	log_info(logger, "Se crea el proceso %d en NEW", pcb->pid);
 	sig_PID = obt_sig_PID();
+	sem_post(&process_in_new);
 }
 
 			

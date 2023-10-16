@@ -15,6 +15,9 @@ void execute_process(t_planificador* info) {
                     destroy_executing_process();
                     interrupt_process(pcb, info->utils->logger);
                 break;
+                case INTERRUPT_FINISH:
+                    sem_post(&finish_interrupted_process);
+                break;
                 case FINISH:
                     destroy_executing_process();
                     send_to_exit(pcb, info->utils->logger, SUCCESS);

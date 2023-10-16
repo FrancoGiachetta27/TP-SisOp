@@ -3,6 +3,7 @@
 
 #include <planificadores/planificador.h>
 #include <planificadores/corto_plazo/common/common.h>
+#include <planificadores/corto_plazo/block/block.h>
 
 void execute_process(t_planificador* info);
 

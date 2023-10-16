@@ -14,8 +14,10 @@ void consola_interactiva(t_utils* utils, t_conn* conn){
 		if(strcmp(parametros[0],"INICIAR_PROCESO")==0){
 			iniciar_proceso(string_duplicate(parametros[1]), string_duplicate(parametros[2]), string_duplicate(parametros[3]), utils->logger, conn);
 		}
-		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0){
-			finalizar_proceso(atoi(string_duplicate(parametros[1])));
+		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0) {
+			char* param = string_duplicate(parametros[1]);
+			finalizar_proceso(atoi(param), utils->logger, conn->cpu_interrupt_socket);
+			free(param);
 		}
 		else if(strcmp(parametros[0],"DETENER_PLANIFICACION")==0){
 			detener_planificacion(utils->logger);

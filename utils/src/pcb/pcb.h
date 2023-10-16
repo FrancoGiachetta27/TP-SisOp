@@ -28,7 +28,8 @@ enum INSTRUCCION {
     SIGNAL = 2,
     WAIT = 3,
     SLEEP = 4,
-    INTERRUPTED = 5
+    INTERRUPTED = 5,
+    INTERRUPT_FINISH = 6
 };
 
 enum END_STATE {
