@@ -3,6 +3,7 @@
 #include <initial_configuration/client_start.h>
 #include <initial_configuration/server_start.h>
 #include <command/command.h>
+#include "fcb/fcb.h"
 
 #define LOGS_FILE_SYSTEM "filesystem.log"
 
@@ -18,6 +19,8 @@ int main(int argc, char* argv[]) {
 		close(memory_socket);
 		return EXIT_FAILURE;
 	}
+
+	create_fcb_file(utils, "Notas1erParcialK9999");
 
 	int wait_for_commands_result = wait_for_commands(socket_kernel, memory_socket, utils);
 	
