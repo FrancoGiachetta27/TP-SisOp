@@ -11,6 +11,8 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+#define PLANNING_THREADS_INITIAL_VALUE -4
+
 typedef struct {
     int instances;
     t_dictionary* pids;
@@ -33,6 +35,7 @@ pthread_mutex_t cola_ready;
 pthread_mutex_t mtx_execute_process;
 char* algoritmo;
 bool working;
+int actual_grd_mult;
 
 void iniciar_estructuras_planificadores(t_utils* utils);
 void terminar_estructuras_planificadores();

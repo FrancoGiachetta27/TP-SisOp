@@ -22,6 +22,12 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         sub(registers, destination_reg, origin_reg);
     } else if (strcmp(ins.instruction, "JNZ")==0) {
         pcb->instruccion = NORMAL;
+        char* reg = list_get(ins.params, 0);
+        char* new_program_counter = list_get(ins.params, 1);
+        log_info(logger, "PID: %d - Ejecutando: JNZ - %s, %s", pcb->pid, reg, new_program_counter);
+        jnz(pcb, registers, reg, new_program_counter);
+        destroy_instruction(ins);
+        return CONTINUE_NO_MODIFY_PROGRAM_COUNTER;
     } else if (strcmp(ins.instruction, "SLEEP")==0) {
         char* sleep_time = list_get(ins.params, 0);
         log_info(logger, "PID: %d - Ejecutando: SLEEP - %s", pcb->pid, sleep_time);
@@ -29,7 +35,7 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         pcb->params = atoi(sleep_time);
         pcb->programCounter++;
         destroy_instruction(ins);
-        return -1;
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "WAIT")==0) {
         char* resource = list_get(ins.params, 0);
         log_info(logger, "PID: %d - Ejecutando: WAIT - %s", pcb->pid, resource);
@@ -37,7 +43,7 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         pcb->params = string_duplicate(resource);
         pcb->programCounter++;
         destroy_instruction(ins);
-        return -1;
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "SIGNAL")==0) {
         char* resource = list_get(ins.params, 0);
         log_info(logger, "PID: %d - Ejecutando: SIGNAL - %s", pcb->pid, resource);
@@ -45,7 +51,7 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         pcb->params = string_duplicate(resource);
         pcb->programCounter++;
         destroy_instruction(ins);
-        return -1;
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "MOV_IN")==0) {
         pcb->instruccion = NORMAL;
     } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
@@ -66,12 +72,12 @@ int execute(t_pcb* pcb, t_conn* conn, t_reg* registers, t_ins ins, t_log* logger
         log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
         pcb->instruccion = FINISH;
         destroy_instruction(ins);
-        return -1;
+        return RETURN_CONTEXT;
     } else {
         log_warning(logger, "Invalid instruction %s", ins.instruction);
     }
     destroy_instruction(ins);
-    return 0;
+    return CONTINUE;
 }
 
 uint32_t* select_register(t_reg* registers, char* string_register) {
@@ -104,4 +110,11 @@ void sub(t_reg* registers, char* destination_reg, char* origin_reg) {
     uint32_t* selected_destination_reg = select_register(registers, destination_reg);
     uint32_t* selected_origin_reg = select_register(registers, origin_reg);
     *selected_destination_reg = *selected_destination_reg - *selected_origin_reg;
+}
+
+void jnz(t_pcb* pcb, t_reg* registers, char* reg, char* new_program_counter) {
+    uint32_t* selected_reg = select_register(registers, reg);
+    if (*selected_reg != 0) {
+        pcb->programCounter = atoi(new_program_counter);
+    }
 }

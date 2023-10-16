@@ -18,7 +18,8 @@ int check_interrupt(t_pcb* pcb, int interrupt_fd, t_log* logger) {
     t_pcb* pcb_to_interrupt = receive_pcb(interrupt_fd, logger);
     if (pcb_to_interrupt->pid != pcb->pid) {
         log_warning(logger, "Different pcb to interrupt. In CPU: %d, To Interrupt: %d", pcb_to_interrupt->pid, pcb->pid);
-        return FAIL_CONNECTION;
+        destroy_pcb(pcb_to_interrupt);
+        return check_interrupt(pcb, interrupt_fd, logger);
     }
     destroy_pcb(pcb_to_interrupt);
     pcb->instruccion = INTERRUPTED;

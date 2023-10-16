@@ -23,7 +23,7 @@ void planificador_prioridades(t_planificador* info) {
                 t_pcb* pcb = list_get(lista_estado_READY, lista_estado_READY->elements_count - 1);
                 pthread_mutex_unlock(&cola_ready);
                 if (estado_EXEC->prioridad > pcb->prioridad) {
-                    send_pcb(INTERRUPT_INSTRUCTION, estado_EXEC, info->conn->cpu_interrupt_socket, info->utils->logger);
+                    interrupt_executing_process(info->conn->cpu_interrupt_socket, info->utils->logger);
                 }
             }
         }

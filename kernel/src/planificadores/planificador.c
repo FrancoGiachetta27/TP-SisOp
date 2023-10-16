@@ -21,7 +21,7 @@ uint32_t sig_PID;
 uint32_t dispDeSalida;
 char* algoritmo;
 bool working = true;
-
+int actual_grd_mult;
 
 void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	sig_PID = 1;
@@ -42,12 +42,13 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	}
 	string_array_destroy(resources);
 	string_array_destroy(resources_instances);
-	sem_init(&planificadores_terminados,0,-4);
+	sem_init(&planificadores_terminados,0,PLANNING_THREADS_INITIAL_VALUE);
 	sem_init(&proceso_en_cola_ready,0,0);
 	sem_init(&executing_process, 0, 0);
 	sem_init(&freed_resource, 0, 0);
 	sem_init(&process_in_exit, 0, 0);
-	sem_init(&grd_mult,0,config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI"));
+	actual_grd_mult = config_get_int_value(config_kernel->config, "GRADO_MULTIPROGRAMACION_INI");
+	sem_init(&grd_mult,0, actual_grd_mult);
 }
 
 void terminar_estructuras_planificadores() {

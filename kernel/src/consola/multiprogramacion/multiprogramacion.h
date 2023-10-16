@@ -3,6 +3,7 @@
 
 #include "planificadores/planificador.h"
 
+void* wait_grd_mlt();
 void cambiar_grado_multiprogramacion(char* valor);
 
 #endif /* SRC_CONSOLA_MULTIPROGRAMACION_MULTIPROGRAMACION_H_ */

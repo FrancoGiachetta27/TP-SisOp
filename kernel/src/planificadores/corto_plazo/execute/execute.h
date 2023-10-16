@@ -2,7 +2,7 @@
 #define SRC_PLANIFICADORES_CORTO_PLAZO_EXECUTE_EXECUTE_H_
 
 #include <planificadores/planificador.h>
-#include <planificadores/corto_plazo/planificadores.h>
+#include <planificadores/corto_plazo/common/common.h>
 
 void execute_process(t_planificador* info);
 

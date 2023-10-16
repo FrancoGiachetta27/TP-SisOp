@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
 	iniciar_planificador_largo_plazo(utils->logger);
 	iniciar_planificador_corto_plazo(utils, conn);
-	consola_interactiva(utils->logger, conn);
+	consola_interactiva(utils, conn);
 
 	log_trace(utils->logger, "Finalizando Kernel");
 	terminar_estructuras_planificadores();

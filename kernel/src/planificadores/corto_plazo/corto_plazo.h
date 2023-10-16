@@ -5,7 +5,7 @@
 #include <planificadores/corto_plazo/block/block.h>
 #include <planificadores/resources/resources.h>
 #include <planificadores/codigos_de_operacion.h>
-#include <planificadores/corto_plazo/planificadores.h>
+#include <planificadores/corto_plazo/common/common.h>
 #include <planificadores/corto_plazo/rr/rr.h>
 #include <planificadores/corto_plazo/prioridades/prioridades.h>
 #include <planificadores/corto_plazo/fifo/fifo.h>

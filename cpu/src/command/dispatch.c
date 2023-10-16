@@ -24,8 +24,10 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 					char* instruction = fetch(pcb, memory_socket, utils->logger);
 					t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
 					int execute_result = execute(pcb, ports, registers, formatted_instruction, utils->logger);
-					if (execute_result != -1) {
-						pcb->programCounter++;
+					if (execute_result != RETURN_CONTEXT) {
+						if (execute_result == CONTINUE) {
+							pcb->programCounter++;
+						}
 						int check = check_interrupt(pcb, ports->interrupt_fd, utils->logger);
 						switch (check)
 						{
