@@ -4,6 +4,7 @@
 #include <command/command.h>
 #include <initial_configuration/memory_config.h>
 #include <instruction_memory/process/process.h>
+#include <user_space/pages/pages.h>
 
 #define LOGS_MEMORIA "memoria.log"
 
@@ -15,6 +16,8 @@ int main(int argc, char* argv[]) {
 
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
+	
+	send_page_size_to_cpu(conn, utils);
 
 	wait_in_every_port(conn, utils->logger);
 

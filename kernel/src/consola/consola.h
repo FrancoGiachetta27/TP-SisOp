@@ -10,7 +10,8 @@
 #include "iniciar_planificacion/iniciar_planificacion.h"
 #include <readline/readline.h>
 #include <echo/echo.h>
+#include <commons/string.h>
 
-void consola_interactiva(t_log* logger, t_conn* conn);
+void consola_interactiva(t_utils* utils, t_conn* conn);
 
 #endif /* SRC_CONSOLA_CONSOLA_H_ */

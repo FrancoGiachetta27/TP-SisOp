@@ -40,7 +40,7 @@ context(fetch)
 
         it("Se obtuvieron todas las instrucciones con exito"){
             do {
-                instruction = fetch_next_instruction(1, i);
+                instruction = fetch_next_instruction(1, i, logger);
                 
                 if(!string_is_empty(instruction)) should_string(instruction) be equal to(test_instructions[i]);
                 

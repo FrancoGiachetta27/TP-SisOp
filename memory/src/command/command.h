@@ -4,6 +4,7 @@
 #define MODULOS_A_CONECTAR 3
 
 #include <pthread.h>
+#include <unistd.h>
 #include <commons/collections/dictionary.h>
 #include <package/package.h>
 #include <initial_configuration/server_start.h>

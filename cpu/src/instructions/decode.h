@@ -1,9 +1,11 @@
 #ifndef SRC_INSTRUCTIONS_DECODE_H_
 #define SRC_INSTRUCTIONS_DECODE_H_
 
+#include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <commons/log.h>
-// #include <commons/string.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 
 typedef struct {

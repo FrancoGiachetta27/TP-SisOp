@@ -2,12 +2,13 @@
 
 t_ins decode(char* instruction, int page_size, t_log* logger) {
     char** formatted_ins = string_split(instruction, " ");
+    free(instruction);
     t_ins ins;
     ins.instruction = formatted_ins[0];
     ins.params = list_create();
-    for (int i = 1; i < string_array_size(formatted_ins) - 1; i++)
+    for (int i = 1; i < string_array_size(formatted_ins); i++)
     {
-        list_add(ins.params, formatted_ins);
+        list_add(ins.params, formatted_ins[i]);
     }
     if (strcmp(ins.instruction, "MOV_IN")==0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
         char* logic_direction = list_get(ins.params, 1);
@@ -33,5 +34,9 @@ t_pag* mmu_translate(char* logic_direction, int page_size) {
 }
 
 void destroy_instruction(t_ins ins) {
-    list_destroy(ins.params);
+    void* _destroy_element(void* element) {
+        free(element);
+    };
+    list_destroy_and_destroy_elements(ins.params, (void*) _destroy_element);
+    free(ins.instruction);
 }

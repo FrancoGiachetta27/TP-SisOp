@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <cspecs/cspec.h>
 #include <package/package.h>
+#include <cspecs/cspec.h>
 
 context (package) {
     describe("Testing Package") {

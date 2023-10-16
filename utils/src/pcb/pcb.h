@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <package/package.h>
 
 typedef struct {
     uint32_t AX;
@@ -20,7 +21,25 @@ enum ESTADO {
     READY = 5
 };
 
+
+enum INSTRUCCION {
+    NORMAL = 0,
+    FINISH = 1,
+    SIGNAL = 2,
+    WAIT = 3,
+    SLEEP = 4,
+    INTERRUPTED = 5,
+    INTERRUPT_FINISH = 6
+};
+
+enum END_STATE {
+    SUCCESS = 0,
+    INVALID_RESOURCE  = 1,
+    INVALID_WRITE = 2
+};
+
 typedef struct pcb {
+    uint32_t end_state; // Unicamente para el EXIT!
     uint32_t pid;
     uint32_t tamanio;
     uint32_t programCounter;
@@ -28,9 +47,11 @@ typedef struct pcb {
     char* nom_arch_inst;
     t_reg registers;
     uint32_t estado;
+    uint32_t instruccion;
+    void* params; 
 } t_pcb;
 
-int serialized_pcb_size(char* arch_name);
+int serialized_pcb_size(t_pcb* pcb);
 t_reg create_empty_registers();
 t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority);
 void* serialize_pcb(t_pcb* pcb);
@@ -38,5 +59,8 @@ void* serialize_registers(t_reg registers);
 t_reg deserialize_registers(void* buffer);
 t_pcb* deserialize_pcb(void* buffer);
 void destroy_pcb(t_pcb* pcb);
+void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger);
+t_pcb* receive_pcb(int client_socket, t_log* logger);
+void destroy_params(t_pcb* pcb);
 
 #endif /* SRC_PCB_PCB_H_ */

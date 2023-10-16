@@ -18,10 +18,6 @@ void *wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "OpCode: %d and Message: %s", op_code, message);
             free(message);
             break;
-        case PAGE_SIZE:
-            t_package* package_page = create_integer_package(PAGE_SIZE, memory_config.page_size);
-            send_package(package_page, thread_info->port, thread_info->logger);
-            break;
         case CREATE_PROCESS:
             void* buffer = receive_buffer(thread_info->port, thread_info->logger);
             t_pcb* pcb = deserialize_pcb(buffer);
@@ -30,12 +26,12 @@ void *wait_for_command(t_thread *thread_info)
             send_package(package_process, thread_info->port, thread_info->logger);
             break;
         case FETCH_INSTRUCTION:
-            int pid = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            int program_pointer = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            char* next_instruction = fetch_next_instruction(pid, program_pointer);
+            t_pcb* instruction_pcb = receive_pcb(thread_info->port, thread_info->logger);
+            char* next_instruction = fetch_next_instruction(instruction_pcb->pid, instruction_pcb->programCounter, thread_info->logger);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
+            usleep(memory_config.time_delay * 1000);
             send_package(package_instruct, thread_info->port, thread_info->logger);
-            destroy_pcb(pcb);
+            destroy_pcb(instruction_pcb);
             break;
         default:
             log_error(thread_info->logger, "Unknown OpCode");

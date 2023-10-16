@@ -3,7 +3,8 @@
 
 #include "planificadores/planificador.h"
 #include <planificadores/largo_plazo/largo_plazo.h>
+#include <planificadores/corto_plazo/common/common.h>
 
-void finalizar_proceso(uint32_t pid);
+void finalizar_proceso(uint32_t pid, t_log* logger, int socket);
 
 #endif /* SRC_CONSOLA_FINALIZAR_PROCESO_FINALIZAR_PROCESO_H_ */
