@@ -6,50 +6,140 @@
 #include <cspecs/cspec.h>
 
 context(createProcess) {
-    describe("Testing Process") {
+    describe("Testing Process creation") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
-        int is_ok;
-        char *test_instructions[17] = {
-                "SET AX 1", 
-                "SET BX 1", 
-                "SUM AX BX", 
-                "SUB AX BX", 
-                "MOV_IN DX 0", 
-                "MOV_OUT 0 CX", 
-                "SLEEP 10", 
-                "JNZ AX 4", 
-                "WAIT RECURSO_1", 
-                "SIGNAL RECURSO_1", 
-                "F_OPEN ARCHIVO W", 
-                "F_TRUNCATE ARCHIVO 64", 
-                "F_SEEK ARCHIVO 8", 
-                "F_WRITE ARCHIVO 0", 
-                "F_READ ARCHIVO 0", 
-                "F_CLOSE ARCHIVO", 
-                "EXIT"
-            };
+        char* test_instructions1[17] = {
+            "SET AX 1",
+            "SET BX 1",
+            "SUM AX BX",
+            "SUB AX BX",
+            "MOV_IN DX 0",
+            "MOV_OUT 0 CX",
+            "WAIT RA",
+            "SLEEP 10",
+            "JNZ AX 4",
+            "SIGNAL RA",
+            "F_OPEN ARCHIVO W",
+            "F_TRUNCATE ARCHIVO 64",
+            "F_SEEK ARCHIVO 8",
+            "F_WRITE ARCHIVO 0",
+            "F_READ ARCHIVO 0",
+            "F_CLOSE ARCHIVO",
+            "EXIT"
+        };
+
+        char* test_instructions_sin_jnz[15] = {
+            "SET AX 1",
+            "SET BX 1",
+            "SUM AX BX",
+            "SUB AX BX",
+            "MOV_IN DX 0",
+            "MOV_OUT 0 CX",
+            "WAIT RA",
+            "SIGNAL RA",
+            "F_OPEN ARCHIVO W",
+            "F_TRUNCATE ARCHIVO 64",
+            "F_SEEK ARCHIVO 8",
+            "F_WRITE ARCHIVO 0",
+            "F_READ ARCHIVO 0",
+            "F_CLOSE ARCHIVO",
+            "EXIT"
+        };
+        
+        char* test_instructions_sin_recursos[13] = {
+            "SET AX 1",
+            "SET BX 1",
+            "SUM AX BX",
+            "SUB AX BX",
+            "MOV_IN DX 0",
+            "MOV_OUT 0 CX",
+            "F_OPEN ARCHIVO W",
+            "F_TRUNCATE ARCHIVO 64",
+            "F_SEEK ARCHIVO 8",
+            "F_WRITE ARCHIVO 0",
+            "F_READ ARCHIVO 0",
+            "F_CLOSE ARCHIVO",
+            "EXIT"
+        };
 
         before {
             init_memory(config, &memory_config, &active_processes);
-            is_ok = create_process(logger, 1, "primero.txt", 0);
+            create_process(logger, 1, "1.txt", 1);
+            create_process(logger, 2, "2.txt", 1);
+            create_process(logger, 3, "3.txt", 1);
+            create_process(logger, 4, "sin-recursos.txt", 1);
+            create_process(logger, 5, "sin-jnz.txt", 1);
         }end
 
-        it("El proceso se creo con exito") {
-            t_process *current_process = (t_process *)list_get(active_processes, 0);
+        it("El proceso se creo con 1.txt") {
+            t_process* current_process = (t_process *)list_get(active_processes, 0);
 
-            should_int(is_ok) be equal to(1);
             should_int(current_process->pid) be equal to(1);
-            should_string(current_process->file_name) be equal to("primero.txt");
-            should_int(current_process->bytes) be equal to(0);
+            should_string(current_process->file_name) be equal to("1.txt");
+            should_int(current_process->bytes) be equal to(1);
 
             t_list* instruct_list = current_process->instructions_set;
 
             for (int i = 0; i < list_size(instruct_list); i++) {
                 char* instr = list_get(instruct_list, i);
 
-                should_string(instr) be equal to(test_instructions[i]);
+                should_string(instr) be equal to(test_instructions1[i]);
             }
+        }end
+
+        it("El proceso se creo con sin-recursos.txt") {
+            t_process* current_process = (t_process *)list_get(active_processes, 3);
+
+            should_int(current_process->pid) be equal to(4);
+            should_string(current_process->file_name) be equal to("sin-recursos.txt");
+            should_int(current_process->bytes) be equal to(1);
+
+            t_list* instruct_list = current_process->instructions_set;
+
+            for (int i = 0; i < list_size(instruct_list); i++) {
+                char* instr = list_get(instruct_list, i);
+
+                should_string(instr) be equal to(test_instructions_sin_recursos[i]);
+            }
+        }end
+
+        it("El proceso se creo con sin-jnz.txt") {
+            t_process* current_process = (t_process *)list_get(active_processes, 4);
+
+            should_int(current_process->pid) be equal to(5);
+            should_string(current_process->file_name) be equal to("sin-jnz.txt");
+            should_int(current_process->bytes) be equal to(1);
+
+            t_list* instruct_list = current_process->instructions_set;
+
+            for (int i = 0; i < list_size(instruct_list); i++) {
+                char* instr = list_get(instruct_list, i);
+
+                should_string(instr) be equal to(test_instructions_sin_jnz[i]);
+            }
+        }end
+
+        it("Los procesos se eliminan con exito") {
+            int pid;
+            int _is_pid(t_process* process) {
+                return process->pid == pid;
+            };
+
+            pid = 2;
+            t_process* process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+
+            pid = 3;
+            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+
+            pid = 4;
+            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
         }end
     }end
 }

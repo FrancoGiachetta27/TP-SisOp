@@ -25,6 +25,7 @@ enum MEMORY_CODE_OP {
     FETCH_INSTRUCTION = 3,
     PAGE_SIZE = 4,
     PROCESS_OK = 5,
+    END_PROCESS = 6,
 };
 
 void wait_in_every_port(t_conn* conn, t_log* logger);

@@ -18,5 +18,21 @@ int create_process(t_log *logger, int pid, char *file_name, int bytes)
     return 1;
 }
 
-void deallocate_porcess(void) {}
+static void _free_process(t_process* process) {
+    void _free_instruction(char* inst) {
+        free(inst);
+    };
+    list_destroy_and_destroy_elements(process->instructions_set, (void*)_free_instruction);
+    free(process);
+};
+
+void deallocate_porcess(int pid) {
+    int _is_pid(t_process* process) {
+        return process->pid == pid;
+    };
+
+    list_remove_and_destroy_by_condition(active_processes, (void*)_is_pid, (void*)_free_process);
+}
+
+
      

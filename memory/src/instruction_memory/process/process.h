@@ -14,7 +14,7 @@ typedef struct
 } t_process;
 
 int create_process(t_log *logger, int pid, char *file_name, int bytes);
-void deallocate_porcess(void);
+void deallocate_porcess(int pid);
 
 extern t_list* active_processes;
 

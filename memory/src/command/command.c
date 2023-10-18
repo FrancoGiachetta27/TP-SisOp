@@ -19,20 +19,22 @@ void *wait_for_command(t_thread *thread_info)
             free(message);
             break;
         case CREATE_PROCESS:
-            void* buffer = receive_buffer(thread_info->port, thread_info->logger);
-            t_pcb* pcb = deserialize_pcb(buffer);
-            int is_ok = create_process(thread_info->logger, pcb->pid, pcb->nom_arch_inst, pcb->tamanio);
+            t_pcb* pcb1 = receive_pcb(thread_info->port, thread_info->logger);
+            int is_ok = create_process(thread_info->logger, pcb1->pid, pcb1->nom_arch_inst, pcb1->tamanio);
             t_package* package_process = create_integer_package(PROCESS_OK, is_ok);
             send_package(package_process, thread_info->port, thread_info->logger);
             break;
         case FETCH_INSTRUCTION:
-            t_pcb* instruction_pcb = receive_pcb(thread_info->port, thread_info->logger);
-            char* next_instruction = fetch_next_instruction(instruction_pcb->pid, instruction_pcb->programCounter, thread_info->logger);
+            t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
+            char* next_instruction = fetch_next_instruction(pcb2->pid, pcb2->programCounter, thread_info->logger);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
             usleep(memory_config.time_delay * 1000);
             send_package(package_instruct, thread_info->port, thread_info->logger);
-            destroy_pcb(instruction_pcb);
+            destroy_pcb(pcb2);
             break;
+        case END_PROCESS:
+            t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);
+            deallocate_porcess(pcb3->pid);
         default:
             log_error(thread_info->logger, "Unknown OpCode");
             dictionary_remove(thread_info->dict, thread_info->dict_key);
