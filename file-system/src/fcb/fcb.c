@@ -1,11 +1,14 @@
 #include "fcb.h"
-#include <commons/config.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <config/config.h>
+#include <commons/config.h>
+
+// TODO: Agreguar funcionalidades para los FCBs
 
 char* concat(const char *s1, const char *s2) {
     char *result = malloc(strlen(s1) + strlen(s2) + 1);
@@ -49,6 +52,5 @@ void create_fcb_file(t_utils* utils, char* file_name) {
     free(fcb_path);
     free(file_path);
     free(file_path_extesion);
-
 }
 
