@@ -4,18 +4,20 @@ int quantum;
 
 void quantum_checker(t_rr* rr_info) {
     usleep(quantum * 1000);
-    if (estado_EXEC->pid == rr_info->pid) {
+    if (estado_EXEC != NULL && estado_EXEC->pid == rr_info->pid && lista_estado_READY->elements_count != 0) {
         interrupt_executing_process(rr_info->interrupt_socket, rr_info->logger);
         log_info(rr_info->logger, "PID: %d - Desalojado por fin de Quantum", rr_info->pid);
+    } else {
+        log_trace(rr_info->logger, "PID: %d - Ya no se esta ejecutando", rr_info->pid);
     }
-    log_trace(rr_info->logger, "PID: %d - Ya no se esta ejecutando", rr_info->pid);
     free(rr_info);
 }
 
 void planificador_rr(t_planificador* info) {
     quantum = config_get_int_value(info->utils->config, "QUANTUM");
-    while(working) {
+    while(1) {
         sem_wait(&proceso_en_cola_ready);
+        if (!working) break;
         if (estado_EXEC == NULL && lista_estado_READY->elements_count != 0) {
             pthread_mutex_lock(&cola_ready);
             t_pcb* pcb = list_remove(lista_estado_READY, 0);
@@ -31,5 +33,4 @@ void planificador_rr(t_planificador* info) {
         }
     }
     free(info);
-    sem_post(&planificadores_terminados);
 }

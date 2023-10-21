@@ -25,6 +25,7 @@ void wait_instance_of_resource(t_pcb* pcb, t_log* logger) {
         list_add(block->blocked_list, pcb);
         log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
         log_info(logger, "PID: %d - Bloqueado por: %s", pcb->pid, pcb->params);
+        analize_resource_deadlock(pcb->params, block, logger);
         sem_post(&proceso_en_cola_ready);
     }
     log_info(logger, "PID: %d - Wait: %s - Instancias: %d", pcb->pid, pcb->params, block->instances);

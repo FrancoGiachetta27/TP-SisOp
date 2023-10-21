@@ -11,8 +11,6 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#define PLANNING_THREADS_INITIAL_VALUE -4
-
 typedef struct {
     int instances;
     t_dictionary* pids;
@@ -24,8 +22,9 @@ t_list* lista_estado_READY;
 t_dictionary* colas_BLOCKED; 
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC;
+t_list* lista_estado_SLEEP;
+t_list* lista_estado_INTERRUPT;
 sem_t grd_mult;
-sem_t planificadores_terminados;
 sem_t proceso_en_cola_ready;
 sem_t finish_interrupted_process;
 sem_t executing_process;
@@ -36,6 +35,8 @@ pthread_mutex_t cola_exit;
 pthread_mutex_t cola_new;
 pthread_mutex_t cola_ready;
 pthread_mutex_t mtx_execute_process;
+pthread_mutex_t cola_sleep;
+pthread_mutex_t cola_interrupt;
 char* algoritmo;
 bool working;
 int actual_grd_mult;
@@ -50,10 +51,9 @@ uint32_t obt_sig_PID();
 void execute_ready_process(t_pcb* pcb, t_log* logger);
 
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger);
-char* mostrar_pids_en_ready(t_log* logger);
-
+char* get_string_of_pids_in_list(t_list* list);
 void prueba_agregar_proceso_a_NEW();
-void eliminar_proceso(t_pcb* pcb);
+void eliminar_proceso(t_pcb* pcb, int socket, t_log* logger);
 
 #endif /* SRC_PLANIFICADORES_PLANIFICADOR_H_ */
 

@@ -6,13 +6,17 @@ t_dictionary* colas_BLOCKED;
 t_list* lista_estado_EXIT;
 t_pcb* estado_EXEC = NULL;
 
+t_list* lista_estado_SLEEP;
+t_list* lista_estado_INTERRUPT;
+
 pthread_mutex_t cola_ready;
 pthread_mutex_t cola_exit;
+pthread_mutex_t cola_sleep;
+pthread_mutex_t cola_interrupt;
 pthread_mutex_t cola_new;
 pthread_mutex_t mtx_execute_process;
 
 sem_t grd_mult;
-sem_t planificadores_terminados;
 sem_t proceso_en_cola_ready;
 sem_t executing_process;
 sem_t freed_resource;
@@ -31,6 +35,8 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	lista_estado_NEW = list_create();
 	lista_estado_READY = list_create();
 	lista_estado_EXIT = list_create();
+	lista_estado_SLEEP = list_create();
+	lista_estado_INTERRUPT = list_create();
 	colas_BLOCKED = dictionary_create();
     algoritmo = config_get_string_value(config_kernel->config, "ALGORITMO_PLANIFICACION");
 	char** resources = config_get_array_value(config_kernel->config,"RECURSOS");
@@ -45,7 +51,6 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	}
 	string_array_destroy(resources);
 	string_array_destroy(resources_instances);
-	sem_init(&planificadores_terminados,0,PLANNING_THREADS_INITIAL_VALUE);
 	sem_init(&proceso_en_cola_ready,0,0);
 	sem_init(&executing_process, 0, 0);
 	sem_init(&freed_resource, 0, 0);
@@ -58,7 +63,11 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 
 void terminar_estructuras_planificadores() {
 	working = false;
-	sem_wait(&planificadores_terminados);
+	sem_post(&executing_process);
+	sem_post(&freed_resource);
+	sem_post(&process_in_exit);
+	sem_post(&process_in_new);
+	sem_post(&proceso_en_cola_ready);
 	void* _remove_pcb_in_list(t_pcb* pcb) {
 		destroy_pcb(pcb);
     };
@@ -72,7 +81,6 @@ void terminar_estructuras_planificadores() {
 		free(block);
     };
 	dictionary_destroy_and_destroy_elements(colas_BLOCKED, _remove_block_in_dict);
-	sem_destroy(&planificadores_terminados);
 	sem_destroy(&proceso_en_cola_ready);
 	sem_destroy(&executing_process);
 	sem_destroy(&grd_mult);
@@ -143,26 +151,28 @@ void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger){
 	pthread_mutex_unlock(&cola_ready);
 	pcb->estado = READY;
 	sem_post(&proceso_en_cola_ready);
-	mostrar_pids_en_ready(logger);
-}
-
-char* mostrar_pids_en_ready(t_log* logger) {
-	int i = 0;
-	char* pids = string_new();
-	int cantElem = lista_estado_READY->elements_count;
-	for(i = 0; i <= cantElem - 1; i++){
-		t_pcb* pcb = list_get(lista_estado_READY,i);
-		char* pid = string_itoa(pcb->pid);
-  		string_append_with_format(&pids, i == 0 ? "%s" :",%s", pid);
-		free(pid);
-	}
+	char* pids = get_string_of_pids_in_list(lista_estado_READY);
 	log_info(logger, "Cola Ready %s: %s", algoritmo, pids);
 	free(pids);
 }
 
-void eliminar_proceso(t_pcb* pcb) {
+char* get_string_of_pids_in_list(t_list* list) {
+	int i = 0;
+	char* pids = string_new();
+	int cantElem = list->elements_count;
+	for(i = 0; i <= cantElem - 1; i++){
+		t_pcb* pcb = list_get(list,i);
+		char* pid = string_itoa(pcb->pid);
+  		string_append_with_format(&pids, i == 0 ? "%s" :",%s", pid);
+		free(pid);
+	}
+	return pids;
+}
+
+void eliminar_proceso(t_pcb* pcb, int socket, t_log* logger) {
     // Liberar instancias de archivos
     // Llamar a memoria para liberar
+	send_pcb(FINISH_PROCESS, pcb, socket, logger);
 	void* _free_instances_in_block(char* _, t_block* block) {
 		char* pid = string_itoa(pcb->pid);
 		bool has_resource_instances = dictionary_has_key(block->pids, pid);

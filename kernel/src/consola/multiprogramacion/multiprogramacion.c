@@ -4,7 +4,7 @@ void* wait_grd_mlt() {
     sem_wait(&grd_mult);
 }
 
-void cambiar_grado_multiprogramacion(char* valor) {
+void cambiar_grado_multiprogramacion(char* valor, t_log* logger) {
     int new_grade = atoi(valor);
     if (new_grade > actual_grd_mult) {
         int difference = new_grade - actual_grd_mult;
@@ -22,6 +22,7 @@ void cambiar_grado_multiprogramacion(char* valor) {
             pthread_detach(wait_grd_mlt_thread);
         }
     }
+    log_info(logger, "Grado Anterior: %d - Grado Actual: %d>", actual_grd_mult, valor);
     actual_grd_mult = valor;
     free(valor);
 }

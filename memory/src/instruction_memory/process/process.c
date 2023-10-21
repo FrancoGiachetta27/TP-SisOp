@@ -4,7 +4,7 @@ t_list* active_processes;
 
 int create_process(t_log *logger, int pid, char *file_name, int bytes)
 {
-    char *file_path = string_from_format("%s/%s", memory_config.instructions_path, file_name);
+    char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, file_name);
     t_list *instructions_set = get_instructions_from_file(logger, file_path);
 
     if (instructions_set == NULL) return -1;

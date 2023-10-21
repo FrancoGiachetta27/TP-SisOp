@@ -1,9 +1,10 @@
 #include "block.h"
 
 void unblock_processes(t_log* logger) {
-    while (working)
+    while (1)
     {
         sem_wait(&freed_resource);
+        if (!working) break;
 	    void* _send_blocked_pcb_to_ready(char* _, t_block* block) {
             if (block->instances >= 1 && block->blocked_list->elements_count >= 1) {
                 t_pcb* pcb = list_remove(block->blocked_list, 0);
@@ -15,15 +16,30 @@ void unblock_processes(t_log* logger) {
         };
         dictionary_iterator(colas_BLOCKED, _send_blocked_pcb_to_ready);
     }
-    sem_post(&planificadores_terminados);
 }
 
 void treat_interrupted_process(t_interrupted* interrupted_info) {
     if (interrupted_info->pcb->instruccion == SLEEP) {
+        pthread_mutex_lock(&cola_sleep);
+        list_add(lista_estado_SLEEP, interrupted_info->pcb);
+        pthread_mutex_unlock(&cola_sleep);
         log_info(interrupted_info->logger, "PID: %d - Bloqueado por: SLEEP", interrupted_info->pcb->pid);
         sleep((int) interrupted_info->pcb->params);
+    } else {
+        pthread_mutex_lock(&cola_interrupt);
+        list_add(lista_estado_INTERRUPT, interrupted_info->pcb);
+        pthread_mutex_unlock(&cola_interrupt);
     }
     sem_wait(&grd_mult);
+    if (interrupted_info->pcb->instruccion == SLEEP) {
+        pthread_mutex_lock(&cola_sleep);
+        list_remove_element(lista_estado_SLEEP, interrupted_info->pcb);
+        pthread_mutex_unlock(&cola_sleep);
+    } else {
+        pthread_mutex_lock(&cola_interrupt);
+        list_remove_element(lista_estado_INTERRUPT, interrupted_info->pcb);
+        pthread_mutex_unlock(&cola_interrupt);
+    }
 	log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
     free(interrupted_info);

@@ -5,14 +5,16 @@ void* _min_priority(t_pcb* pcb1, t_pcb* pcb2) {
 }
 
 void planificador_prioridades(t_planificador* info) {
-    while(working) {
+    while(1) {
         sem_wait(&proceso_en_cola_ready);
+        if (!working) break;
         if (lista_estado_READY->elements_count != 0) {
             if (estado_EXEC == NULL) {
                 pthread_mutex_lock(&cola_ready);
                 t_pcb* pcb;
                 if (lista_estado_READY->elements_count > 1) {
                     pcb = (t_pcb*) list_get_minimum(lista_estado_READY, (void*) _min_priority);
+                    list_remove_element(lista_estado_READY, pcb);
                 } else {
                     pcb = list_remove(lista_estado_READY, 0);
                 }
@@ -29,5 +31,4 @@ void planificador_prioridades(t_planificador* info) {
         }
     }
     free(info);
-    sem_post(&planificadores_terminados);
 }

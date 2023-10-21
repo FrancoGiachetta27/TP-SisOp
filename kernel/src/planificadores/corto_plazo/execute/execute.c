@@ -1,8 +1,9 @@
 #include "execute.h"
 
 void execute_process(t_planificador* info) {
-    while(working) {
+    while(1) {
         sem_wait(&executing_process);
+        if (!working) break;
         if (estado_EXEC != NULL) {
             send_pcb(INSTRUCTION, estado_EXEC, info->conn->cpu_dispatcher_socket, info->utils->logger);
             int op_code = receive_op_code(info->conn->cpu_dispatcher_socket, info->utils->logger);
@@ -42,5 +43,4 @@ void execute_process(t_planificador* info) {
         }
     }
     free(info);
-    sem_post(&planificadores_terminados);
 }
