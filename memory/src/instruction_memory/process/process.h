@@ -4,13 +4,15 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <instruction_memory/instructions/instructions.h>
+#include <user_space/pages/pages.h>
 
 typedef struct
 {
     int pid;
-    char *file_name;
+    char* file_name;
     int bytes;
-    t_list *instructions_set;
+    t_list* instructions_set;
+    t_list* page_table;
 } t_process;
 
 int create_process(t_log *logger, int pid, char *file_name, int bytes);

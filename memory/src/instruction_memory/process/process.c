@@ -13,6 +13,7 @@ int create_process(t_log *logger, int pid, char *file_name, int bytes)
     process->pid = pid;
     process->file_name = file_name;
     process->bytes = bytes;
+    process->page_table = page_table_create(bytes);
     process->instructions_set = instructions_set;
     list_add(active_processes, process);
     return 1;

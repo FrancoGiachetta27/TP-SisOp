@@ -20,6 +20,9 @@ void *wait_for_command(t_thread *thread_info)
             break;
         case CREATE_PROCESS:
             t_pcb* pcb1 = receive_pcb(thread_info->port, thread_info->logger);
+
+            get_swap_blocks(pcb1->tamanio, thread_info->conn->socket_filesystem, thread_info->logger);
+
             int is_ok = create_process(thread_info->logger, pcb1->pid, pcb1->nom_arch_inst, pcb1->tamanio);
             t_package* package_process = create_integer_package(PROCESS_OK, is_ok);
             send_package(package_process, thread_info->port, thread_info->logger);
@@ -83,6 +86,7 @@ void wait_in_every_port(t_conn *conn, t_log *logger)
         }
         thread_info->logger = logger;
         thread_info->dict = dict;
+        thread_info->conn = conn;
         dictionary_put(dict, thread_info->dict_key, thread_info->dict_key);
         pthread_create(&thread_id, NULL, wait_for_command, thread_info);
         pthread_detach(thread_id);

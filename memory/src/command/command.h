@@ -18,14 +18,22 @@ typedef struct {
     t_log* logger;
     int port;
     char* dict_key;
+    t_conn* conn;
 } t_thread;
 
-enum MEMORY_CODE_OP {
+enum KERNEL_CODE_OP {
     CREATE_PROCESS = 2,
-    FETCH_INSTRUCTION = 3,
-    PAGE_SIZE = 4,
     PROCESS_OK = 5,
     END_PROCESS = 6,
+};
+
+enum CPU_CODE_OP {
+    FETCH_INSTRUCTION = 3,
+    PAGE_SIZE = 4,
+};
+
+enum FS_OP {
+    GET_SWAP_BLOCKS,
 };
 
 void wait_in_every_port(t_conn* conn, t_log* logger);
