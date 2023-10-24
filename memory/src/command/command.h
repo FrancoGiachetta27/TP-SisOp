@@ -33,7 +33,7 @@ enum CPU_CODE_OP {
 };
 
 enum FS_OP {
-    GET_SWAP_BLOCKS,
+    GET_SWAP_BLOCKS = 7,
 };
 
 void wait_in_every_port(t_conn* conn, t_log* logger);

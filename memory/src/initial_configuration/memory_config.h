@@ -4,8 +4,6 @@
 #include <config/config.h>
 #include <commons/config.h>
 #include <instruction_memory/process/process.h>
-#include <user_space/main_memory.h>
-#include <commons/bitarray.h>
 
 typedef struct {
     int memory_size;

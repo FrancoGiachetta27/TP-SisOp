@@ -10,10 +10,4 @@ void init_memory(t_config* config, t_memory_cfg* memory_config, t_list** active_
     memory_config->instructions_path = config_get_string_value(config, "PATH_INSTRUCCIONES");
     memory_config->time_delay = config_get_int_value(config, "RETARDO_RESPUESTA");
     memory_config->algorithm = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-
-    space = malloc(memory_config->memory_size);
-    
-    int total_frames = memory_config->memory_size/memory_config->page_size;
-    void* frames = malloc(total_frames / 8);
-    frame_table = bitarray_create_with_mode(frames,total_frames / 8, LSB_FIRST); 
 }

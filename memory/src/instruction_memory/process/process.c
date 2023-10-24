@@ -2,7 +2,7 @@
 
 t_list* active_processes;
 
-int create_process(t_log *logger, int pid, char *file_name, int bytes)
+int create_process(t_log *logger, int pid, char *file_name, int bytes, int swap_blocks)
 {
     char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, file_name);
     t_list *instructions_set = get_instructions_from_file(logger, file_path);
@@ -13,9 +13,11 @@ int create_process(t_log *logger, int pid, char *file_name, int bytes)
     process->pid = pid;
     process->file_name = file_name;
     process->bytes = bytes;
-    process->page_table = page_table_create(bytes);
+    process->page_table = page_table_create(bytes, swap_blocks);
     process->instructions_set = instructions_set;
+    
     list_add(active_processes, process);
+    
     return 1;
 }
 

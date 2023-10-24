@@ -5,8 +5,8 @@
 #include <initial_configuration/memory_config.h>
 #include <cspecs/cspec.h>
 
-context(createProcess) {
-    describe("Testing Process creation") {
+context(process) {
+    describe("Testing Process Actions") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
         char* test_instructions1[17] = {
@@ -65,18 +65,18 @@ context(createProcess) {
 
         before {
             init_memory(config, &memory_config, &active_processes);
-            create_process(logger, 1, "1.txt", 1);
-            create_process(logger, 2, "2.txt", 1);
-            create_process(logger, 3, "3.txt", 1);
-            create_process(logger, 4, "sin-recursos.txt", 1);
-            create_process(logger, 5, "sin-jnz.txt", 1);
+            create_process(logger, 1, "1", 1, 0);
+            create_process(logger, 2, "2", 1, 0);
+            create_process(logger, 3, "3", 1, 0);
+            create_process(logger, 4, "sin-recursos", 1, 0);
+            create_process(logger, 5, "sin-jnz", 1, 0);
         }end
 
         it("El proceso se creo con 1.txt") {
             t_process* current_process = (t_process *)list_get(active_processes, 0);
 
             should_int(current_process->pid) be equal to(1);
-            should_string(current_process->file_name) be equal to("1.txt");
+            should_string(current_process->file_name) be equal to("1");
             should_int(current_process->bytes) be equal to(1);
 
             t_list* instruct_list = current_process->instructions_set;
@@ -92,7 +92,7 @@ context(createProcess) {
             t_process* current_process = (t_process *)list_get(active_processes, 3);
 
             should_int(current_process->pid) be equal to(4);
-            should_string(current_process->file_name) be equal to("sin-recursos.txt");
+            should_string(current_process->file_name) be equal to("sin-recursos");
             should_int(current_process->bytes) be equal to(1);
 
             t_list* instruct_list = current_process->instructions_set;
@@ -108,7 +108,7 @@ context(createProcess) {
             t_process* current_process = (t_process *)list_get(active_processes, 4);
 
             should_int(current_process->pid) be equal to(5);
-            should_string(current_process->file_name) be equal to("sin-jnz.txt");
+            should_string(current_process->file_name) be equal to("sin-jnz");
             should_int(current_process->bytes) be equal to(1);
 
             t_list* instruct_list = current_process->instructions_set;

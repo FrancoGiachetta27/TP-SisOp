@@ -4,7 +4,7 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <instruction_memory/instructions/instructions.h>
-#include <user_space/pages/pages.h>
+#include <user_memory/paging/page_table.h>
 
 typedef struct
 {
@@ -15,7 +15,7 @@ typedef struct
     t_list* page_table;
 } t_process;
 
-int create_process(t_log *logger, int pid, char *file_name, int bytes);
+int create_process(t_log *logger, int pid, char *file_name, int bytes, int swap_blocks);
 void deallocate_porcess(int pid);
 
 extern t_list* active_processes;

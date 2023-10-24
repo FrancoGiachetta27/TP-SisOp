@@ -35,7 +35,7 @@ context(fetch)
 
         before {
             init_memory(config, &memory_config, &active_processes);
-            create_process(logger, 1, "primero.txt", 0);
+            create_process(logger, 1, "primero.txt", 0, 0);
         }end
 
         it("Se obtuvieron todas las instrucciones con exito"){
