@@ -34,7 +34,7 @@ context(fetch)
         int i = 0;
 
         before {
-            init_memory(config, &memory_config, &active_processes);
+            init_memory_config(config);
             create_process(logger, 1, "primero.txt", 0, 0);
         }end
 

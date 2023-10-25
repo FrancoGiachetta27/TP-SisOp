@@ -1,5 +1,5 @@
-#ifndef SRC_USER_MEMORY_PAGING_PAGE_TABLE_H
-#define SRC_USER_MEMORY_PAGING_PAGE_TABLE_H
+#ifndef SRC_USER_MEMORY_PAGING_PAGES_H
+#define SRC_USER_MEMORY_PAGING_PAGES_H
 
 #include <package/package.h>
 #include <initial_configuration/server_start.h>
@@ -19,4 +19,4 @@ typedef struct {
 t_list* page_table_create(int process_bytes, int swap_blocks);
 void send_page_size_to_cpu(t_conn* conn, t_utils* utils);
 
-#endif /* SRC_USER_MEMORY_PAGING_PAGE_TABLE_H */
+#endif /* SRC_USER_MEMORY_PAGING_PAGES_H */

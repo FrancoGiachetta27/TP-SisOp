@@ -4,7 +4,7 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <instruction_memory/instructions/instructions.h>
-#include <user_memory/paging/page_table.h>
+#include <user_memory/paging/pages.h>
 
 typedef struct
 {

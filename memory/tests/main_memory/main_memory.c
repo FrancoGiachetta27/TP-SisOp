@@ -7,19 +7,20 @@
 #include <user_memory/main_memory.h>
 #include <cspecs/cspec.h>
 
-context(mainMemory) {
+context(main_memory) {
     describe("Testing Process creation") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
 
         before {
-            init_memory(config, &memory_config, &active_processes);
+            init_memory_config(config);
             init_main_memory();
             create_process(logger, 1, "1", 1, 0);
         }end
 
-        it("the frame table bitarray has right amount of positions") {
+        it("The frame table bitarray has the right amount of positions") {
             should_int(bitarray_get_max_bit(main_memory.frame_table)) be equal to(256);
         }end
+
     }end
 }

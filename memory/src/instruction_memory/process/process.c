@@ -1,7 +1,5 @@
 #include <instruction_memory/process/process.h>
 
-t_list* active_processes;
-
 int create_process(t_log *logger, int pid, char *file_name, int bytes, int swap_blocks)
 {
     char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, file_name);

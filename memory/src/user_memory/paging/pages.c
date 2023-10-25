@@ -1,4 +1,4 @@
-#include <user_memory/paging/page_table.h>
+#include <user_memory/paging/pages.h>
 
 void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
     receive_op_code(conn->socket_cpu, utils->logger);
@@ -26,3 +26,4 @@ t_list* page_table_create(int process_bytes, int swap_blocks) {
 
 	return page_table;
 }
+

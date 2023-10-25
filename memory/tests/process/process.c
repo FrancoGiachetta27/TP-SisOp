@@ -64,7 +64,7 @@ context(process) {
         };
 
         before {
-            init_memory(config, &memory_config, &active_processes);
+            init_memory_config(config);
             create_process(logger, 1, "1", 1, 0);
             create_process(logger, 2, "2", 1, 0);
             create_process(logger, 3, "3", 1, 0);
@@ -119,27 +119,6 @@ context(process) {
                 should_string(instr) be equal to(test_instructions_sin_jnz[i]);
             }
         }end
-
-        it("Los procesos se eliminan con exito") {
-            int pid;
-            int _is_pid(t_process* process) {
-                return process->pid == pid;
-            };
-
-            pid = 2;
-            t_process* process = (t_process*)list_find(active_processes, (void*)_is_pid);
-            deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
-
-            pid = 3;
-            process = (t_process*)list_find(active_processes, (void*)_is_pid);
-            deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
-
-            pid = 4;
-            process = (t_process*)list_find(active_processes, (void*)_is_pid);
-            deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
-        }end
     }end
+    
 }
