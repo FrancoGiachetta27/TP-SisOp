@@ -7,40 +7,52 @@
 #include <sys/stat.h>
 #include <config/config.h>
 #include <commons/config.h>
+#include <commons/string.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 
 // TODO: Agreguar funcionalidades para los FCBs
 
-char* concat(const char *s1, const char *s2) {
-    char *result = malloc(strlen(s1) + strlen(s2) + 1);
-    if (result) {
-        strcpy(result, s1);
-        strcat(result, s2);
-    }
-    return result;
-}
-
 void create_fcb_file(t_utils* utils, char* file_name) {
-    char *fcb_path = config_get_string_value(utils->config, "PATH_FCB");
-    char *file_path = concat(concat(fcb_path, "/"), file_name);
-    char *file_path_extesion = concat(file_path, ".fcb");
+    char* fcb_path = config_get_string_value(utils->config, "PATH_FCB");
 
-    int fd = open(file_path_extesion, O_CREAT | O_RDWR, S_IRWXU);
+    string_append(&fcb_path, "/");
+    string_append(&fcb_path, file_name);
+    string_append(&fcb_path, ".fcb");
+
+    int fd = open(fcb_path, O_CREAT | O_RDWR, S_IRWXU);
 
     if (fd != -1) {
-        char* name = concat("NOMBRE_ARCHIVO=", file_name);
+        char* name = string_duplicate("NOMBRE_ARCHIVO=");
+        string_append(&name, file_name);
         char* size = "\nTAMANIO_ARCHIVO=0";
         char* initial_block = "\nBLOQUE_INICIAL=0";
 
-        char* content = concat(name, size);
-        content = concat(content, initial_block);
+        char* content = string_new();
+        string_append(&content, name);
+        string_append(&content, size);
+        string_append(&content, initial_block);
 
-        size_t content_size = strlen(content);
+        size_t content_size = string_length(content);
 
-        if (write(fd, content, content_size) == -1) {
-            log_error(utils->logger, "No se pudo escribir en el archivo %s", file_name);
+        ftruncate(fd, content_size);
+
+        char* mapped_data = mmap(NULL, content_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+        if (mapped_data == MAP_FAILED) {
+            log_error(utils->logger, "No se pudo mapear el archivo %s", file_name);
+        } else {
+            memcpy(mapped_data, content, content_size);
+            msync(mapped_data, content_size, MS_SYNC);
+            munmap(mapped_data, content_size);
+
+            log_info(utils->logger, "Archivo creado: %s", file_name);
         }
-
-        log_info(utils->logger, "Crear Archivo: %s", file_name);
 
         close(fd);
         free(content);
@@ -49,8 +61,5 @@ void create_fcb_file(t_utils* utils, char* file_name) {
         log_error(utils->logger, "No se pudo crear el archivo %s", file_name);
     }
 
-    free(fcb_path);
-    free(file_path);
-    free(file_path_extesion);
+    free(fcb_path); 
 }
-
