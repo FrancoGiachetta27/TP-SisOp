@@ -1,23 +1,22 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <config/config.h>
 #include <commons/config.h>
-#include <stdint.h>
+#include <commons/memory.h>
 
-
-// TODO: Usar mmap
 void create_block_file(t_utils *utils) {
-    // TODO: Ver si agregalo en una struct
     int block_total = config_get_int_value(utils->config, "CANT_BLOQUES_TOTAL");
     int block_swap = config_get_int_value(utils->config, "CANT_BLOQUES_SWAP");
     int block_size = config_get_int_value(utils->config, "TAM_BLOQUE");
 
-    char* path = config_get_string_value(utils->config, "PATH_BLOQUES");
+    size_t block_file_size = block_total * block_size;
 
-    // int tam_fat = (block_total - block_swap) * sizeof(uint32_t);
+    char* path = config_get_string_value(utils->config, "PATH_BLOQUES");
 
     int fd = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd == -1) {
@@ -25,11 +24,20 @@ void create_block_file(t_utils *utils) {
         exit(1);
     }
 
-    // char block_data[block_size];
-    // memset(block_data, 0, block_size); 
-    // for (int i = 0; i < block_total; i++) {
-    //     write(fd, block_data, block_size);
-    // }
+    ftruncate(fd, block_file_size);
+
+    void *block_data = mmap(NULL, block_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    if (block_data == MAP_FAILED) {
+        log_error(utils->logger, "No se pudo mapear el archivo de bloques %s", path);
+        close(fd);
+        exit(1);
+    }
+
+    // Asignar valores a swap y fat - particiones
+
+    msync(block_data, block_file_size, MS_SYNC);
+    munmap(block_data, block_file_size);
 
     close(fd);
 

@@ -1,20 +1,15 @@
 #include "fcb.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <config/config.h>
 #include <commons/config.h>
 #include <commons/string.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-
+#include <commons/memory.h>
 
 // TODO: Agreguar funcionalidades para los FCBs
 
@@ -28,6 +23,7 @@ void create_fcb_file(t_utils* utils, char* file_name) {
     int fd = open(fcb_path, O_CREAT | O_RDWR, S_IRWXU);
 
     if (fd != -1) {
+
         char* name = string_duplicate("NOMBRE_ARCHIVO=");
         string_append(&name, file_name);
         char* size = "\nTAMANIO_ARCHIVO=0";
@@ -48,11 +44,17 @@ void create_fcb_file(t_utils* utils, char* file_name) {
             log_error(utils->logger, "No se pudo mapear el archivo %s", file_name);
         } else {
             memcpy(mapped_data, content, content_size);
+
+            // Print valores
+            // char* hex = mem_hexstring(mapped_data, content_size);
+            // printf("HEX: %s\n", hex);
+
             msync(mapped_data, content_size, MS_SYNC);
             munmap(mapped_data, content_size);
 
             log_info(utils->logger, "Archivo creado: %s", file_name);
         }
+
 
         close(fd);
         free(content);
