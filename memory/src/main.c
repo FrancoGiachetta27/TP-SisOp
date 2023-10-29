@@ -5,7 +5,7 @@
 #include <initial_configuration/memory_config.h>
 #include <instruction_memory/process/process.h>
 #include <user_memory/paging/pages.h>
-#include <user_memory/main_memory.h>
+#include <user_memory/real_memory.h>
 
 #define LOGS_MEMORIA "memoria.log"
 
@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 	if (utils == NULL) return EXIT_FAILURE;
 	
 	init_memory_config(utils->config);
-	init_main_memory();
+	init_real_memory();
 
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;

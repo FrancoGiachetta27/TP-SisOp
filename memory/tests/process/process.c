@@ -6,7 +6,7 @@
 #include <cspecs/cspec.h>
 
 context(process) {
-    describe("Testing Process Actions") {
+    describe("Testing Process") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
         char* test_instructions1[17] = {
@@ -72,7 +72,7 @@ context(process) {
             create_process(logger, 5, "sin-jnz", 1, 0);
         }end
 
-        it("El proceso se creo con 1.txt") {
+        it("Process created with 1.txt") {
             t_process* current_process = (t_process *)list_get(active_processes, 0);
 
             should_int(current_process->pid) be equal to(1);
@@ -87,8 +87,7 @@ context(process) {
                 should_string(instr) be equal to(test_instructions1[i]);
             }
         }end
-
-        it("El proceso se creo con sin-recursos.txt") {
+        it("Process created with sin-recursos.txt") {
             t_process* current_process = (t_process *)list_get(active_processes, 3);
 
             should_int(current_process->pid) be equal to(4);
@@ -103,8 +102,7 @@ context(process) {
                 should_string(instr) be equal to(test_instructions_sin_recursos[i]);
             }
         }end
-
-        it("El proceso se creo con sin-jnz.txt") {
+        it("Process created with sin-jnz.txt") {
             t_process* current_process = (t_process *)list_get(active_processes, 4);
 
             should_int(current_process->pid) be equal to(5);
@@ -119,6 +117,26 @@ context(process) {
                 should_string(instr) be equal to(test_instructions_sin_jnz[i]);
             }
         }end
+        it("Processes are deallocated successfully") {
+            int pid;
+            int _is_pid(t_process* process) {
+                return process->pid == pid;
+            };
+
+            pid = 2;
+            t_process* process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+
+            pid = 3;
+            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+
+            pid = 4;
+            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            deallocate_porcess(process->pid);
+            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+        }end
     }end
-    
 }

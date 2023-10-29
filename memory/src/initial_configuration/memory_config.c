@@ -1,7 +1,7 @@
 #include <initial_configuration/memory_config.h>
 
 t_memory_cfg memory_config;
-user_space main_memory;
+user_space real_memory;
 t_list* active_processes;
 
 void init_memory_config(t_config* config) {
@@ -14,7 +14,7 @@ void init_memory_config(t_config* config) {
     memory_config.algorithm = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 
-void init_main_memory(void) {
+void init_real_memory(void) {
     void* user_space = malloc(memory_config.memory_size);
     
     int total_frames = memory_config.memory_size / memory_config.page_size;
@@ -22,14 +22,14 @@ void init_main_memory(void) {
     t_bitarray* frame_table = bitarray_create_with_mode(frames,total_frames / 8, LSB_FIRST);
     free(frames);
 
-    main_memory.frames = user_space;
-    main_memory.frame_table = frame_table;
+    real_memory.frames = user_space;
+    real_memory.frame_table = frame_table;
 
-    bitarray_set_bit(main_memory.frame_table, 5);
+    bitarray_set_bit(real_memory.frame_table, 5);
 }
 
 void free_memory(void) {
     list_destroy_and_destroy_elements(active_processes, (void*) deallocate_porcess);
-    free(main_memory.frames);
-    bitarray_destroy(main_memory.frame_table);
+    free(real_memory.frames);
+    bitarray_destroy(real_memory.frame_table);
 }

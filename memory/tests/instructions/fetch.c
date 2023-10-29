@@ -8,7 +8,7 @@
 
 context(fetch)
 {
-    describe("Testing Fetch") {
+    describe("Testing Fetch Phase") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
         char *test_instructions[17] = {
@@ -38,7 +38,7 @@ context(fetch)
             create_process(logger, 1, "primero.txt", 0, 0);
         }end
 
-        it("Se obtuvieron todas las instrucciones con exito"){
+        it("All instructions were obtained successfully"){
             do {
                 instruction = fetch_next_instruction(1, i, logger);
                 
