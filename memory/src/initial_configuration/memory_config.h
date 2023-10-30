@@ -6,6 +6,7 @@
 #include <commons/bitarray.h>
 #include <instruction_memory/process/process.h>
 #include <user_memory/real_memory.h>
+#include <semaphore.h>
 
 typedef struct {
     int memory_size;

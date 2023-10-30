@@ -1,0 +1,57 @@
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/collections/list.h>
+#include <initial_configuration/memory_config.h>
+#include <user_memory/real_memory.h>
+#include <user_memory/paging/pages.h>
+#include <instruction_memory/process/process.h>
+#include <cspecs/cspec.h>
+
+context(pages) {
+    describe("Testing page replacement algorithms") {
+        t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
+        t_config* config = config_create("./config/memory.config");
+        
+        before {
+            init_memory_config(config);
+            init_real_memory();
+            create_process(logger, crear_pcb(1, "1", 128, 1), 0);
+            create_process(logger, crear_pcb(2, "2", 80, 1), 0);
+        }end
+
+        it("Testing sorting by fifo algorithm (with one process)") {
+            memory_config.algorithm = "LRU";
+            int page_numbers[14] = { 0, 1, 7, 2, 3, 2, 7, 1, 0, 3, 0, 2, 3, 1 };
+            t_page* page;
+            int i = 0;
+            int hola;
+
+            search_page(1,0);
+            search_page(1,1);
+            search_page(1,7);
+            search_page(1,2);
+            search_page(1,3);
+            search_page(1,2);
+            search_page(1,7);
+            search_page(1,1);
+            search_page(1,0);
+            search_page(1,3);
+            search_page(1,0);
+            search_page(1,2);
+            search_page(1,3);
+            search_page(1,1);
+
+            hola = list_size(pages_to_replace);
+
+            should_bool(list_is_empty(pages_to_replace)) be falsey;
+
+            while(i != list_size(pages_to_replace)) {
+                page = list_get(pages_to_replace, i);
+                should_int(page->page_number) be equal to(page_numbers[i]);
+                i++;
+            }
+            working = 0;
+            sem_post(&sort_pages);
+        }end
+    }end
+}

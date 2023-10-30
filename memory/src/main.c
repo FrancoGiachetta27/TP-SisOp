@@ -3,7 +3,6 @@
 #include <config/config.h>
 #include <command/command.h>
 #include <initial_configuration/memory_config.h>
-#include <instruction_memory/process/process.h>
 #include <user_memory/paging/pages.h>
 #include <user_memory/real_memory.h>
 

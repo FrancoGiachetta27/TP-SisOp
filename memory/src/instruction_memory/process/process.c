@@ -1,17 +1,18 @@
 #include <instruction_memory/process/process.h>
 
-int create_process(t_log *logger, int pid, char *file_name, int bytes, int swap_blocks)
-{
-    char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, file_name);
+t_list* active_processes;
+
+int create_process(t_log *logger, t_pcb* pcb, int swap_blocks) {
+    char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, pcb->nom_arch_inst);
     t_list *instructions_set = get_instructions_from_file(logger, file_path);
 
     if (instructions_set == NULL) return -1;
     
     t_process* process = malloc(sizeof(*process));
-    process->pid = pid;
-    process->file_name = file_name;
-    process->bytes = bytes;
-    process->page_table = page_table_create(bytes, swap_blocks);
+    process->pid = pcb->pid;
+    process->file_name = pcb->nom_arch_inst;
+    process->bytes = pcb->tamanio;
+    process->page_table = page_table_create(pcb, swap_blocks, logger);
     process->instructions_set = instructions_set;
     
     list_add(active_processes, process);

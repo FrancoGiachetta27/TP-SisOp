@@ -21,7 +21,7 @@ void *wait_for_command(t_thread *thread_info)
         case CREATE_PROCESS:
             t_pcb* pcb1 = receive_pcb(thread_info->port, thread_info->logger);
             int swap_blocks = get_swap_blocks(pcb1->tamanio, thread_info->conn->socket_filesystem, thread_info->logger);
-            int is_ok = create_process(thread_info->logger, pcb1->pid, pcb1->nom_arch_inst, pcb1->tamanio, swap_blocks);
+            int is_ok = create_process(thread_info->logger, pcb1, swap_blocks);
             t_package* package_process = create_integer_package(PROCESS_OK, is_ok);
             send_package(package_process, thread_info->port, thread_info->logger);
             break;
