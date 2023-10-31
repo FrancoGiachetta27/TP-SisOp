@@ -1,5 +1,5 @@
-#ifndef SRC_FAT_H_
-#define SRC_FAT_H_
+#ifndef BITMAP_H_
+#define BITMAP_H_
 
 #include <stdlib.h>
 #include <commons/config.h>
@@ -8,5 +8,9 @@
 #include <config/config.h>
 
 void create_fat_file(t_utils *utils);
+int allocate_block();
+void leer_fat();
+void create_block_file(t_utils *utils);
 
-#endif /* SRC_FAT_H_ */
+
+#endif /* BITMAP_H_ */

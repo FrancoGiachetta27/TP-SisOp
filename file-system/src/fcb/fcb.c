@@ -55,7 +55,6 @@ void create_fcb_file(t_utils* utils, char* file_name) {
             log_info(utils->logger, "Archivo creado: %s", file_name);
         }
 
-
         close(fd);
         free(content);
         free(name);

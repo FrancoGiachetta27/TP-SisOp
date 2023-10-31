@@ -4,8 +4,7 @@
 #include <initial_configuration/server_start.h>
 #include <command/command.h>
 #include "fcb/fcb.h"
-#include "bloque/bloque.h"
-#include "fat/fat.h"
+#include "fs-struct/bitmap.h"
 
 #define LOGS_FILE_SYSTEM "filesystem.log"
 
@@ -30,4 +29,6 @@ int main(int argc, char* argv[]) {
 	create_fat_file(utils);
 	create_block_file(utils);
 	create_fcb_file(utils, "Notas1erParcialK9999");
+	allocate_block();
+	leer_fat();
 }
