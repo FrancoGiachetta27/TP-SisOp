@@ -15,7 +15,6 @@
 
 void create_fcb_file(t_utils* utils, char* file_name) {
     char* fcb_path = config_get_string_value(utils->config, "PATH_FCB");
-
     string_append(&fcb_path, "/");
     string_append(&fcb_path, file_name);
     string_append(&fcb_path, ".fcb");
@@ -44,11 +43,6 @@ void create_fcb_file(t_utils* utils, char* file_name) {
             log_error(utils->logger, "No se pudo mapear el archivo %s", file_name);
         } else {
             memcpy(mapped_data, content, content_size);
-
-            // Print valores
-            // char* hex = mem_hexstring(mapped_data, content_size);
-            // printf("HEX: %s\n", hex);
-
             msync(mapped_data, content_size, MS_SYNC);
             munmap(mapped_data, content_size);
 
@@ -63,4 +57,13 @@ void create_fcb_file(t_utils* utils, char* file_name) {
     }
 
     free(fcb_path); 
+}
+
+t_config* create_fcb_config(t_utils* utils, char* file_name) {
+    t_config* config = config_create(file_name);
+    if (NULL == config) {
+        log_error(utils->logger, "el path \"%s\" no se encontro", file_name);
+        exit(-1);
+    }
+    return config;
 }

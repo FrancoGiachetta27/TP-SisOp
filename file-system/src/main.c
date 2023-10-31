@@ -29,6 +29,4 @@ int main(int argc, char* argv[]) {
 	create_fat_file(utils);
 	create_block_file(utils);
 	create_fcb_file(utils, "Notas1erParcialK9999");
-	allocate_block();
-	leer_fat();
 }

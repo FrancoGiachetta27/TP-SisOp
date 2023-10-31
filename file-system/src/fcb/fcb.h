@@ -4,7 +4,8 @@
 #include <string.h>
 #include <config/config.h>
 
-char* concat(const char *s1, const char *s2);
 void create_fcb_file(t_utils* utils, char* fileName);
+t_config* create_fcb_config(t_utils* utils, char* file_name);
+
 
 #endif
