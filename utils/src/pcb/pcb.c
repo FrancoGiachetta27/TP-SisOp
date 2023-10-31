@@ -9,7 +9,7 @@ t_reg create_empty_registers() {
 	return registers;
 }
 
-t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority){
+t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority) {
 	t_pcb* nuevoPCB = malloc(sizeof(*nuevoPCB));
 	nuevoPCB->pid = pid;
 	nuevoPCB->tamanio = tamanio;
@@ -51,7 +51,7 @@ int serialized_pcb_size(t_pcb* pcb) {
 	return 9*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int) + instruction_size;
 }
 
-void* serialize_pcb(t_pcb* pcb){
+void* serialize_pcb(t_pcb* pcb) {
 	int arch_name_size = strlen(pcb->nom_arch_inst) + 1;
 	void* buffer = malloc(serialized_pcb_size(pcb));
 	void* buffer_registers = serialize_registers(pcb->registers);

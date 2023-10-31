@@ -34,7 +34,4 @@ void deallocate_porcess(int pid) {
     };
 
     list_remove_and_destroy_by_condition(active_processes, (void*)_is_pid, (void*)_free_process);
-}
-
-
-     
+}   

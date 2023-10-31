@@ -1,7 +1,7 @@
-// #include <stdio.h>
-// #include <stdbool.h>
-// #include <cspecs/cspec.h>
-// #include <instructions/execute.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <instructions/execute.h>
+#include <cspecs/cspec.h>
 
 // context (example) {
 //     describe("Testing Execute") {

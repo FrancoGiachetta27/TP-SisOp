@@ -236,7 +236,7 @@ void prueba_agregar_proceso_a_NEW(){
 	list_add(lista_estado_NEW, nuevoPCB);
 	sig_PID = obt_sig_PID();
 	nuevoPCB = crear_pcb(sig_PID,"name",2,2);
-	list_add(lista_estado_NEW, nuevoPCB);
+	list_add(lista_estado_NEW, nuevoPCB);.
 	sig_PID = obt_sig_PID();
 	nuevoPCB = crear_pcb(sig_PID,"name",2,2);
 	list_add(lista_estado_NEW, nuevoPCB);
