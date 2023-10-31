@@ -10,7 +10,6 @@
 
 pthread_mutex_t mtx_select_page;
 sem_t sort_pages;
-sem_t chage_last_reference;
 extern t_list* pages_to_replace;
 int working;
 

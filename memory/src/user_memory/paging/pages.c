@@ -12,7 +12,7 @@ t_page* page_create(int pid, int swap_blocks, int number) {
 	page->process_pid = pid;
 	page->bit_modified = 0;
 	page->bit_precense = 0;
-	page->frame_number = number; // esto debe ser 0
+	page->frame_number = 0;
 	page->page_number = number;
 	page->swap_position = swap_blocks;
 
@@ -43,7 +43,6 @@ t_page* search_page(int pid, int page_number) {
 	t_process* process = list_find(active_processes, (void*) _is_pid);
 	t_page* page = list_find(process->page_table, (void*) _is_page);
 
-	sem_wait(&chage_last_reference);
 	last_page_referenced = page;
 	sem_post(&sort_pages);
 	

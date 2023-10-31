@@ -16,7 +16,6 @@ static void init_sorter_thread(void) {
     pthread_t page_replace_sorter_theard;
     pages_to_replace = list_create();
     sem_init(&sort_pages, 0, 0);
-    sem_init(&chage_last_reference, 0, 1);
     
     if(string_equals_ignore_case(memory_config.algorithm, "FIFO")){
         pthread_create(&page_replace_sorter_theard, NULL, (void*) sort_pages_by_fifo, NULL);
