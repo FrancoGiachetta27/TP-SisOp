@@ -15,8 +15,8 @@ int check_available_frames(void) {
 
 int get_swap_blocks(int bytes, int socket_fs, t_log* logger) {
     int total_blocks = bytes / memory_config.page_size;
-    // t_package* package = create_integer_package(GET_SWAP_BLOCKS, total_blocks);
-    // send_package(package, socket_fs, logger);
+    //t_package* package = create_integer_package(GET_SWAP_BLOCKS, total_blocks);
+    //send_package(package, socket_fs, logger);
 
     // ... = receive_swap_blocks(socket_fs); 
     return 0;

@@ -10,6 +10,7 @@
 #include <initial_configuration/server_start.h>
 #include <instruction_memory/process/process.h>
 #include <instruction_memory/instructions/instructions.h>
+#include <user_memory/paging/pages.h>
 #include <initial_configuration/memory_config.h>
 #include <pcb/pcb.h>
 
@@ -30,6 +31,9 @@ enum KERNEL_CODE_OP {
 enum CPU_CODE_OP {
     FETCH_INSTRUCTION = 3,
     PAGE_SIZE = 4,
+    PAGE_NUMBER = 8,
+    PAGE_FRAME = 9,
+    PAGE_FAULT = 10,
 };
 
 enum FS_OP {

@@ -8,6 +8,9 @@
 #include <cspecs/cspec.h>
 
 context(pages) {
+    describe("Testing page fault") {
+        
+    }end
     describe("Testing page replacement algorithms") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
@@ -18,7 +21,7 @@ context(pages) {
             create_process(logger, crear_pcb(1, "1", 128, 1), 0);
             create_process(logger, crear_pcb(2, "2", 80, 1), 0);
         }end
-
+        
         it("Testing sorting by fifo algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "FIFO")) {
                 int page_numbers[14] = { 0, 1, 7, 2, 3 };
@@ -50,7 +53,6 @@ context(pages) {
                 sem_post(&sort_pages);
             }
         }end
-
         it("Testing sorting by lru algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "LRU")) {
                 int page_numbers[14] = { 7, 0, 2, 3, 1 };

@@ -49,6 +49,16 @@ t_page* search_page(int pid, int page_number) {
 	return page;
 }
 
+void send_page_fault(int socket, t_log* logger) {
+	t_package* package = create_empty_package(PAGE_FAULT);
+	send_package(package, socket, logger);
+}
+
+void send_page_frame(t_page* page, int socket, t_log* logger) {
+	t_package* package = create_integer_package(PAGE_FRAME, page->frame_number);
+	send_package(package, socket, logger);
+}
+
 void destroy_page(t_page* page) {
 	free(page);
 }
