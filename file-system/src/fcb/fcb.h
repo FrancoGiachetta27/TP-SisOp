@@ -3,9 +3,13 @@
 
 #include <string.h>
 #include <config/config.h>
+#include "initial_configuration/fs_config.h"
 
-void create_fcb_file(t_utils* utils, char* fileName);
-t_config* create_fcb_config(t_utils* utils, char* file_name);
+void create_fcb_file(char* fileName);
+void print_fcb_list();
+t_fcb *find_fcb_file(char *file_name);
+void update_fcb(t_fcb *fcb);
+
 
 
 #endif

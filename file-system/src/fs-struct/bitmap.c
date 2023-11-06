@@ -14,6 +14,7 @@
 // Bloque lógico 0 estará reservado y no debe ser asignado a ningún archivo.
 // El valor correspondiente a un EOF (End of File) será representado como la constante UINT32_MAX.
 
+extern t_utils* utils;
 int fd_fat;
 int fd_block;
 void *bitmap;
@@ -23,12 +24,13 @@ t_bitarray* bitarray;
     FAT FUNCTIONS
 */
 
-void create_fat_file(t_utils *utils) {
+void create_fat_file() {
 
     int block_total = config_get_int_value(utils->config, "CANT_BLOQUES_TOTAL");
     int block_swap = config_get_int_value(utils->config, "CANT_BLOQUES_SWAP");
     int block_size = config_get_int_value(utils->config, "TAM_BLOQUE");
 
+    // Size en bytes
     size_t fat_size = (block_total - block_swap) * sizeof(uint32_t);
 
     char* path = config_get_string_value(utils->config, "PATH_FAT");
@@ -36,10 +38,10 @@ void create_fat_file(t_utils *utils) {
     fd_fat = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_fat == -1) {
         log_error(utils->logger, "Error al crear el archivo de la tabla FAT");
+        close(fd_fat);
         exit(1);
     }
     
-    // Size en bytes
     ftruncate(fd_fat, fat_size);
 
     bitmap = mmap(NULL, fat_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_fat, 0);
@@ -63,21 +65,24 @@ void create_fat_file(t_utils *utils) {
     log_info(utils->logger, "Archivo de la tabla FAT creado con éxito");
 }
 
-u_int32_t allocate_block() {
+u_int32_t find_free_block() {
     size_t bitarray_size = (int) bitarray_get_max_bit(bitarray);
-    for (int i = 1; i < bitarray_size; i++) {
+    for (int i = 1; i < bitarray_size; i+= sizeof(u_int32_t)) {
         if (!bitarray_test_bit(bitarray, i)) {
             bitarray_set_bit(bitarray, i);
             msync(bitarray->bitarray, bitarray->size, MS_SYNC);
+            printf("Bit: %d\n", i);
             return i;
         }
     }
     return -1;
 }
 
+
+
 void leer_fat() {
     // // Print valores
-    char* hex = mem_hexstring(bitmap, 3840);
+    char* hex = mem_hexstring(bitmap, 28672);
     printf("HEX: %s\n", hex);
 }
 
@@ -85,7 +90,7 @@ void leer_fat() {
 =================================================================================
 */
 
-void create_block_file(t_utils *utils) {
+void create_block_file() {
     int block_total = config_get_int_value(utils->config, "CANT_BLOQUES_TOTAL");
     int block_swap = config_get_int_value(utils->config, "CANT_BLOQUES_SWAP");
     int block_size = config_get_int_value(utils->config, "TAM_BLOQUE");
@@ -119,3 +124,4 @@ void create_block_file(t_utils *utils) {
 
     log_info(utils->logger, "Archivo de bloques creado con éxito.");
 }
+

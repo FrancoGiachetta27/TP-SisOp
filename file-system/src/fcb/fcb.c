@@ -10,60 +10,117 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/memory.h>
+#include "initial_configuration/fs_config.h"
 
 // TODO: Agreguar funcionalidades para los FCBs
+extern t_utils *utils;
+extern t_fs_config fs_config;
+extern t_list *fcbs;
 
-void create_fcb_file(t_utils* utils, char* file_name) {
-    char* fcb_path = config_get_string_value(utils->config, "PATH_FCB");
-    string_append(&fcb_path, "/");
-    string_append(&fcb_path, file_name);
-    string_append(&fcb_path, ".fcb");
+void create_fcb_file(char *file_name)
+{
+    char *full_path = string_from_format("%s/%s.fcb", fs_config.path_fcb, file_name);
 
-    int fd = open(fcb_path, O_CREAT | O_RDWR, S_IRWXU);
+    // Declaro struct de FCB para la lista
+    t_fcb *fcb_struct = malloc(sizeof(t_fcb));
+    fcb_struct->file_name = strdup(file_name);
+    fcb_struct->file_size = 0;
+    fcb_struct->initial_block = 0;
 
-    if (fd != -1) {
+    int fd = open(full_path, O_CREAT | O_RDWR, S_IRWXU);
 
-        char* name = string_duplicate("NOMBRE_ARCHIVO=");
+    if (fd != -1)
+    {
+
+        char *name = string_duplicate("NOMBRE_ARCHIVO=");
         string_append(&name, file_name);
-        char* size = "\nTAMANIO_ARCHIVO=0";
-        char* initial_block = "\nBLOQUE_INICIAL=0";
+        char *size = "\nTAMANIO_ARCHIVO=0";
+        char *initial_block = "\nBLOQUE_INICIAL=0";
 
-        char* content = string_new();
+        char *content = string_new();
         string_append(&content, name);
         string_append(&content, size);
         string_append(&content, initial_block);
 
         size_t content_size = string_length(content);
-
         ftruncate(fd, content_size);
 
-        char* mapped_data = mmap(NULL, content_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        char *mapped_data = mmap(NULL, content_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        memcpy(mapped_data, content, content_size);
+        msync(mapped_data, content_size, MS_SYNC);
+        munmap(mapped_data, content_size);
 
-        if (mapped_data == MAP_FAILED) {
-            log_error(utils->logger, "No se pudo mapear el archivo %s", file_name);
-        } else {
-            memcpy(mapped_data, content, content_size);
-            msync(mapped_data, content_size, MS_SYNC);
-            munmap(mapped_data, content_size);
+        log_debug(utils->logger, "Archivo creado: %s", file_name);
 
-            log_info(utils->logger, "Archivo creado: %s", file_name);
-        }
+        list_add(fcbs, fcb_struct);
+        log_debug(utils->logger, "FCB Struct agregada a la lista. Lista size: %d", list_size(fcbs));
 
         close(fd);
         free(content);
         free(name);
-    } else {
+    }
+    else
+    {
         log_error(utils->logger, "No se pudo crear el archivo %s", file_name);
+        free(fcb_struct->file_name);
+        free(fcb_struct);
     }
 
-    free(fcb_path); 
+    free(full_path);
 }
 
-t_config* create_fcb_config(t_utils* utils, char* file_name) {
-    t_config* config = config_create(file_name);
-    if (NULL == config) {
-        log_error(utils->logger, "el path \"%s\" no se encontro", file_name);
-        exit(-1);
+void print_fcb_list()
+{
+    log_debug(utils->logger, "Lista de archivos:");
+    // t_fcb *fcb = malloc(sizeof(fcb));
+    for (int i = 0; i < list_size(fcbs); i++)
+    {
+        t_fcb *fcb = list_get(fcbs, i);
+        log_debug(utils->logger, "FCB numero: %d\nNombre: %s\nTamanio: %d\nBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
     }
-    return config;
+    // free(fcb);
+}
+
+// TODO: Ver si cuando corro el programa y existen FCB, cargarlos a la lista
+t_fcb *find_fcb_file(char *file_name)
+{
+    // t_fcb *fcb = malloc(sizeof(fcb));
+    for (int i = 0; i < list_size(fcbs); i++) {
+        t_fcb *fcb = list_get(fcbs, i);
+        if (strcmp(fcb->file_name, file_name) == 0) {
+            log_debug(utils->logger, "FCB %s encontrado", file_name);
+            // free(fcb);
+            return fcb;
+        }
+    }
+    log_debug(utils->logger, "FCB %s NO encontrado", file_name);
+    // free(fcb);
+    return NULL;
+}
+
+// Tengo que modificar el archivo
+void update_fcb(t_fcb *fcb) {
+
+    char *full_path = string_from_format("%s/%s.fcb", fs_config.path_fcb, fcb->file_name);
+    int fd = open(full_path, O_RDWR);
+
+    if (fd != -1) {
+        char *size_str = string_from_format("TAMANIO_ARCHIVO=%d", fcb->file_size);
+        char *initial_block_str = string_from_format("BLOQUE_INICIAL=%d", fcb->initial_block);
+        char *content = string_from_format("NOMBRE_ARCHIVO=%s\n%s\n%s", fcb->file_name, size_str, initial_block_str);
+        size_t content_size = strlen(content);
+
+        ftruncate(fd, content_size);
+
+        char *mapped_data = mmap(NULL, content_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        memcpy(mapped_data, content, content_size);
+        msync(mapped_data, content_size, MS_SYNC);
+        munmap(mapped_data, content_size);
+        close(fd);
+
+    } else {
+        log_error(utils->logger, "No se pudo abrir el archivo asociado al FCB %s", fcb->file_name);
+    }
+
+    free(full_path);
 }

@@ -7,10 +7,10 @@
 #include <unistd.h>
 #include <config/config.h>
 
-void create_fat_file(t_utils *utils);
-int allocate_block();
-void leer_fat();
-void create_block_file(t_utils *utils);
 
+void create_fat_file();
+u_int32_t find_free_block();
+void leer_fat();
+void create_block_file();
 
 #endif /* BITMAP_H_ */
