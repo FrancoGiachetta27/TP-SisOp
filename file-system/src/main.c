@@ -37,20 +37,29 @@ int main(int argc, char *argv[])
 	// utils_destroy_with_connection(utils, memory_socket);
 	// return wait_for_commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 
-	create_fat_file(utils);
-	create_block_file(utils);
-	// create_fcb_file("Notas1erParcialK9999");
-	// create_fcb_file("Testing");
 
-	create_file(utils, "Notas1erParcialK9999");
-	create_file(utils, "Testing");
-	create_file(utils, "Damian");
+// TESTING
 
-	open_file(utils, "Damian");
-	open_file(utils, "NoExisto");
+	create_fat_file();
+	initialize_fat_list();
 
-	t_fcb *fcb = find_fcb_file("Testing");
 
-	truncate_file(utils, "Damian", 100);
-	print_fcb_list();
+	assign_block_size(10);
+	// assign_block_size(7);
+	print_fat();
+
+	// create_fat_file(utils);
+	// create_block_file(utils);
+
+	// create_file(utils, "Notas1erParcialK9999");
+	// create_file(utils, "Testing");
+	// create_file(utils, "Damian");
+
+	// open_file(utils, "Damian");
+	// open_file(utils, "NoExisto");
+
+	// t_fcb *fcb = find_fcb_file("Testing");
+
+	// truncate_file(utils, "Damian", 100);
+	// print_fcb_list();
 }

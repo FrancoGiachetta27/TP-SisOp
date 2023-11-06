@@ -21,22 +21,122 @@ int fd_fat;
 int fd_block;
 void *bitmap;
 t_bitarray *bitarray;
+// Tabla FAT
+uint32_t *fat_table; 
+t_list *fat_list;
 
-/*
-    FAT FUNCTIONS
-*/
+// NEW FAT
+
+void initialize_fat_list()
+{
+    fat_list = list_create();
+
+    // Primer bloque siempre 
+    list_add(fat_list, 0);
+
+    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    {
+        list_add(fat_list, 0);
+    }
+}
+
+int find_free_block()
+{
+    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    {
+        printf("Bloque: %d, Valor: %d\n", i, list_get(fat_list, i));
+        if (list_get(fat_list, i) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void assign_block(int file_block, int free_block)
+{
+    list_replace(fat_list, file_block, free_block);
+}
+
+void set_end_of_file(int file_block)
+{
+    list_replace(fat_list, file_block, UINT32_MAX);
+}
+
+void print_fat() {
+    for (int i = 0; i < list_size(fat_list); i++) {
+        uint32_t bloque = list_get(fat_list, i);
+        if (bloque != 0) {
+            log_debug(utils->logger, "Bloque %d - Valor: %d", i, bloque);
+        }
+    }
+}
+
+void assign_block_size(int file_size) {
+
+    // Abrir el archivo FAT o crearlo si no existe
+    FILE *file = fopen(fs_config.path_fat, "rb+");
+
+    if (file == NULL)
+    {
+        perror("Error al abrir/crear el archivo FAT");
+        return 1;
+    }
+
+    int current_block = 0;
+
+    for (int i = 0; i < file_size; i++)
+    {
+        int free_block = find_free_block();
+
+        // printf("Bloque %d\n", free_block);
+
+        if (free_block == -1)
+        {
+            log_error(utils->logger, "Toda la FAT ocupada");
+            break;
+        }
+
+        if (current_block == 0)
+        {
+            // Asignar el bloque inicial
+            assign_block(0, 0);
+        }
+        else
+        {
+            // Asignar el bloque siguiente
+            assign_block(current_block, free_block);
+        }
+
+
+        current_block = free_block;
+        printf("Nuevo valor del bloque %d %d\n", current_block, list_get(fat_list, current_block));
+    }
+
+    // Marcar el último bloque como el final del archivo
+    set_end_of_file(current_block);
+
+    // Actuali la tabla FAT en el archivo
+    fseek(file, 0, SEEK_SET);
+    for (int i = 0; i < list_size(fat_list); i++) {
+        uint32_t block_value = (uint32_t)list_get(fat_list, i);
+        fwrite(&block_value, sizeof(uint32_t), 1, file);
+    }
+
+    fclose(file);
+}
 
 void create_fat_file()
 {
-
-    int block_total = config_get_int_value(utils->config, "CANT_BLOQUES_TOTAL");
-    int block_swap = config_get_int_value(utils->config, "CANT_BLOQUES_SWAP");
-    int block_size = config_get_int_value(utils->config, "TAM_BLOQUE");
+    int block_total = fs_config.block_total_count;
+    int block_swap = fs_config.block_swap_count;
+    int block_size = fs_config.block_size;
 
     // Size en bytes
     size_t fat_size = (block_total - block_swap) * sizeof(uint32_t);
 
-    char *path = config_get_string_value(utils->config, "PATH_FAT");
+    // malloc?
+    char *path = fs_config.path_fat;
 
     fd_fat = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_fat == -1)
@@ -61,36 +161,7 @@ void create_fat_file()
     memset(bitmap, 0, fat_size);
     msync(bitmap, fat_size, MS_SYNC);   
 
-    // bitarray = bitarray_create_with_mode((char *)bitmap, fat_size, LSB_FIRST);
-
-    // Check
-    // munmap(bitmap, fat_size);
-    // close(fd_fat);
-
     log_info(utils->logger, "Archivo de la tabla FAT creado con éxito");
-}
-
-u_int32_t find_free_block()
-{
-    size_t bitarray_size = (int)bitarray_get_max_bit(bitarray);
-    for (int i = 1; i < bitarray_size; i += sizeof(u_int32_t))
-    {
-        if (!bitarray_test_bit(bitarray, i))
-        {
-            bitarray_set_bit(bitarray, i);
-            msync(bitarray->bitarray, bitarray->size, MS_SYNC);
-            printf("Bit: %d\n", i);
-            return i;
-        }
-    }
-    return -1;
-}
-
-void leer_fat()
-{
-    // // Print valores
-    char *hex = mem_hexstring(bitmap, 28672);
-    printf("HEX: %s\n", hex);
 }
 
 /*
