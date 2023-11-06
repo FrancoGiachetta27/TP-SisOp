@@ -73,6 +73,10 @@ int create_file(t_utils *utils, char *file_name) {
 	return 1;
 }
 
+// VER CON EZE
+// el definir que devuelvan el tamaño es para que lo carguen en la tabla de archivos abiertos, después queda en uds si 
+// lo guardan o no y si le indican al FS si ante un truncate el FS tiene que ampliar o reducir el archivo desde el Kernel o si delegan todo eso en el FS.
+// Lo realmente importante del Abrir archivo en el FS es checkear si existe o no.
 void truncate_file(t_utils *utils, char *file_name, int new_size) {
 	log_info(utils->logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
 

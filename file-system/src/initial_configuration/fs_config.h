@@ -8,7 +8,7 @@ typedef struct {
     char* path_fat;
     char* path_block;
     char* path_fcb;
-    int total_block_count;
+    int block_total_count;
     int block_swap_count;
     int block_size;
     int block_time_delay;

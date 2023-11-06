@@ -10,6 +10,4 @@ void print_fcb_list();
 t_fcb *find_fcb_file(char *file_name);
 void update_fcb(t_fcb *fcb);
 
-
-
 #endif

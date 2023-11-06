@@ -69,25 +69,15 @@ void create_fcb_file(char *file_name)
     free(full_path);
 }
 
-void print_fcb_list()
-{
-    log_debug(utils->logger, "Lista de archivos:");
-    // t_fcb *fcb = malloc(sizeof(fcb));
-    for (int i = 0; i < list_size(fcbs); i++)
-    {
-        t_fcb *fcb = list_get(fcbs, i);
-        log_debug(utils->logger, "FCB numero: %d\nNombre: %s\nTamanio: %d\nBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
-    }
-    // free(fcb);
-}
-
 // TODO: Ver si cuando corro el programa y existen FCB, cargarlos a la lista
 t_fcb *find_fcb_file(char *file_name)
 {
     // t_fcb *fcb = malloc(sizeof(fcb));
-    for (int i = 0; i < list_size(fcbs); i++) {
+    for (int i = 0; i < list_size(fcbs); i++)
+    {
         t_fcb *fcb = list_get(fcbs, i);
-        if (strcmp(fcb->file_name, file_name) == 0) {
+        if (strcmp(fcb->file_name, file_name) == 0)
+        {
             log_debug(utils->logger, "FCB %s encontrado", file_name);
             // free(fcb);
             return fcb;
@@ -98,13 +88,14 @@ t_fcb *find_fcb_file(char *file_name)
     return NULL;
 }
 
-// Tengo que modificar el archivo
-void update_fcb(t_fcb *fcb) {
+void update_fcb(t_fcb *fcb)
+{
 
     char *full_path = string_from_format("%s/%s.fcb", fs_config.path_fcb, fcb->file_name);
     int fd = open(full_path, O_RDWR);
 
-    if (fd != -1) {
+    if (fd != -1)
+    {
         char *size_str = string_from_format("TAMANIO_ARCHIVO=%d", fcb->file_size);
         char *initial_block_str = string_from_format("BLOQUE_INICIAL=%d", fcb->initial_block);
         char *content = string_from_format("NOMBRE_ARCHIVO=%s\n%s\n%s", fcb->file_name, size_str, initial_block_str);
@@ -117,10 +108,23 @@ void update_fcb(t_fcb *fcb) {
         msync(mapped_data, content_size, MS_SYNC);
         munmap(mapped_data, content_size);
         close(fd);
-
-    } else {
+    }
+    else
+    {
         log_error(utils->logger, "No se pudo abrir el archivo asociado al FCB %s", fcb->file_name);
     }
 
     free(full_path);
+}
+
+void print_fcb_list()
+{
+    log_debug(utils->logger, "Lista de archivos:");
+    // t_fcb *fcb = malloc(sizeof(fcb));
+    for (int i = 0; i < list_size(fcbs); i++)
+    {
+        t_fcb *fcb = list_get(fcbs, i);
+        log_debug(utils->logger, "FCB numero: %d\nNombre: %s\nTamanio: %d\nBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
+    }
+    // free(fcb);
 }
