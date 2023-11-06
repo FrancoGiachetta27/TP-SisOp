@@ -26,7 +26,7 @@ int read_frame(int real_address, t_log* logger) {
     int data;
 
     pthread_mutex_lock(&mtx_frame_access);
-    memcpy(&data, real_memory.frames + real_address, sizeof(int));
+    memcpy(&data, real_memory.frames + real_address, sizeof(uint32_t));
     pthread_mutex_unlock(&mtx_frame_access);
 
     log_info(logger, "PID: %d - Accion: LEER - Direccion fisica: %d");
@@ -34,9 +34,9 @@ int read_frame(int real_address, t_log* logger) {
     return data;
 }
 
-void write_on_frame(int real_address, t_log* logger, int data) {
+void write_on_frame(int real_address, t_log* logger, uint32_t data) {
     pthread_mutex_lock(&mtx_frame_access);
-    memcpy(real_memory.frames + real_address, &data, sizeof(int));
+    memcpy(real_memory.frames + real_address, &data, sizeof(uint32_t));
     pthread_mutex_unlock(&mtx_frame_access);
 
     log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d");

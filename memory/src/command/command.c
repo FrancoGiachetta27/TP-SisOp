@@ -44,6 +44,7 @@ void *wait_for_command(t_thread *thread_info)
         case END_PROCESS:
             t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);
             deallocate_porcess(pcb3->pid);
+            break;
         default:
             log_error(thread_info->logger, "Unknown OpCode");
             dictionary_remove(thread_info->dict, thread_info->dict_key);

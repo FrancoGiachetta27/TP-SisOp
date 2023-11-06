@@ -28,8 +28,8 @@ void send_page_size_to_cpu(t_conn* conn, t_utils* utils);
 t_page* page_create(int pid, int swap_blocks, int number);
 t_list* page_table_create(t_pcb* process, int swap_blocks, t_log* logger);
 t_page* search_page(int pid, int page_number);
-void send_page_fault(int socket, t_log* logger) 
-void send_page_frame(t_page* page, int socket, t_log* logger)
+void send_page_fault(int socket, t_log* logger);
+void send_page_frame(t_page* page, int socket, t_log* logger);
 void destroy_page(t_page* page);
 
 #endif /* SRC_USER_MEMORY_PAGING_PAGES_H */

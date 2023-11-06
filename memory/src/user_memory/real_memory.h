@@ -19,7 +19,7 @@ int check_available_frames(void);
 
 int get_swap_blocks(int bytes,int socket_fs, t_log* logger);
 int read_frame(int real_address, t_log* logger);
-void write_on_frame(int real_address, t_log* logger, int data);
+void/*uint32_t*/ write_on_frame(int real_address, t_log* logger, uint32_t data);
 void sort_pages_by_fifo(void);
 void sort_pages_by_lru(void);
 void load_page(int log_address);
