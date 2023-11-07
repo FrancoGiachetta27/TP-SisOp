@@ -20,10 +20,12 @@ extern t_fs_config fs_config;
 int fd_fat;
 int fd_block;
 void *bitmap;
-t_bitarray *bitarray;
 
-// Tabla FAT
+// FAT
 t_list *fat_list;
+// Archivo de bloques
+t_list *swap_list;
+t_list *fat_block_list;
 
 void initialize_fat_list()
 {
@@ -32,7 +34,7 @@ void initialize_fat_list()
     // Primer bloque siempre debe ser 0
     for (int i = 0; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
     {
-        list_add(fat_list, 0);
+        list_add(fat_list, (uint32_t) 0);
     }
 }
 
@@ -61,7 +63,7 @@ int find_free_block(int current_block)
     return -1;
 }
 
-void assign_block(int file_block, int free_block)
+void assign_block(int file_block, uint32_t free_block)
 {
     list_replace(fat_list, file_block, free_block);
 }
@@ -71,9 +73,11 @@ void set_end_of_file(int file_block)
     list_replace(fat_list, file_block, UINT32_MAX);
 }
 
-void assign_block_size(int file_size) {
-    FILE* file = fopen(fs_config.path_fat, "rb+");
-    if (file == NULL) {
+void assign_block_size(int file_size)
+{
+    FILE *file = fopen(fs_config.path_fat, "rb+");
+    if (file == NULL)
+    {
         perror("Error al abrir/crear el archivo FAT");
         return;
     }
@@ -84,16 +88,19 @@ void assign_block_size(int file_size) {
 
     printf("Para un archivo de %d bytes, necesito %d bloques. Le agrego uno más y tiene que ser UINT32_MAX\n", file_size, blocks_needed);
 
-    while (blocks_assigned < blocks_needed) {
-        
+    while (blocks_assigned < blocks_needed)
+    {
+
         int free_block = find_free_block(current_block);
 
-        if (free_block == -1) {
+        if (free_block == -1)
+        {
             log_error(utils->logger, "Toda la FAT ocupada");
             break;
         }
 
-        if (list_get(fat_list, current_block) == 0) {
+        if (list_get(fat_list, current_block) == 0)
+        {
             assign_block(current_block, free_block);
             // printf("Asigno a current_block %d el bloque libre %d\n", current_block, free_block);
         }
@@ -120,7 +127,6 @@ void create_fat_file()
 {
     int block_total = fs_config.block_total_count;
     int block_swap = fs_config.block_swap_count;
-    int block_size = fs_config.block_size;
 
     // Size en bytes
     size_t fat_size = (block_total - block_swap) * sizeof(uint32_t);
@@ -168,8 +174,63 @@ void print_fat()
 
 /*
 =================================================================================
+ARCHIVO DE BLOQUES
+SWAP + FAT
 */
 
+void initialize_swap_list()
+{
+    swap_list = list_create();
+
+    for (int i = 0; i < fs_config.block_swap_count; i++)
+    {
+        // Lo lleno con 0s?
+        list_add(swap_list, 0);
+    }
+}
+
+int find_free_swap_block()
+{
+    for (int i = 0; i < list_size(swap_list); i++)
+    {
+        if (list_get(swap_list, i) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+t_list* reserve_swap_blocks(int blocks_count)
+{
+    t_list* blocks_swap = list_create();
+
+    if (blocks_count >= list_size(swap_list))
+    {
+        log_debug(utils->logger, "No hay tantos bloques en SWAP");
+        return NULL;
+    }
+
+    for (int i = 0; i < blocks_count; i++)
+    {
+        int block = find_free_swap_block();
+        log_debug(utils->logger, "Block libre de swap %d", block);
+        list_replace(swap_list, block, 1);
+        list_add(blocks_swap, block);
+    }
+
+    return blocks_swap;
+}
+
+void free_swap_blocks(t_list* blocks_to_release) {
+    for (int i = 0; i < list_size(blocks_to_release); i++) {
+        int block_to_release = list_get(blocks_to_release, i);
+        if (block_to_release >= 0 && block_to_release < list_size(swap_list)) {
+             // Marcar el bloque como libre
+            list_replace(swap_list, block_to_release, 0);
+        }
+    }
+}
 void create_block_file()
 {
     int block_total = fs_config.block_total_count;
@@ -199,8 +260,6 @@ void create_block_file()
     }
 
     memset(block_data, 0, block_file_size);
-
-    // Asignar valores a swap y fat - particiones
     msync(block_data, block_file_size, MS_SYNC);
 
     // CHECK
@@ -208,4 +267,17 @@ void create_block_file()
     // close(fd_block);
 
     log_info(utils->logger, "Archivo de bloques creado con éxito.");
+}
+
+void print_swap()
+{
+    for (int i = 0; i < list_size(swap_list); i++)
+    {
+        uint32_t bloque = list_get(swap_list, i);
+        if (bloque != 0)
+        {
+            log_debug(utils->logger, "Bloque swap %d - Valor: %d", i, bloque);
+        }
+        // log_debug(utils->logger, "Bloque swap %d - Valor: %d", i, bloque);
+    }
 }

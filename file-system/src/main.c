@@ -40,16 +40,27 @@ int main(int argc, char *argv[])
 
 // TESTING
 
-	create_fat_file();
-	initialize_fat_list();
-
-
-	assign_block_size(20);
+// // FAT
+	// create_fat_file();
+	// initialize_fat_list();
+	// assign_block_size(20);
+	// assign_block_size(5);
+	// assign_block_size(100);
 	// print_fat();
-	assign_block_size(5);
-	// print_fat();
-	assign_block_size(100);
-	print_fat();
+
+// Bloques
+	create_block_file();
+	initialize_swap_list();
+	t_list* a = reserve_swap_blocks(5);
+	for (int i = 0; i < list_size(a); i++) {
+		printf("Bloque: %d\n", list_get(a, i));
+	}
+	// reserve_swap_blocks(10);
+	t_list * b = list_create();
+	list_add(b, 0);
+	list_add(b, 2);
+	free_swap_blocks(b);
+	print_swap();
 
 	// create_fat_file(utils);
 	// create_block_file(utils);
