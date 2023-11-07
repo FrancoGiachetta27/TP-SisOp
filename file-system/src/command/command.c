@@ -14,6 +14,7 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 	}
 	while (op_code)
 	{
+		char *file_name;
 		switch (op_code)
 		{
 		case ECHO_FILESYSTEM:
@@ -23,21 +24,29 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			t_package *package = create_string_package(ECHO_MEMORY, "ECHO To Memory From FS");
 			send_package(package, memory_socket, utils->logger);
 			break;
+
 		case F_OPEN:
-			char *file_name = receive_buffer(socket_kernel, utils->logger);
+			file_name = receive_buffer(socket_kernel, utils->logger);
 			log_info(utils->logger, "F_OPEN Kernel con archivo %s", file_name);
 			int file_size = open_file(utils, file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			send_package(package, socket_kernel, utils->logger);
 			free(file_name);
 			break;
+
 		case F_CREATE:
 			file_name = receive_buffer(socket_kernel, utils->logger);
 			log_debug(utils->logger, "F_CREATE Kernel con archivo %s", file_name);
 			int ok = create_file(utils, file_name);
 			package = create_string_package(F_CREATE, "OK");
+			send_package(package, socket_kernel, utils->logger);
 			free(file_name);
 			break;
+
+		case F_TRUNCATE:
+
+			break;
+
 		default:
 			log_error(utils->logger, "Unknown OpCode");
 			utils_destroy_with_connection(utils, memory_socket);
@@ -50,8 +59,8 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 	return 0;
 }
 
-// MODIFICAR LOS RETURNS
-
+// Return file size si existe
+// Return informar que el archivo no existe
 int open_file(t_utils *utils, char *file_name)
 {
 	log_info(utils->logger, "Abrir Archivo: %s", file_name);
@@ -59,7 +68,6 @@ int open_file(t_utils *utils, char *file_name)
 	if (file)
 	{
 		log_info(utils->logger, "Si existe el archivo: %s", file_name);
-		printf("%d\n", file->file_size);
 		return file->file_size;
 	}
 
@@ -67,38 +75,44 @@ int open_file(t_utils *utils, char *file_name)
 	return 0;
 }
 
-int create_file(t_utils *utils, char *file_name) {
+// Return OK
+int create_file(t_utils *utils, char *file_name)
+{
 	log_info(utils->logger, "Crear Archivo: %s", file_name);
 	create_fcb_file(file_name);
 	return 1;
 }
 
 // VER CON EZE
-// el definir que devuelvan el tamaño es para que lo carguen en la tabla de archivos abiertos, después queda en uds si 
+// el definir que devuelvan el tamaño es para que lo carguen en la tabla de archivos abiertos, después queda en uds si
 // lo guardan o no y si le indican al FS si ante un truncate el FS tiene que ampliar o reducir el archivo desde el Kernel o si delegan todo eso en el FS.
 // Lo realmente importante del Abrir archivo en el FS es checkear si existe o no.
-void truncate_file(t_utils *utils, char *file_name, int new_size) {
+void truncate_file(t_utils *utils, char *file_name, int new_size)
+{
 	log_info(utils->logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
 
 	t_fcb *fcb = find_fcb_file(file_name);
 
 	// Condicion de incremento, igualdad o decremento del nuevo tamanio
 
-	if (fcb->file_size == new_size) {
+	if (fcb->file_size == new_size)
+	{
 		log_info(utils->logger, "El nuevo tamaño es el mismo que antes, no se trunco.");
+		return /* Ver que devolver*/;
 	}
 
 	// Ver logica de asignar bloques
-	if (fcb->file_size > new_size) {
-
-	} else {
-
+	if (fcb->file_size > new_size)
+	{
+	}
+	else
+	{
 	}
 
 	fcb->file_size = new_size;
+	// fcb->initial_block = function()
 	fcb->initial_block = 3;
 
 	// Actualizar FCB
 	update_fcb(fcb);
-
 }

@@ -44,8 +44,11 @@ int main(int argc, char *argv[])
 	initialize_fat_list();
 
 
-	assign_block_size(10);
-	// assign_block_size(7);
+	assign_block_size(20);
+	// print_fat();
+	assign_block_size(5);
+	// print_fat();
+	assign_block_size(100);
 	print_fat();
 
 	// create_fat_file(utils);

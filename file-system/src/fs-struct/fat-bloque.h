@@ -9,16 +9,18 @@
 #include <config/config.h>
 #include <initial_configuration/fs_config.h>
 
+// FAT
 void initialize_fat_list();
-int find_free_block();
+int find_free_block(int);
+int find_free_current_block();
 void assign_block(int file_block, int free_block);
 void set_end_of_file(int file_block);
 void print_fat();
 void assign_block_size(int file_size);
-int blocks_needed(int);
 
 void create_fat_file();
 
+// Bloques
 void create_block_file();
 
 #endif /* BITMAP_H_ */

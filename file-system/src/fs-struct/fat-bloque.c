@@ -21,33 +21,41 @@ int fd_fat;
 int fd_block;
 void *bitmap;
 t_bitarray *bitarray;
-// Tabla FAT
-uint32_t *fat_table; 
-t_list *fat_list;
 
-// NEW FAT
+// Tabla FAT
+t_list *fat_list;
 
 void initialize_fat_list()
 {
     fat_list = list_create();
 
-    // Primer bloque siempre 
-    list_add(fat_list, 0);
-
-    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    // Primer bloque siempre debe ser 0
+    for (int i = 0; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
     {
         list_add(fat_list, 0);
     }
 }
 
-int find_free_block()
+int find_free_current_block()
 {
     for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
     {
-        printf("Bloque: %d, Valor: %d\n", i, list_get(fat_list, i));
-        if (list_get(fat_list, i) == 0)
+        if (list_get(fat_list, i) == 0 && i != 0)
         {
             return i;
+        }
+    }
+    return -1;
+}
+
+int find_free_block(int current_block)
+{
+    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    {
+        if (list_get(fat_list, i) == 0)
+        {
+            if (current_block != i && i != 0)
+                return i;
         }
     }
     return -1;
@@ -63,62 +71,44 @@ void set_end_of_file(int file_block)
     list_replace(fat_list, file_block, UINT32_MAX);
 }
 
-void print_fat() {
-    for (int i = 0; i < list_size(fat_list); i++) {
-        uint32_t bloque = list_get(fat_list, i);
-        if (bloque != 0) {
-            log_debug(utils->logger, "Bloque %d - Valor: %d", i, bloque);
-        }
-    }
-}
-
 void assign_block_size(int file_size) {
-
-    // Abrir el archivo FAT o crearlo si no existe
-    FILE *file = fopen(fs_config.path_fat, "rb+");
-
-    if (file == NULL)
-    {
+    FILE* file = fopen(fs_config.path_fat, "rb+");
+    if (file == NULL) {
         perror("Error al abrir/crear el archivo FAT");
-        return 1;
+        return;
     }
 
-    int current_block = 0;
+    int current_block = find_free_current_block();
+    int blocks_assigned = 0;
+    int blocks_needed = (file_size / sizeof(uint32_t));
 
-    for (int i = 0; i < file_size; i++)
-    {
-        int free_block = find_free_block();
+    printf("Para un archivo de %d bytes, necesito %d bloques. Le agrego uno más y tiene que ser UINT32_MAX\n", file_size, blocks_needed);
 
-        // printf("Bloque %d\n", free_block);
+    while (blocks_assigned < blocks_needed) {
+        
+        int free_block = find_free_block(current_block);
 
-        if (free_block == -1)
-        {
+        if (free_block == -1) {
             log_error(utils->logger, "Toda la FAT ocupada");
             break;
         }
 
-        if (current_block == 0)
-        {
-            // Asignar el bloque inicial
-            assign_block(0, 0);
-        }
-        else
-        {
-            // Asignar el bloque siguiente
+        if (list_get(fat_list, current_block) == 0) {
             assign_block(current_block, free_block);
+            // printf("Asigno a current_block %d el bloque libre %d\n", current_block, free_block);
         }
-
 
         current_block = free_block;
-        printf("Nuevo valor del bloque %d %d\n", current_block, list_get(fat_list, current_block));
+        blocks_assigned++;
     }
 
-    // Marcar el último bloque como el final del archivo
+    // Marcar último bloque como UINT32_MAX
     set_end_of_file(current_block);
 
-    // Actuali la tabla FAT en el archivo
+    // Actualizar la tabla FAT en el archivo
     fseek(file, 0, SEEK_SET);
-    for (int i = 0; i < list_size(fat_list); i++) {
+    for (int i = 0; i < list_size(fat_list); i++)
+    {
         uint32_t block_value = (uint32_t)list_get(fat_list, i);
         fwrite(&block_value, sizeof(uint32_t), 1, file);
     }
@@ -159,9 +149,21 @@ void create_fat_file()
 
     // TODO: Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
     memset(bitmap, 0, fat_size);
-    msync(bitmap, fat_size, MS_SYNC);   
+    msync(bitmap, fat_size, MS_SYNC);
 
     log_info(utils->logger, "Archivo de la tabla FAT creado con éxito");
+}
+
+void print_fat()
+{
+    for (int i = 0; i < list_size(fat_list); i++)
+    {
+        uint32_t bloque = list_get(fat_list, i);
+        if (bloque != 0)
+        {
+            log_debug(utils->logger, "Bloque %d - Valor: %d", i, bloque);
+        }
+    }
 }
 
 /*
