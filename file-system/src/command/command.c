@@ -44,7 +44,13 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			break;
 
 		case F_TRUNCATE:
-
+			file_name = "Damian";
+			file_size = 100;
+			log_debug(utils->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
+			truncate_file(utils->logger, file_name, file_size);
+			package = create_string_package(F_TRUNCATE, "ARCHIVO TRUNCADO");
+			send_package(package, socket_kernel, utils->logger);
+			free(file_name);
 			break;
 
 		default:
@@ -83,10 +89,13 @@ int create_file(t_utils *utils, char *file_name)
 	return 1;
 }
 
-// VER CON EZE
-// el definir que devuelvan el tamaño es para que lo carguen en la tabla de archivos abiertos, después queda en uds si
-// lo guardan o no y si le indican al FS si ante un truncate el FS tiene que ampliar o reducir el archivo desde el Kernel o si delegan todo eso en el FS.
-// Lo realmente importante del Abrir archivo en el FS es checkear si existe o no.
+// Al momento de truncar un archivo, pueden ocurrir 2 situaciones:
+// Ampliar el tamaño del archivo: Al momento de ampliar el tamaño del archivo deberá actualizar el tamaño del archivo en el FCB
+// y se le deberán asignar tantos bloques como sea necesario para poder direccionar el nuevo tamaño.
+// Reducir el tamaño del archivo: Se deberá asignar el nuevo tamaño del archivo en el FCB y se deberán marcar
+// como libres todos los bloques que ya no sean necesarios para direccionar el tamaño del archivo (descartando desde el final del archivo hacia el principio).
+// Siempre se van a poder truncar archivos para ampliarlos, no se realizará la prueba de llenar el FS.
+
 void truncate_file(t_utils *utils, char *file_name, int new_size)
 {
 	log_info(utils->logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
@@ -101,18 +110,35 @@ void truncate_file(t_utils *utils, char *file_name, int new_size)
 		return /* Ver que devolver*/;
 	}
 
-	// Ver logica de asignar bloques
-	if (fcb->file_size > new_size)
+	// Caso que el file tiene tamanio 0 y asigno el initial block y el tamanio
+	if (fcb->file_size == 0)
 	{
+		int first_block = assign_block_size(new_size);
+		fcb->initial_block = first_block;
+	}
+	// Tamanio nuevo mayor que al del archivo
+	else if (fcb->file_size < new_size)
+	{
+		int current_size = fcb->file_size / sizeof(uint32_t) + 1;
+		int new_block_count = (new_size / sizeof(uint32_t)) + 1;
+
+		log_debug(utils->logger, "Cantidad de bloques actuales: %d - Cantidad de bloques total nuevos %d", current_size, new_block_count);
+
+		int blocks_to_add = new_block_count - current_size - 1;
+
+		log_debug(utils->logger, "Cantidad de bloques que hay que agregar: %d", blocks_to_add);
+		add_blocks(fcb->initial_block, blocks_to_add);
 	}
 	else
 	{
+		int current_size = fcb->file_size / sizeof(uint32_t) + 1;
+		int blocks_needed = (new_size + sizeof(uint32_t) - 1) / sizeof(uint32_t);
+
+		log_debug(utils->logger, "Cantidad de bloques actuales: %d - Cantidad de bloques nuevos %d", current_size, blocks_needed);
 	}
 
 	fcb->file_size = new_size;
-	// fcb->initial_block = function()
-	fcb->initial_block = 3;
 
-	// Actualizar FCB
+	// Actualizar file FCB
 	update_fcb(fcb);
 }
