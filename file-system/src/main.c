@@ -85,8 +85,13 @@ int main(int argc, char *argv[])
 	truncate_file(utils, "Testing", 10);
 	print_fcb_list();
 	print_fat();
-	truncate_file(utils, "Damian", 20);
-
-	print_fcb_list();
+	truncate_file(utils, "Damian", 40);
 	print_fat();
+
+	truncate_file(utils, "Damian", 20);
+	truncate_file(utils, "Damian", 10);
+	print_fat();
+
+	// print_fcb_list();
+	// print_fat();
 }

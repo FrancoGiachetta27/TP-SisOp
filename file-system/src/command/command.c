@@ -135,6 +135,8 @@ void truncate_file(t_utils *utils, char *file_name, int new_size)
 		int blocks_needed = (new_size + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 
 		log_debug(utils->logger, "Cantidad de bloques actuales: %d - Cantidad de bloques nuevos %d", current_size, blocks_needed);
+
+		free_blocks(fcb->initial_block, blocks_needed);
 	}
 
 	fcb->file_size = new_size;

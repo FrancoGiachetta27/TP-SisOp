@@ -20,7 +20,8 @@ void set_end_of_file(int file_block);
 void print_fat();
 int find_last_block(int initial_block);
 void add_blocks(int initial_block, int additional_blocks);
-void remove_blocks();
+t_list *recorrer_blocks(int initial_block);
+void free_blocks(int initial_block, int blocks_needed);
 
 // Bloques
 void create_block_file();

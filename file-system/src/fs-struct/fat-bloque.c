@@ -180,6 +180,42 @@ void add_blocks(int initial_block, int additional_blocks)
     fclose(file);
 }
 
+t_list *recorrer_blocks(int initial_block)
+{
+    t_list *blocks = list_create();
+
+    // Agrego el primer bloque
+    list_add(blocks, initial_block);
+
+    int next_block = list_get(fat_list, initial_block);
+
+    while (next_block != -1)
+    {
+        // printf("Bloque: %d - Valor %d\n", initial_block, next_block);
+        list_add(blocks, next_block);
+        initial_block = next_block;
+        next_block = list_get(fat_list, initial_block);
+    }
+
+    return blocks;
+}
+
+void free_blocks(int initial_block, int blocks_needed)
+{
+    // descartando desde el final del archivo hacia el principio).
+    t_list *blocks = recorrer_blocks(initial_block);
+
+    for (int i = list_size(blocks) - 1; i > blocks_needed; i--)
+    {
+        printf("Bloques a liberar %d\n", list_get(blocks, i));
+        list_replace(fat_list, list_get(blocks, i), 0);
+    }
+
+    list_replace(fat_list, blocks_needed + 1, UINT32_MAX);
+
+    list_destroy(blocks);
+}
+
 void create_fat_file()
 {
     int block_total = fs_config.block_total_count;
