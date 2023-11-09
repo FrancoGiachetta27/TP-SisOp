@@ -36,10 +36,11 @@ void* wait_for_command(t_thread *thread_info)
         case PAGE_NUMBER:
             int pid = *(int*) receive_buffer(thread_info->port, thread_info->logger);
             int page_number = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            t_page* page = reference_page(pid, page_number);
-            page->bit_precense 
-                ? send_page_frame(page, thread_info->port, thread_info->logger) 
-                : send_page_fault(thread_info->port, thread_info->logger);
+            t_page* page = reference_page(pid, page_number, thread_info->logger);
+            if(page->bit_precense) send_page_frame(page, thread_info->port, thread_info->logger);
+            else {
+                send_page_fault(thread_info->port, thread_info->logger);
+            }
             break;
         case END_PROCESS:
             t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);

@@ -27,20 +27,20 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                reference_page(1,0);
-                reference_page(1,1);
-                reference_page(1,7);
-                reference_page(1,2);
-                reference_page(1,3);
-                reference_page(1,2);
-                reference_page(1,7);
-                reference_page(1,1);
-                reference_page(1,0);
-                reference_page(1,3);
-                reference_page(1,0);
-                reference_page(1,2);
-                reference_page(1,3);
-                reference_page(1,1);
+                reference_page(1,0,logger);
+                reference_page(1,1,logger);
+                reference_page(1,7,logger);
+                reference_page(1,2,logger);
+                reference_page(1,3,logger);
+                reference_page(1,2,logger);
+                reference_page(1,7,logger);
+                reference_page(1,1,logger);
+                reference_page(1,0,logger);
+                reference_page(1,3,logger);
+                reference_page(1,0,logger);
+                reference_page(1,2,logger);
+                reference_page(1,3,logger);
+                reference_page(1,1,logger);
 
                 should_bool(list_size(pages_to_replace) == 0) be falsey;
 
@@ -60,21 +60,23 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                reference_page(1,0);
-                reference_page(1,1);
-                reference_page(1,7);
-                reference_page(1,2);
-                reference_page(1,3);
-                reference_page(1,2);
-                reference_page(1,7);
-                reference_page(1,1);
-                reference_page(1,0);
-                reference_page(1,3);
-                reference_page(1,0);
-                reference_page(1,2);
-                reference_page(1,3);
-                reference_page(1,1);
-        
+                reference_page(1,0,logger);
+                reference_page(1,1,logger);
+                reference_page(1,7,logger);
+                reference_page(1,2,logger);
+                reference_page(1,3,logger);
+                reference_page(1,2,logger);
+                reference_page(1,7,logger);
+                reference_page(1,1,logger);
+                reference_page(1,0,logger);
+                reference_page(1,3,logger);
+                reference_page(1,0,logger);
+                reference_page(1,2,logger);
+                reference_page(1,3,logger);
+                reference_page(1,1,logger);
+
+                should_bool(list_size(pages_to_replace) == 0) be falsey;
+
                 while(i != list_size(pages_to_replace)) {
                     page = list_get(pages_to_replace, i);
                     should_int(page->page_number) be equal to(page_numbers[i]);
