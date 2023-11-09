@@ -8,9 +8,8 @@
 #include <cspecs/cspec.h>
 
 context(pages) {
-    describe("Testing page fault") {
-        
-    }end
+    // describe("Testing page fault") {
+    // }end
     describe("Testing page replacement algorithms") {
         t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
@@ -18,8 +17,8 @@ context(pages) {
         before {
             init_memory_config(config);
             init_real_memory();
-            create_process(logger, crear_pcb(1, "1", 128, 1), 0);
-            create_process(logger, crear_pcb(2, "2", 80, 1), 0);
+            create_process(logger, crear_pcb(1, "1", 256, 1), 0);
+            create_process(logger, crear_pcb(2, "2", 160, 1), 0);
         }end
         
         it("Testing sorting by fifo algorithm (with one process)") {
@@ -28,20 +27,22 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                search_page(1,0);
-                search_page(1,1);
-                search_page(1,7);
-                search_page(1,2);
-                search_page(1,3);
-                search_page(1,2);
-                search_page(1,7);
-                search_page(1,1);
-                search_page(1,0);
-                search_page(1,3);
-                search_page(1,0);
-                search_page(1,2);
-                search_page(1,3);
-                search_page(1,1);
+                reference_page(1,0);
+                reference_page(1,1);
+                reference_page(1,7);
+                reference_page(1,2);
+                reference_page(1,3);
+                reference_page(1,2);
+                reference_page(1,7);
+                reference_page(1,1);
+                reference_page(1,0);
+                reference_page(1,3);
+                reference_page(1,0);
+                reference_page(1,2);
+                reference_page(1,3);
+                reference_page(1,1);
+
+                should_bool(list_size(pages_to_replace) == 0) be falsey;
 
                 while(i != list_size(pages_to_replace)) {
                     page = list_get(pages_to_replace, i);
@@ -59,20 +60,20 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                search_page(1,0);
-                search_page(1,1);
-                search_page(1,7);
-                search_page(1,2);
-                search_page(1,3);
-                search_page(1,2);
-                search_page(1,7);
-                search_page(1,1);
-                search_page(1,0);
-                search_page(1,3);
-                search_page(1,0);
-                search_page(1,2);
-                search_page(1,3);
-                search_page(1,1);
+                reference_page(1,0);
+                reference_page(1,1);
+                reference_page(1,7);
+                reference_page(1,2);
+                reference_page(1,3);
+                reference_page(1,2);
+                reference_page(1,7);
+                reference_page(1,1);
+                reference_page(1,0);
+                reference_page(1,3);
+                reference_page(1,0);
+                reference_page(1,2);
+                reference_page(1,3);
+                reference_page(1,1);
         
                 while(i != list_size(pages_to_replace)) {
                     page = list_get(pages_to_replace, i);

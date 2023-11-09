@@ -1,6 +1,6 @@
 #include <command/command.h>
 
-void *wait_for_command(t_thread *thread_info)
+void* wait_for_command(t_thread *thread_info)
 {
     int op_code = receive_op_code(thread_info->port, thread_info->logger);
     if (op_code == -1)
@@ -34,9 +34,9 @@ void *wait_for_command(t_thread *thread_info)
             destroy_pcb(pcb2);
             break;
         case PAGE_NUMBER:
-            int pid = receive_buffer(thread_info->port, thread_info->logger);
-            int page_number = receive_buffer(thread_info->port, thread_info->logger);
-            t_page* page = search_page(pid, page_number);
+            int pid = *(int*) receive_buffer(thread_info->port, thread_info->logger);
+            int page_number = *(int*) receive_buffer(thread_info->port, thread_info->logger);
+            t_page* page = reference_page(pid, page_number);
             page->bit_precense 
                 ? send_page_frame(page, thread_info->port, thread_info->logger) 
                 : send_page_fault(thread_info->port, thread_info->logger);
@@ -95,7 +95,7 @@ void wait_in_every_port(t_conn *conn, t_log *logger)
         thread_info->dict = dict;
         thread_info->conn = conn;
         dictionary_put(dict, thread_info->dict_key, thread_info->dict_key);
-        pthread_create(&thread_id, NULL, wait_for_command, thread_info);
+        pthread_create(&thread_id, NULL, (void*) wait_for_command, thread_info);
         pthread_detach(thread_id);
     }
     while (!dictionary_is_empty(dict));

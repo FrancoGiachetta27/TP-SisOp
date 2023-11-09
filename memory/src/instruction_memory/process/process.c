@@ -12,12 +12,21 @@ int create_process(t_log *logger, t_pcb* pcb, int swap_blocks) {
     process->pid = pcb->pid;
     process->file_name = pcb->nom_arch_inst;
     process->bytes = pcb->tamanio;
-    process->page_table = page_table_create(pcb, swap_blocks, logger);
     process->instructions_set = instructions_set;
     
+    page_table_create(pcb, swap_blocks, logger);
+
     list_add(active_processes, process);
     
     return 1;
+}
+
+t_process* search_process(int pid) {
+    int _is_pid(t_process *process) {
+        return process->pid == pid;
+    };
+
+    return (t_process*)list_find(active_processes, (void *)_is_pid);    
 }
 
 static void _free_process(t_process* process) {
@@ -29,9 +38,8 @@ static void _free_process(t_process* process) {
 };
 
 void deallocate_porcess(int pid) {
-    int _is_pid(t_process* process) {
+    int _is_pid(t_process *process) {
         return process->pid == pid;
     };
-
-    list_remove_and_destroy_by_condition(active_processes, (void*)_is_pid, (void*)_free_process);
+    list_remove_and_destroy_by_condition(active_processes, (void*) _is_pid, (void*)_free_process);
 }   

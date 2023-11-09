@@ -37,7 +37,8 @@ void init_memory_config(t_config* config) {
 }
 
 void init_real_memory(void) {
-    void* user_space = malloc(memory_config.memory_size);
+    void* user_space = malloc((uint32_t) memory_config.memory_size);
+    page_tables = list_create();
     
     init_frame_table(user_space);
     init_sorter_thread();

@@ -38,7 +38,7 @@ char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
         return process->pid == pid;
     };
 
-    t_process *current_process = (t_process*)list_find(active_processes, (void *)_is_pid);
+    t_process *current_process = search_process(pid);
 
     if(current_process == NULL) {
         log_error(logger, "Error al obtener el proceso en ejecucion");
