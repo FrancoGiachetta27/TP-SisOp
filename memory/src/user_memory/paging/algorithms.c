@@ -6,6 +6,7 @@ t_list* pages_to_replace;
 int working = 1;
 
 static int is_page_copy(t_page* page) {
+	// page_number should be frame_number, replace in the future
 	int frame_number = last_page_referenced->page_number;
 	return page->page_number == frame_number;
 };

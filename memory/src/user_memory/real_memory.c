@@ -3,27 +3,33 @@
 pthread_mutex_t mtx_frame_access;
 t_user_space real_memory;
 
-static void swap_in(t_log* logger) {
+static void* swap_in(t_page* page_referenced, int frame_number, t_log* logger) {
+    // void* = ask swap for the page data
+
+    page_referenced->frame_number = frame_number;
+    page_referenced->bit_precense = 1;
+    
     log_info(logger, "SWAP IN -  PID: <PID> - Marco: <MARCO> - Page In: <PID>-<NRO_PAGINA>");
 }
 
-static void swap_out(t_log* logger) {
-    log_info(logger, "SWAP OUT -  PID: <PID> - Marco: <MARCO> - Page Out: <PID>-<NRO_PAGINA>");
+static void swap_out(t_page* victim, t_log* logger) {
+    if(victim->bit_modified == 1) {
+        // ask fs to update the page in swap
+        log_info(logger, "SWAP OUT -  PID: <PID> - Marco: <MARCO> - Page Out: <PID>-<NRO_PAGINA>");
+    }
+
+    victim->bit_precense = 0;
 }
 
-static void load_page_in_free_space(t_page* page_referenced, int free_frame) {
-    // void* page_data = ask swap for the data
-    
+static void load_page_in_free_space(t_page* page_referenced, int free_frame, t_log* logger) {
     int frame_position = free_frame * memory_config.page_size;
+    void* page_data = swap_in(page_referenced, free_frame, logger);
+    
     bitarray_set_bit(real_memory.frame_table, free_frame);
 
     pthread_mutex_lock(&mtx_frame_access);
-    // memcpy(real_memory.frames + frame_position, page_data, memory_config.page_size);
+    memcpy(real_memory.frames + frame_position, page_data, memory_config.page_size);
     pthread_mutex_unlock(&mtx_frame_access);
-
-    page_referenced->frame_number = free_frame;
-    page_referenced->bit_precense = 1;
-
 }
 
 static void page_replace(t_page* page_referenced, t_log* logger) {
@@ -31,19 +37,14 @@ static void page_replace(t_page* page_referenced, t_log* logger) {
     t_page* victim = list_get(pages_to_replace, 0);
     pthread_mutex_lock(&mtx_select_page);
 
-    if(victim->bit_modified == 1) {
-        // ask fs to update the page in swap
-    }
-
+    void* page_data = swap_in(victim, victim->frame_number, logger);
     int frame_position = victim->frame_number * memory_config.page_size;
 
     pthread_mutex_lock(&mtx_frame_access);
-    // memcpy(real_memory.frames + frame_position, page_data, memory_config.page_size);
+    memcpy(real_memory.frames + frame_position, page_data, memory_config.page_size);
     pthread_mutex_unlock(&mtx_frame_access);
 
-    victim->bit_precense = 0;
-    page_referenced->frame_number = victim->frame_number;
-    page_referenced->bit_precense = 1;
+    swap_out(victim, logger);
 
     log_info(logger, 
         "REEMPLAZO - Marco: %d - Page Out: %d-%d - Page In: %d-%d", 
@@ -106,6 +107,6 @@ void load_page(int pid, int page_number, t_log* logger) {
     t_frame_search result = check_available_frames();
     t_page* page_referenced = reference_page(pid, page_number, logger);
 
-    if(result.available) load_page_in_free_space(page_referenced, result.frame_number);
+    if(result.available) load_page_in_free_space(page_referenced, result.frame_number, logger);
     else page_replace(page_referenced, logger);
 }

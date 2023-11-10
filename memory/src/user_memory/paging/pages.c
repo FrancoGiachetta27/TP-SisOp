@@ -34,7 +34,7 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 
 	list_add(page_tables, page_table);
 
-	log_info(logger, "PID: %d - Tamaño: %d", (int) pcb->pid, total_pages);
+	log_info(logger, "PID: %d - Tamaño: %d", pcb->pid, total_pages);
 }
 
 t_page* search_on_table(int pid, int page_number) {
@@ -57,8 +57,8 @@ t_page* reference_page(int pid, int page_number, t_log* logger) {
 
 	last_page_referenced = page;
 	sem_post(&sort_pages);
-	usleep(10000); // just for testing, delete in the future
-	page->bit_precense = 1;
+	// usleep(10000); // just for testing, delete in the future
+	// page->bit_precense = 1;
 
 	return page;
 }

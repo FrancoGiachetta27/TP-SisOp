@@ -39,6 +39,9 @@ enum CPU_CODE_OP {
 
 enum FS_OP {
     GET_SWAP_BLOCKS = 7,
+    GET_FROM_SWAP = 12, 
+    UPDATE_SWAP = 13,
+    FREE_PAGES = 14,
 };
 
 void wait_in_every_port(t_conn* conn, t_log* logger);
