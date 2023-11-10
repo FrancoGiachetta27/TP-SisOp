@@ -2,9 +2,9 @@
 #define SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 
 #include <initial_configuration/memory_config.h>
-#include <user_memory/paging/pages.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <semaphore.h>
 #include <pthread.h>
 
@@ -15,6 +15,5 @@ int working;
 
 void sort_pages_by_fifo(void);
 void sort_pages_by_lru(void);
-
 
 #endif /* SRC_USER_MEMORY_PAGING_ALGORITHMS_H */

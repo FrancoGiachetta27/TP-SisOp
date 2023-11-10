@@ -43,24 +43,21 @@ context(process) {
         }end
         it("Processes are deallocated successfully") {
             int pid;
-            int _is_pid(t_process* process) {
-                return process->pid == pid;
-            };
 
             pid = 2;
-            t_process* process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            t_process* process = search_process(pid);
             deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+            should_ptr(search_process(process->pid)) be null;
 
             pid = 3;
-            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            process = search_process(pid);
             deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+            should_ptr(search_process(process->pid)) be null;
 
             pid = 4;
-            process = (t_process*)list_find(active_processes, (void*)_is_pid);
+            process = search_process(pid);
             deallocate_porcess(process->pid);
-            should_ptr(list_find(active_processes, (void*)_is_pid)) be null;
+            should_ptr(search_process(process->pid)) be null;
         }end
     }end
 }

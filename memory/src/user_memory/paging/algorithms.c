@@ -15,10 +15,11 @@ void sort_pages_by_fifo(void) {
         sem_wait(&sort_pages);
 
         pthread_mutex_lock(&mtx_select_page);
-		if(last_page_referenced->bit_precense != 1) 
+		if(last_page_referenced->bit_precense != 1) {
 			list_add(pages_to_replace, last_page_referenced);
-        pthread_mutex_unlock(&mtx_select_page);
-    }
+		}
+		pthread_mutex_unlock(&mtx_select_page);
+   	}
 }
 
 void sort_pages_by_lru(void) {

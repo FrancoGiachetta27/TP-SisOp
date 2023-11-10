@@ -27,20 +27,22 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                reference_page(1,0,logger);
-                reference_page(1,1,logger);
-                reference_page(1,7,logger);
-                reference_page(1,2,logger);
-                reference_page(1,3,logger);
-                reference_page(1,2,logger);
-                reference_page(1,7,logger);
-                reference_page(1,1,logger);
-                reference_page(1,0,logger);
-                reference_page(1,3,logger);
-                reference_page(1,0,logger);
-                reference_page(1,2,logger);
-                reference_page(1,3,logger);
-                reference_page(1,1,logger);
+                executing_process = search_process(1);
+
+                reference_page(0,logger);
+                reference_page(1,logger);
+                reference_page(7,logger);
+                reference_page(2,logger);
+                reference_page(3,logger);
+                reference_page(2,logger);
+                reference_page(7,logger);
+                reference_page(1,logger);
+                reference_page(0,logger);
+                reference_page(3,logger);
+                reference_page(0,logger);
+                reference_page(2,logger);
+                reference_page(3,logger);
+                reference_page(1,logger);
 
                 should_bool(list_size(pages_to_replace) == 0) be falsey;
 
@@ -60,20 +62,22 @@ context(pages) {
                 t_page* page;
                 int i = 0;
 
-                reference_page(1,0,logger);
-                reference_page(1,1,logger);
-                reference_page(1,7,logger);
-                reference_page(1,2,logger);
-                reference_page(1,3,logger);
-                reference_page(1,2,logger);
-                reference_page(1,7,logger);
-                reference_page(1,1,logger);
-                reference_page(1,0,logger);
-                reference_page(1,3,logger);
-                reference_page(1,0,logger);
-                reference_page(1,2,logger);
-                reference_page(1,3,logger);
-                reference_page(1,1,logger);
+                executing_process = search_process(1);
+
+                reference_page(0,logger);
+                reference_page(1,logger);
+                reference_page(7,logger);
+                reference_page(2,logger);
+                reference_page(3,logger);
+                reference_page(2,logger);
+                reference_page(7,logger);
+                reference_page(1,logger);
+                reference_page(0,logger);
+                reference_page(3,logger);
+                reference_page(0,logger);
+                reference_page(2,logger);
+                reference_page(3,logger);
+                reference_page(1,logger);
 
                 should_bool(list_size(pages_to_replace) == 0) be falsey;
 

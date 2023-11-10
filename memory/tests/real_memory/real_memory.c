@@ -18,6 +18,7 @@ context (real_memory) {
             init_memory_config(config);
             init_real_memory();
             create_process(logger, crear_pcb(1, "1", 1, 1), 0);
+            executing_process = list_get(active_processes, 0);
         }end
 
         it("The frame table bitarray has the right amount of positions") {

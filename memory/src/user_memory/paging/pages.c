@@ -11,6 +11,7 @@ void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
 t_page* page_create(int pid, int swap_blocks, int number) {
 	t_page* page = malloc(sizeof(*page));
 
+	page->pid = pid;
 	page->bit_modified = 0;
 	page->bit_precense = 0;
 	page->frame_number = 0;
@@ -22,7 +23,7 @@ t_page* page_create(int pid, int swap_blocks, int number) {
 
 void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	int total_pages = floor(pcb->tamanio / memory_config.page_size);
-	t_process_pages* page_table = malloc(sizeof(*page_table));
+	t_page_table* page_table = malloc(sizeof(*page_table));
 
 	page_table->process_pid = pcb->pid;
 	page_table->pages = list_create();
@@ -36,29 +37,29 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	log_info(logger, "PID: %d - Tamaño: %d", (int) pcb->pid, total_pages);
 }
 
-t_page* search_on_table(int pid, int page_number) {
-	int _is_pid(t_process_pages* page_table) {
-		return page_table->process_pid == pid;
+t_page* search_on_table(int page_number) {
+	int _is_table(t_page_table* page_table) {
+		return page_table->process_pid == executing_process->pid;
 	};
 	int _is_page(t_page* page) {
 		return page->page_number == page_number;
 	};
 
-	t_process_pages* page_table = (t_process_pages*) list_find(page_tables, (void*) _is_pid);
+	t_page_table* page_table = (t_page_table*) list_find(page_tables, (void*) _is_table);
 	
 	return (t_page*) list_find(page_table->pages, (void*) _is_page);
 }
 
-t_page* reference_page(int pid, int page_number, t_log* logger) {
-	t_page* page = search_on_table(pid, page_number);
+t_page* reference_page(int page_number, t_log* logger) {
+	t_page* page = search_on_table(page_number);
 
-	log_info(logger, "PID: %d - Pagina: %d - Marco: %d", pid, page_number, page->frame_number);
+	log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page_number, page->frame_number);
 
 	last_page_referenced = page;
 	sem_post(&sort_pages);
-	usleep(1000); // just for testing
+	usleep(10000); // just for testing, delete in the future
 	page->bit_precense = 1;
-	
+
 	return page;
 }
 
