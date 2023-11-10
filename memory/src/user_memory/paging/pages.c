@@ -37,9 +37,9 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	log_info(logger, "PID: %d - Tamaño: %d", (int) pcb->pid, total_pages);
 }
 
-t_page* search_on_table(int page_number) {
+t_page* search_on_table(int pid, int page_number) {
 	int _is_table(t_page_table* page_table) {
-		return page_table->process_pid == executing_process->pid;
+		return page_table->process_pid == pid;
 	};
 	int _is_page(t_page* page) {
 		return page->page_number == page_number;
@@ -50,8 +50,8 @@ t_page* search_on_table(int page_number) {
 	return (t_page*) list_find(page_table->pages, (void*) _is_page);
 }
 
-t_page* reference_page(int page_number, t_log* logger) {
-	t_page* page = search_on_table(page_number);
+t_page* reference_page(int pid, int page_number, t_log* logger) {
+	t_page* page = search_on_table(pid, page_number);
 
 	log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page_number, page->frame_number);
 
@@ -75,4 +75,9 @@ void send_page_frame(t_page* page, int socket, t_log* logger) {
 
 void destroy_page(t_page* page) {
 	free(page);
+}
+
+void destroy_page_table(t_page_table* page_table) {
+	list_destroy_and_destroy_elements(page_table->pages, (void*) destroy_page);
+	free(page_table);
 }

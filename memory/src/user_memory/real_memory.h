@@ -24,8 +24,8 @@ extern t_user_space real_memory;
 t_frame_search check_available_frames(void);
 
 int get_swap_blocks(int bytes, int socket_fs, t_log* logger);
-uint32_t read_frame(int real_address, t_log* logger);
-void/*uint32_t*/ write_on_frame(int real_address, t_log* logger, uint32_t data);
-void load_page(int page_number, t_log* logger);
+uint32_t read_frame(int pid, int real_address, t_log* logger);
+void/*uint32_t*/ write_on_frame(int pid, int real_address, t_log* logger, uint32_t data);
+void load_page(int pid, int page_number, t_log* logger);
 
 #endif /* SRC_USER_MEMORY_REAL_MEMORY_H */

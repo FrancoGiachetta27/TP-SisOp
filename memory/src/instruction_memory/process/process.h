@@ -20,6 +20,5 @@ t_process* search_process(int pid);
 void deallocate_porcess(int pid);
 
 extern t_list* active_processes;
-extern t_process* executing_process;
 
 #endif /* SRC_INSTRUCTION_MEMORY_PROCESS_PROCESS */

@@ -33,11 +33,6 @@ t_list *get_instructions_from_file(t_log *logger, char *file_path)
 
 char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
 {
-    int _is_pid(t_process *process)
-    {
-        return process->pid == pid;
-    };
-
     t_process *current_process = search_process(pid);
 
     if(current_process == NULL) {

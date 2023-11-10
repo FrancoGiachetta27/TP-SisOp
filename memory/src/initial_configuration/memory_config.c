@@ -46,6 +46,8 @@ void init_real_memory(void) {
 
 void free_memory(void) {
     list_destroy_and_destroy_elements(active_processes, (void*) deallocate_porcess);
+    list_destroy_and_destroy_elements(pages_to_replace, (void*) destroy_page);
+    list_destroy_and_destroy_elements(page_tables, (void*) destroy_page_table);
     free(real_memory.frames);
     bitarray_destroy(real_memory.frame_table);
 

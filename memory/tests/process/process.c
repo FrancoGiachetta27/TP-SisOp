@@ -8,7 +8,7 @@
 
 context(process) {
     describe("Testing Process") {
-        t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
+        t_log* logger = log_create("./tests/tests-proc.log", "TEST", false, LOG_LEVEL_INFO);
         t_config* config = config_create("./config/memory.config");
 
         before {

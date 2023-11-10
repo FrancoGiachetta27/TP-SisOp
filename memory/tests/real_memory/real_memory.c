@@ -9,7 +9,7 @@
 #include <cspecs/cspec.h>
 
 context (real_memory) {
-    t_log* logger = log_create("./tests/tests.log", "TEST", false, LOG_LEVEL_INFO);
+    t_log* logger = log_create("./tests/tests-rm.log", "TEST", false, LOG_LEVEL_INFO);
     t_config* config = config_create("./config/memory.config");
     
     describe("Testing Real Memory") {
@@ -18,7 +18,6 @@ context (real_memory) {
             init_memory_config(config);
             init_real_memory();
             create_process(logger, crear_pcb(1, "1", 1, 1), 0);
-            executing_process = list_get(active_processes, 0);
         }end
 
         it("The frame table bitarray has the right amount of positions") {
@@ -26,8 +25,8 @@ context (real_memory) {
         }end
 
         it("Testing real memory reading and writing") {
-            write_on_frame(500, logger, 123);
-            should_int((int) read_frame(500, logger)) be equal to(123);
+            write_on_frame(1, 500, logger, 123);
+            should_int((int) read_frame(1, 500, logger)) be equal to(123);
         }end
     }end
 }

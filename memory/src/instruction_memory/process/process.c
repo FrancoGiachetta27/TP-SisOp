@@ -1,7 +1,6 @@
 #include <instruction_memory/process/process.h>
 
 t_list* active_processes;
-t_process* executing_process;
 
 int create_process(t_log *logger, t_pcb* pcb, int swap_blocks) {
     char *file_path = string_from_format("%s/%s.txt", memory_config.instructions_path, pcb->nom_arch_inst);
@@ -26,7 +25,7 @@ t_process* search_process(int pid) {
     int _is_pid(t_process* process) {
 	    return process->pid == pid;
     };
-    return (t_process*)list_find(active_processes, (void *)_is_pid);    
+    return (t_process*) list_find(active_processes, (void *)_is_pid);    
 }
 
 static void _free_process(t_process* process) {

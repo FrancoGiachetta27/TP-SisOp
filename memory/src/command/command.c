@@ -28,19 +28,21 @@ void* wait_for_command(t_thread *thread_info)
         case FETCH_INSTRUCTION:
             t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
             char* next_instruction = fetch_next_instruction(pcb2->pid, pcb2->programCounter, thread_info->logger);
-            executing_process = search_process(pcb2->pid);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
             usleep(memory_config.time_delay * 1000);
             send_package(package_instruct, thread_info->port, thread_info->logger);
             destroy_pcb(pcb2);
             break;
+        case LOAD_PAGE:
+            // recibir el pid y el número de página 
+            // load_page(pid, page_number, thread_info->logger);
+            break;
         case PAGE_NUMBER:
-            int page_number = *(int*) receive_buffer(thread_info->port, thread_info->logger);
-            t_page* page = reference_page(page_number, thread_info->logger);
-            if(page->bit_precense) send_page_frame(page, thread_info->port, thread_info->logger);
-            else {
-                send_page_fault(thread_info->port, thread_info->logger);
-            }
+            // recibir el pid y el número de página
+            // t_page* page = reference_page(pid, page_number, thread_info->logger);
+            // page->bit_precense 
+            //     ? send_page_frame(page, thread_info->port, thread_info->logger);
+            //     : send_page_fault(thread_info->port, thread_info->logger);
             break;
         case END_PROCESS:
             t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);

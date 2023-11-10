@@ -25,6 +25,7 @@ typedef struct {
 enum KERNEL_CODE_OP {
     CREATE_PROCESS = 2,
     PROCESS_OK = 5,
+    LOAD_PAGE = 11,
     END_PROCESS = 6,
 };
 

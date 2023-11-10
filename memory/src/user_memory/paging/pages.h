@@ -35,10 +35,11 @@ t_page* last_page_referenced;
 void send_page_size_to_cpu(t_conn* conn, t_utils* utils);
 t_page* page_create(int pid, int swap_blocks, int number);
 void page_table_create(t_pcb* process, int swap_blocks, t_log* logger);
-t_page* search_on_table(int page_number);
-t_page* reference_page(int page_number, t_log* logger);
+t_page* search_on_table(int pid, int page_number);
+t_page* reference_page(int pid, int page_number, t_log* logger);
 void send_page_fault(int socket, t_log* logger);
 void send_page_frame(t_page* page, int socket, t_log* logger);
 void destroy_page(t_page* page);
+void destroy_page_table(t_page_table* page_table);
 
 #endif /* SRC_USER_MEMORY_PAGING_PAGES_H */
