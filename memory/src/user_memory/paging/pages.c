@@ -1,6 +1,6 @@
 #include <user_memory/paging/pages.h>
 
-t_list* page_tables; 
+t_list* page_tables;
 
 void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
     receive_op_code(conn->socket_cpu, utils->logger);
@@ -8,7 +8,7 @@ void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
 	send_package(package_page, conn->socket_cpu, utils->logger);
 }
 
-t_page* page_create(int pid, int swap_blocks, int number) {
+t_page* page_create(int pid, int swap_block, int number) {
 	t_page* page = malloc(sizeof(*page));
 
 	page->pid = pid;
@@ -16,7 +16,7 @@ t_page* page_create(int pid, int swap_blocks, int number) {
 	page->bit_precense = 0;
 	page->frame_number = 0;
 	page->page_number = number;
-	page->swap_position = swap_blocks;
+	page->swap_position = swap_block;
 
 	return page;
 }
