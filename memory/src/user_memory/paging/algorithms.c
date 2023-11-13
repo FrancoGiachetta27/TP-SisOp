@@ -7,8 +7,8 @@ int working = 1;
 
 static int is_page_copy(t_page* page) {
 	// page_number should be frame_number, replace in the future
-	int frame_number = last_page_referenced->page_number;
-	return page->page_number == frame_number;
+	int frame_number = last_page_referenced->frame_number;
+	return page->frame_number == frame_number;
 };
 
 void sort_pages_by_fifo(void) {

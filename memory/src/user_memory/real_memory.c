@@ -61,7 +61,7 @@ static void page_replace(t_page* page_referenced, t_log* logger) {
 t_frame_search check_available_frames(void) {
     off_t i = 0;
 
-    while(!bitarray_test_bit(real_memory.frame_table, i)) {
+    while(bitarray_test_bit(real_memory.frame_table, i)) {
         if(i > bitarray_get_max_bit(real_memory.frame_table)) {
             t_frame_search result = { .available = false };
             return result;

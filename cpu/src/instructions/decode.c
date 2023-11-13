@@ -13,7 +13,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
     if (strcmp(ins.instruction, "MOV_IN")==0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
         char* logic_direction = list_get(ins.params, 1);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
-        if (physical_direction == NULL) {
+        if (physical_direction->pid == -1) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
             free(physical_direction);
@@ -24,7 +24,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
     } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
         char* logic_direction = list_get(ins.params, 0);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
-        if (physical_direction == NULL) {
+        if (physical_direction->pid == -1) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
             free(physical_direction);
@@ -45,14 +45,14 @@ t_pag* mmu_translate(uint32_t pid, char* logic_direction, int page_size, t_log* 
     physical_direction->pid = pid;
     send_page(8, physical_direction, memory_socket, logger);
     int op_code = receive_op_code(memory_socket, logger);
-    int frame = receive_buffer(memory_socket, logger);
+    int* frame = (int*) receive_buffer(memory_socket, logger);
     switch (op_code)
     {
     case PAGE_FAULT_COMMAND:
-        return NULL;
+        physical_direction->pid = -1;
         break;
     case PAGE_FRAME_COMMAND:
-        log_info(logger, "PID: %d - OBTENER MARCO - Página: %d - Marco: %d", pid, physical_direction->page_number, frame);
+        log_info(logger, "PID: %d - OBTENER MARCO - Página: %d - Marco: %d", pid, physical_direction->page_number, *frame);
         break;
     default:
         log_warning(logger, "Ha llegado un opCode distinto al esperado para el page fault: %d", op_code);
