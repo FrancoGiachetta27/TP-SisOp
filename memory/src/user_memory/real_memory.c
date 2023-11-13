@@ -3,7 +3,7 @@
 pthread_mutex_t mtx_frame_access;
 t_user_space real_memory;
 
-static void* swap_in(t_page* page_referenced, int frame_number, t_log* logger) {
+static void swap_in(t_page* page_referenced, int frame_number, t_log* logger) {
     // void* page_data = ask swap for the page data
     int frame_position = frame_number * memory_config.page_size;
 
@@ -14,7 +14,7 @@ static void* swap_in(t_page* page_referenced, int frame_number, t_log* logger) {
     // memcpy(real_memory.frames + frame_position, page_data, memory_config.page_size);
     // pthread_mutex_unlock(&mtx_frame_access);
     
-    log_info(logger, "SWAP IN -  PID: <PID> - Marco: <MARCO> - Page In: <PID>-<NRO_PAGINA>",
+    log_info(logger, "SWAP IN -  PID: %d - Marco: %d - Page In: %d-%d",
         page_referenced->pid,
         page_referenced->frame_number, 
         page_referenced->pid, 

@@ -9,7 +9,7 @@ void* wait_for_command(t_thread *thread_info)
         free(thread_info);
         return NULL;
     };
-    while (op_code)
+    while(op_code)
     {
         switch (op_code)
         {
@@ -25,15 +25,6 @@ void* wait_for_command(t_thread *thread_info)
             t_package* package_process = create_integer_package(PROCESS_OK, is_ok);
             send_package(package_process, thread_info->port, thread_info->logger);
             break;
-        case FETCH_INSTRUCTION:
-            t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
-            char* next_instruction = fetch_next_instruction(pcb2->pid, pcb2->programCounter, thread_info->logger);
-            log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
-            t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
-            usleep(memory_config.time_delay * 1000);
-            send_package(package_instruct, thread_info->port, thread_info->logger);
-            destroy_pcb(pcb2);
-            break;
         case LOAD_PAGE:
             t_pag* received_page = receive_page(thread_info->port, thread_info->logger);
             load_page(received_page->pid, received_page->page_number, thread_info->logger);
@@ -46,6 +37,15 @@ void* wait_for_command(t_thread *thread_info)
             page1->bit_precense 
                 ? send_page_frame(page1, thread_info->port, thread_info->logger)
                 : send_page_fault(thread_info->port, thread_info->logger);
+            break;
+        case FETCH_INSTRUCTION:
+            t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
+            char* next_instruction = fetch_next_instruction(pcb2->pid, pcb2->programCounter, thread_info->logger);
+            log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
+            t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
+            usleep(memory_config.time_delay * 1000);
+            send_package(package_instruct, thread_info->port, thread_info->logger);
+            destroy_pcb(pcb2);
             break;
         case MOV_OUT:
             t_mov_out* mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
@@ -71,7 +71,7 @@ void* wait_for_command(t_thread *thread_info)
             free(thread_info);
             return NULL;
         }
-        int op_code = receive_op_code(thread_info->port, thread_info->logger);
+        op_code = receive_op_code(thread_info->port, thread_info->logger);
         if (op_code == -1)
         {
             dictionary_remove(thread_info->dict, thread_info->dict_key);
