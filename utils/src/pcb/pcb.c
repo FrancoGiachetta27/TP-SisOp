@@ -33,6 +33,9 @@ void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger) {
 
 t_pcb* receive_pcb(int client_socket, t_log* logger) {
 	void* buffer = receive_buffer(client_socket, logger);
+	if (buffer == NULL) {
+		log_error(logger, "Error al recibir el buffer");
+	}
    	return deserialize_pcb(buffer);
 }
 

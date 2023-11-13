@@ -11,9 +11,9 @@ void* treat_page_fault(t_pf* pf_info) {
     if (op_code != PAGE_FAULT_COMMAND) {
         log_warning(pf_info->logger, "Invalid op_code %d", op_code);
     }
-    int buffer = receive_buffer(pf_info->memory_socket, pf_info->logger);
-    if (buffer != 0) {
-        log_error(pf_info->logger, "Fail in response of page fault %d", buffer);
+    int* buffer = (int*) receive_buffer(pf_info->memory_socket, pf_info->logger);
+    if (*buffer != 0) {
+        log_error(pf_info->logger, "Fail in response of page fault %d", *buffer);
     }
     free(buffer);
     pthread_mutex_lock(&cola_interrupt);

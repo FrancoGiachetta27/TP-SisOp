@@ -28,6 +28,7 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 					t_ins formatted_instruction = decode(pcb, instruction, page_size, utils->logger, memory_socket);
 					if (pcb->instruccion == PAGE_FAULT) {
 						log_info(utils->logger, "Page Fault PID: %d - Pagina: %d", pcb->pid, pcb->params);
+						destroy_instruction(formatted_instruction);
 						continue_executing = false;
 					} else {
 						int execute_result = execute(pcb, ports, memory_socket, registers, formatted_instruction, utils->logger);

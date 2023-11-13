@@ -18,6 +18,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
             pcb->params = physical_direction->page_number;
             free(physical_direction);
         } else {
+            pcb->instruccion = NORMAL;
             ins.original_address = logic_direction;
             list_replace(ins.params, 1, physical_direction);
         }
@@ -29,6 +30,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
             pcb->params = physical_direction->page_number;
             free(physical_direction);
         } else {
+            pcb->instruccion = NORMAL;
             ins.original_address = logic_direction;
             list_replace(ins.params, 0, physical_direction);
         }

@@ -28,7 +28,7 @@ void* wait_for_command(t_thread *thread_info)
         case LOAD_PAGE:
             t_pag* received_page = receive_page(thread_info->port, thread_info->logger);
             load_page(received_page->pid, received_page->page_number, thread_info->logger);
-            t_package* result_package = create_integer_package(LOAD_PAGE, 11);
+            t_package* result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->port, thread_info->logger);
             break;
         case PAGE_NUMBER:

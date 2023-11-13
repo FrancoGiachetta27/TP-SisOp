@@ -62,9 +62,8 @@ int execute(t_pcb* pcb, t_conn* conn, int memory_socket, t_reg* registers, t_ins
         if (op_code != MOV_IN_COMMAND) {
             log_info(logger, "Invalid op_code for MOV_IN: %d", op_code);
         }
-        free(op_code);
-        void* buffer = receive_buffer(memory_socket, logger);
-        uint32_t value_in_frame = (uint32_t) buffer;
+        int* buffer = (int*) receive_buffer(memory_socket, logger);
+        uint32_t value_in_frame = (uint32_t) *buffer;
         free(buffer);
         uint32_t* selected_register = select_register(registers, reg);
         *selected_register = value_in_frame;
@@ -82,9 +81,9 @@ int execute(t_pcb* pcb, t_conn* conn, int memory_socket, t_reg* registers, t_ins
         if (op_code != MOV_OUT_COMMAND) {
             log_info(logger, "Invalid op_code for MOV_OUT: %d", op_code);
         }
-        int result = receive_buffer(memory_socket, logger);
-        if (result != 0) {
-            log_info(logger, "Invalid result for MOV_OUT: %d", result);
+        int* result = (int*) receive_buffer(memory_socket, logger);
+        if (*result != 0) {
+            log_info(logger, "Invalid result for MOV_OUT: %d", *result);
         }
         free(result);
         free(mov_out_page);
