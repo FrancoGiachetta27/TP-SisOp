@@ -61,7 +61,7 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 				log_error(utils->logger, "Unknown OpCode %d", op_code);
 				return -1;
 		}
-		int op_code = receive_op_code(ports->dispatch_fd, utils->logger);
+		op_code = receive_op_code(ports->dispatch_fd, utils->logger);
 	    if (op_code == -1) return -1;
 	}
     return 0;

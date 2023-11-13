@@ -52,7 +52,9 @@ t_page* search_on_table(int pid, int page_number) {
 
 t_page* reference_page(int pid, int page_number, t_log* logger) {
 	t_page* page = search_on_table(pid, page_number);
-
+	if (page == NULL) {
+		return NULL;
+	}
 	log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page_number, page->frame_number);
 
 	last_page_referenced = page;

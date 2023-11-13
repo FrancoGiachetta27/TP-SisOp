@@ -34,9 +34,13 @@ void* wait_for_command(t_thread *thread_info)
         case PAGE_NUMBER:
             t_pag* received_page2 = receive_page(thread_info->port, thread_info->logger);
             t_page* page1 = reference_page(received_page2->pid, received_page2->page_number, thread_info->logger);
-            page1->bit_precense 
-                ? send_page_frame(page1, thread_info->port, thread_info->logger)
-                : send_page_fault(thread_info->port, thread_info->logger);
+            if (page1 == NULL) {
+                send_page_fault(thread_info->port, thread_info->logger);
+            } else {
+                page1->bit_precense 
+                    ? send_page_frame(page1, thread_info->port, thread_info->logger)
+                    : send_page_fault(thread_info->port, thread_info->logger);
+            }
             break;
         case FETCH_INSTRUCTION:
             t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
