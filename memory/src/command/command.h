@@ -13,6 +13,7 @@
 #include <user_memory/paging/pages.h>
 #include <initial_configuration/memory_config.h>
 #include <pcb/pcb.h>
+#include <page/page.h>
 
 typedef struct {
     t_dictionary* dict;
@@ -34,7 +35,9 @@ enum CPU_CODE_OP {
     PAGE_SIZE = 4,
     PAGE_NUMBER = 8,
     PAGE_FRAME = 9,
-    PAGE_FAULT = 10,
+    PAGE_FAULT_COMMAND = 10,
+    MOV_IN = 15,
+    MOV_OUT = 16,
 };
 
 enum FS_OP {

@@ -20,6 +20,7 @@ t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority) 
 	nuevoPCB->registers=create_empty_registers();
 	nuevoPCB->instruccion=NORMAL;
 	nuevoPCB->params=NULL;
+	nuevoPCB->open_files=list_create();
 	return nuevoPCB;
 }
 
@@ -44,11 +45,35 @@ int serialized_pcb_size(t_pcb* pcb) {
 		case SIGNAL:
 			instruction_size = sizeof(char) * (strlen(pcb->params) + 1) + sizeof(int);
 			break;
+		case PAGE_FAULT:
 		case SLEEP:
 			instruction_size = sizeof(int);
 			break;
 	}
-	return 9*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int) + instruction_size;
+	int open_files_size = sizeof(int);
+	for (int i = 0; i < pcb->open_files->elements_count; i++)
+	{
+		t_openf* open_file = list_get(pcb->open_files, i);
+		open_files_size += serialized_open_file_size(open_file);
+	}
+	return 9*sizeof(uint32_t) + sizeof(char) * arch_name_size + 2*sizeof(int) + instruction_size + open_files_size;
+}
+
+int serialized_open_file_size(t_openf* open_file) {
+	return sizeof(char) * (strlen(open_file->file) + 1) + 2 * sizeof(int);
+}
+
+void* serialize_open_file(t_openf* open_file) {
+	void* buffer = malloc(serialized_open_file_size(open_file));
+	int offset = 0;
+	int file_name_size = strlen(open_file->file) + 1;
+	memcpy(buffer + offset, &file_name_size, sizeof(int));
+	offset += sizeof(int);
+	memcpy(buffer + offset, open_file->file, sizeof(char) * file_name_size);
+	offset += sizeof(char) * file_name_size;
+	memcpy(buffer + offset, &open_file->seek, sizeof(int));
+	offset += sizeof(int);
+	return buffer;
 }
 
 void* serialize_pcb(t_pcb* pcb) {
@@ -68,6 +93,7 @@ void* serialize_pcb(t_pcb* pcb) {
 			memcpy(buffer + offset, pcb->params, sizeof(char) * param_size);
 			offset += sizeof(char) * param_size;
 			break;
+		case PAGE_FAULT:
 		case SLEEP:
 			memcpy(buffer + offset, &pcb->params, sizeof(int));
 			offset += sizeof(int);
@@ -89,6 +115,19 @@ void* serialize_pcb(t_pcb* pcb) {
 	offset += 4 * sizeof(uint32_t);
 	free(buffer_registers);
 	memcpy(buffer + offset, &pcb->estado, sizeof(int));
+	offset += sizeof(int);
+	memcpy(buffer + offset, &pcb->open_files->elements_count, sizeof(int));
+	offset += sizeof(int);
+	for (int i = 0; i < pcb->open_files->elements_count; i++)
+	{
+		t_openf* open_file = list_get(pcb->open_files, i);
+		int size_serialized_open_file = serialized_open_file_size(open_file);
+		void* buffer_open_file = serialize_open_file(open_file);
+		memcpy(buffer + offset, buffer_open_file, size_serialized_open_file);
+		offset += size_serialized_open_file;
+		free(buffer_open_file);
+	}
+	
 	return buffer;
 }
 
@@ -139,10 +178,11 @@ t_pcb* deserialize_pcb(void* buffer) {
 			pcb->params=param;
 			offset += params_size;
 			break;
+		case PAGE_FAULT:
 		case SLEEP:
-			int sleep_time;
-			memcpy(&sleep_time, buffer + offset, sizeof(int));
-			pcb->params = sleep_time;
+			int number;
+			memcpy(&number, buffer + offset, sizeof(int));
+			pcb->params = number;
 			offset += sizeof(int);
 			break;
 	}
@@ -167,6 +207,25 @@ t_pcb* deserialize_pcb(void* buffer) {
 	free(buffer_registers);
 	offset += 4 * sizeof(uint32_t);
 	memcpy(&pcb->estado, buffer + offset, sizeof(int));
+	offset += sizeof(int);
+	int open_file_count;
+	memcpy(&open_file_count, buffer + offset, sizeof(int));
+	offset += sizeof(int);
+	pcb->open_files = list_create();
+	for (int i = 0; i < open_file_count; i++)
+	{
+		t_openf* open_file = malloc(sizeof(*open_file));
+		int open_file_name_size;
+		memcpy(&open_file_name_size, buffer + offset, sizeof(int));
+		offset += sizeof(int);
+		char* open_file_name = malloc(sizeof(char) * open_file_name_size);
+		memcpy(open_file_name, buffer + offset, sizeof(char) * open_file_name_size);
+		offset += open_file_name_size;
+		open_file->file = open_file_name;
+		memcpy(&open_file->seek, buffer + offset, sizeof(int));
+		offset += sizeof(int);
+		list_add(pcb->open_files, open_file);
+	}
 	free(buffer);
 	return pcb;
 }
@@ -183,6 +242,7 @@ void destroy_params(t_pcb* pcb) {
 
 void destroy_pcb(t_pcb* pcb) {
 	destroy_params(pcb);
+	list_destroy(pcb->open_files);
 	free(pcb->nom_arch_inst);
 	free(pcb);
 }

@@ -22,27 +22,35 @@ int wait_for_dispatch_command(t_utils* utils, t_conn* ports, int memory_socket, 
 				while (continue_executing == true)
 				{
 					char* instruction = fetch(pcb, memory_socket, utils->logger);
-					t_ins formatted_instruction = decode(instruction, page_size, utils->logger);
-					int execute_result = execute(pcb, ports, registers, formatted_instruction, utils->logger);
-					if (execute_result != RETURN_CONTEXT) {
-						if (execute_result == CONTINUE) {
-							pcb->programCounter++;
-						}
-						int check = check_interrupt(pcb, ports->interrupt_fd, utils->logger);
-						switch (check)
-						{
-							case FAIL_CONNECTION:
-								destroy_pcb(pcb);
-								return -1;						
-							case INTERRUPTION:
-								continue_executing = false;
-								break;
-							case NO_INTERRUPTION:
-								continue_executing = true;
-								break;
-						}
-					} else {
+					if (instruction == NULL) {
+						return -1;
+					} 
+					t_ins formatted_instruction = decode(pcb, instruction, page_size, utils->logger, memory_socket);
+					if (pcb->instruccion == PAGE_FAULT) {
+						log_info(utils->logger, "Page Fault PID: %d - Pagina: %d", pcb->pid, pcb->params);
 						continue_executing = false;
+					} else {
+						int execute_result = execute(pcb, ports, memory_socket, registers, formatted_instruction, utils->logger);
+						if (execute_result != RETURN_CONTEXT) {
+							if (execute_result == CONTINUE) {
+								pcb->programCounter++;
+							}
+							int check = check_interrupt(pcb, ports->interrupt_fd, utils->logger);
+							switch (check)
+							{
+								case FAIL_CONNECTION:
+									destroy_pcb(pcb);
+									return -1;						
+								case INTERRUPTION:
+									continue_executing = false;
+									break;
+								case NO_INTERRUPTION:
+									continue_executing = true;
+									break;
+							}
+						} else {
+							continue_executing = false;
+						}
 					}
 				}
 				pcb->registers = *registers;

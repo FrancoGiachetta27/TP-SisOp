@@ -28,21 +28,38 @@ void* wait_for_command(t_thread *thread_info)
         case FETCH_INSTRUCTION:
             t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
             char* next_instruction = fetch_next_instruction(pcb2->pid, pcb2->programCounter, thread_info->logger);
+            log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
             t_package* package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
             usleep(memory_config.time_delay * 1000);
             send_package(package_instruct, thread_info->port, thread_info->logger);
             destroy_pcb(pcb2);
             break;
         case LOAD_PAGE:
-            // recibir el pid y el número de página 
-            // load_page(pid, page_number, thread_info->logger);
+            t_pag* received_page = receive_page(thread_info->port, thread_info->logger);
+            load_page(received_page->pid, received_page->page_number, thread_info->logger);
+            t_package* result_package = create_integer_package(LOAD_PAGE, 0);
+            send_package(result_package, thread_info->port, thread_info->logger);
             break;
         case PAGE_NUMBER:
-            // recibir el pid y el número de página
-            // t_page* page = reference_page(pid, page_number, thread_info->logger);
-            // page->bit_precense 
-            //     ? send_page_frame(page, thread_info->port, thread_info->logger);
-            //     : send_page_fault(thread_info->port, thread_info->logger);
+            t_pag* received_page2 = receive_page(thread_info->port, thread_info->logger);
+            t_page* page1 = reference_page(received_page2->pid, received_page2->page_number, thread_info->logger);
+            page1->bit_precense 
+                ? send_page_frame(page1, thread_info->port, thread_info->logger)
+                : send_page_fault(thread_info->port, thread_info->logger);
+            break;
+        case MOV_OUT:
+            t_mov_out* mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
+            t_page* page2 = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
+            write_on_frame(mov_out_page->pid, page2->frame_number * memory_config.page_size + mov_out_page->displacement, thread_info->logger, mov_out_page->register_value);
+            t_package* result_package1 = create_integer_package(MOV_OUT, 0);
+            send_package(result_package1, thread_info->port, thread_info->logger);
+            break;
+        case MOV_IN:
+            t_pag* mov_in_page = receive_page(thread_info->port, thread_info->logger);
+            t_page* page3 = reference_page(mov_in_page->pid, mov_in_page->page_number, thread_info->logger);
+            uint32_t value_in_frame = read_frame(mov_in_page->pid, page3->frame_number * memory_config.page_size + mov_in_page->displacement, thread_info->logger);
+            t_package* result_package2 = create_uint32_package(MOV_OUT, value_in_frame);
+            send_package(result_package2, thread_info->port, thread_info->logger);
             break;
         case END_PROCESS:
             t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);

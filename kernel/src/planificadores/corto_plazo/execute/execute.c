@@ -31,6 +31,10 @@ void execute_process(t_planificador* info) {
                     }
                     wait_instance_of_resource(pcb, info->utils->logger);
                 break;
+                case PAGE_FAULT:
+                    destroy_executing_process();
+                    manage_page_fault(pcb, info->conn->memory_socket, info->utils->logger);
+                break;
                 case SIGNAL:
                     if (!dictionary_has_key(colas_BLOCKED, pcb->params)) {
                         destroy_executing_process();

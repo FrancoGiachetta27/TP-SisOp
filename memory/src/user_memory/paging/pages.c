@@ -64,7 +64,7 @@ t_page* reference_page(int pid, int page_number, t_log* logger) {
 }
 
 void send_page_fault(int socket, t_log* logger) {
-	t_package* package = create_empty_package(PAGE_FAULT);
+	t_package* package = create_integer_package(PAGE_FAULT_COMMAND, 0);
 	send_package(package, socket, logger);
 }
 
