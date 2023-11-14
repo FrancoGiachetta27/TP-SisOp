@@ -52,19 +52,17 @@ int main(int argc, char *argv[])
 	// print_fat();
 
 	// Bloques
-	// create_block_file();
-	// initialize_swap_list();
+
+	// SWAP
+	create_block_file();
+	initialize_swap_list();
 	// t_list *a = reserve_swap_blocks(5);
-	// for (int i = 0; i < list_size(a); i++)
-	// {
-	// 	printf("Bloque: %d - sizeof %d\n", list_get(a, i), sizeof(list_get(a, i)));
-	// }
 	// reserve_swap_blocks(10);
 	// t_list *b = list_create();
 	// list_add(b, 0);
 	// list_add(b, 2);
 	// free_swap_blocks(b);
-	// print_swap();
+	print_swap();
 
 	// list_destroy(b);
 	// destroy_fs_config(&fs_config);
@@ -72,25 +70,17 @@ int main(int argc, char *argv[])
 	// create_fat_file(utils);
 	// create_block_file(utils);
 
-	create_file(utils, "Notas1erParcialK9999");
-	create_file(utils, "Testing");
-	create_file(utils, "Damian");
+	// create_file(utils, "Notas1erParcialK9999");
+	// create_file(utils, "Testing");
+	// create_file(utils, "Damian");
 
-	open_file(utils, "Damian");
-	open_file(utils, "NoExisto");
+	// truncate_file(utils, "Damian", 30);
+	// truncate_file(utils, "Damian", 100);
+	// truncate_file(utils, "Testing", 10);
+	// truncate_file(utils, "Damian", 3);
+	// truncate_file(utils, "Notas1erParcialK9999", 40);
 
-	t_fcb *fcb = find_fcb_file("Testing");
-
-	truncate_file(utils, "Damian", 30);
-	truncate_file(utils, "Testing", 10);
-	print_fcb_list();
-	print_fat();
-	truncate_file(utils, "Damian", 40);
-	print_fat();
-
-	truncate_file(utils, "Damian", 20);
-	truncate_file(utils, "Damian", 10);
-	print_fat();
+	// print_fat();
 
 	// print_fcb_list();
 	// print_fat();

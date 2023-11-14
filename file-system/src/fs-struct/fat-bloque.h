@@ -9,6 +9,12 @@
 #include <config/config.h>
 #include <initial_configuration/fs_config.h>
 
+typedef struct
+{
+    int index;
+    char *data;
+} SwapBlock;
+
 // FAT
 void create_fat_file();
 void initialize_fat_list();

@@ -12,10 +12,14 @@
 #include <commons/memory.h>
 #include "initial_configuration/fs_config.h"
 
-// TODO: Agreguar funcionalidades para los FCBs
 extern t_utils *utils;
 extern t_fs_config fs_config;
 extern t_list *fcbs;
+
+/*
+    TODO:
+        - Cargar FCBs si existen
+*/
 
 void create_fcb_file(char *file_name)
 {
@@ -128,3 +132,5 @@ void print_fcb_list()
     }
     // free(fcb);
 }
+
+// TODO: Levantar lista FCBs si existen

@@ -1,6 +1,7 @@
 #include <command/command.h>
 #include <fcntl.h>
 #include <fcb/fcb.h>
+#include <fs-struct/fat-bloque.h>
 #include "initial_configuration/fs_config.h"
 
 // extern t_utils *utils;
@@ -27,7 +28,7 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 
 		case F_OPEN:
 			file_name = receive_buffer(socket_kernel, utils->logger);
-			log_info(utils->logger, "F_OPEN Kernel con archivo %s", file_name);
+			log_debug(utils->logger, "F_OPEN Kernel con archivo %s", file_name);
 			int file_size = open_file(utils, file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			send_package(package, socket_kernel, utils->logger);
@@ -44,6 +45,7 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			break;
 
 		case F_TRUNCATE:
+			//
 			file_name = "Damian";
 			file_size = 100;
 			log_debug(utils->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
@@ -73,7 +75,7 @@ int open_file(t_utils *utils, char *file_name)
 	t_fcb *file = find_fcb_file(file_name);
 	if (file)
 	{
-		log_info(utils->logger, "Si existe el archivo: %s", file_name);
+		log_info(utils->logger, "Archivo %s abierto", file_name);
 		return file->file_size;
 	}
 
@@ -127,12 +129,13 @@ void truncate_file(t_utils *utils, char *file_name, int new_size)
 		int blocks_to_add = new_block_count - current_size - 1;
 
 		log_debug(utils->logger, "Cantidad de bloques que hay que agregar: %d", blocks_to_add);
+
 		add_blocks(fcb->initial_block, blocks_to_add);
 	}
 	else
 	{
 		int current_size = fcb->file_size / sizeof(uint32_t) + 1;
-		int blocks_needed = (new_size + sizeof(uint32_t) - 1) / sizeof(uint32_t);
+		int blocks_needed = (new_size / sizeof(uint32_t)) + 1;
 
 		log_debug(utils->logger, "Cantidad de bloques actuales: %d - Cantidad de bloques nuevos %d", current_size, blocks_needed);
 

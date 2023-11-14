@@ -11,21 +11,27 @@
 #include <commons/memory.h>
 #include <initial_configuration/fs_config.h>
 
-// Cada entrada será representada por un dato de tipo uint32_t
-// Bloque lógico 0 estará reservado y no debe ser asignado a ningún archivo.
-// El valor correspondiente a un EOF (End of File) será representado como la constante UINT32_MAX.
-
 extern t_utils *utils;
 extern t_fs_config fs_config;
 int fd_fat;
 int fd_block;
-void *bitmap;
+uint32_t *fat_data;
 
 // FAT
 t_list *fat_list;
 // Archivo de bloques
 t_list *swap_list;
 t_list *fat_block_list;
+
+/*
+    TODO
+        - Revisar el uso de mmap para escribir cuando actualizo las listas
+        - Revisar tamanio de bloque de fat != bloque archivos
+        - Ver bien valgrind
+        - Destruir listas, desmapear y cerrar archivos
+*/
+
+// FAT
 
 void initialize_fat_list()
 {
@@ -87,7 +93,7 @@ int assign_block_size(int file_size)
     int blocks_assigned = 0;
     int blocks_needed = (file_size + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 
-    log_debug(utils->logger, "Para un archivo de %d bytes, necesito %d bloques. Le agrego uno más y tiene que ser UINT32_MAX\n", file_size, blocks_needed);
+    log_debug(utils->logger, "Para un archivo de %d bytes, necesito %d bloques. Le agrego uno más y tiene que ser UINT32_MAX", file_size, blocks_needed);
 
     while (blocks_assigned < blocks_needed)
     {
@@ -139,15 +145,16 @@ int find_last_block(int initial_block)
     return last_block;
 }
 
+// TODO: USAR MMAP
 void add_blocks(int initial_block, int additional_blocks)
 {
 
-    FILE *file = fopen(fs_config.path_fat, "rb+");
-    if (file == NULL)
-    {
-        perror("Error al abrir/crear el archivo FAT");
-        return;
-    }
+    // FILE *file = fopen(fs_config.path_fat, "rb+");
+    // if (file == NULL)
+    // {
+    //     perror("Error al abrir/crear el archivo FAT");
+    //     return;
+    // }
 
     int last_block = find_last_block(initial_block);
 
@@ -169,15 +176,15 @@ void add_blocks(int initial_block, int additional_blocks)
 
     set_end_of_file(last_block);
 
-    // Actualizar la tabla FAT en el archivo
-    fseek(file, 0, SEEK_SET);
-    for (int i = 0; i < list_size(fat_list); i++)
-    {
-        uint32_t block_value = (uint32_t)list_get(fat_list, i);
-        fwrite(&block_value, sizeof(uint32_t), 1, file);
-    }
+    // // Actualizar la tabla FAT en el archivo
+    // fseek(file, 0, SEEK_SET);
+    // for (int i = 0; i < list_size(fat_list); i++)
+    // {
+    //     uint32_t block_value = (uint32_t)list_get(fat_list, i);
+    //     fwrite(&block_value, sizeof(uint32_t), 1, file);
+    // }
 
-    fclose(file);
+    // fclose(file);
 }
 
 t_list *recorrer_blocks(int initial_block)
@@ -200,6 +207,7 @@ t_list *recorrer_blocks(int initial_block)
     return blocks;
 }
 
+// TODO: USAR MMAP
 void free_blocks(int initial_block, int blocks_needed)
 {
     // descartando desde el final del archivo hacia el principio).
@@ -237,9 +245,9 @@ void create_fat_file()
 
     ftruncate(fd_fat, fat_size);
 
-    bitmap = mmap(NULL, fat_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_fat, 0);
+    fat_data = mmap(NULL, fat_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_fat, 0);
 
-    if (bitmap == MAP_FAILED)
+    if (fat_data == MAP_FAILED)
     {
         log_error(utils->logger, "No se pudo mapear el archivo %s", path);
         close(fd_fat);
@@ -247,8 +255,8 @@ void create_fat_file()
     }
 
     // TODO: Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    memset(bitmap, 0, fat_size);
-    msync(bitmap, fat_size, MS_SYNC);
+    memset(fat_data, 0, fat_size);
+    msync(fat_data, fat_size, MS_SYNC);
 
     log_info(utils->logger, "Archivo de la tabla FAT creado con éxito");
 }
@@ -266,11 +274,8 @@ void print_fat()
 }
 
 /*
-=================================================================================
 ARCHIVO DE BLOQUES
 SWAP + FAT
-
-
 */
 
 void initialize_swap_list()
@@ -296,6 +301,7 @@ int find_free_swap_block()
     return -1;
 }
 
+// TODO: No pasar int como ocupado, sino char '\0' - si esta libre = ""
 t_list *reserve_swap_blocks(int blocks_count)
 {
     t_list *blocks_swap = list_create();
@@ -334,12 +340,15 @@ void free_swap_blocks(t_list *blocks_to_release)
     write_swap_file();
 }
 
+// Hace falta abrir el archivo devuelta si tengo el fd cuando lo cree?
+// TODO: USAR MMAP
 void write_swap_file()
 {
     int block_size = fs_config.block_size;
 
-    FILE *file = fopen(fs_config.path_block, "wb"); // Abre el archivo en modo binario de escritura
+    FILE *file = fopen(fs_config.path_block, "wb");
 
+    // Revisar
     if (file == NULL)
     {
         return;
@@ -402,6 +411,22 @@ void print_swap()
         {
             log_debug(utils->logger, "Bloque swap %d - Valor: %d", i, bloque);
         }
-        // log_debug(utils->logger, "Bloque swap %d - Valor: %d", i, bloque);
     }
+}
+
+void write_block()
+{
+}
+
+// INIT
+// TODO: Init estructuras
+
+void destroy_fs()
+{
+    list_destroy(fat_list);
+    list_destroy(swap_list);
+    list_destroy(fat_block_list);
+
+    close(fd_block);
+    close(fd_fat);
 }
