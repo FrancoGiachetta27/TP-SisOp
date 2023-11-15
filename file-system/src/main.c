@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
 	init_fs_config(utils->config, &fs_config);
 
-	fcbs = list_create();
+	// fcbs = list_create();
 
 	// int memory_socket = connect_to_memory(utils);
 	// if (memory_socket == -1) return EXIT_FAILURE;
@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 	// TESTING
 
 	// // FAT
-	create_fat_file();
-	initialize_fat_list();
+	// create_fat_file();
+	// initialize_fat_list();
 
 	// assign_block_size(20);
 	// assign_block_size(5);
@@ -55,17 +55,22 @@ int main(int argc, char *argv[])
 
 	// SWAP
 	create_block_file();
-	initialize_swap_list();
-	// t_list *a = reserve_swap_blocks(5);
-	// reserve_swap_blocks(10);
-	// t_list *b = list_create();
-	// list_add(b, 0);
-	// list_add(b, 2);
-	// free_swap_blocks(b);
-	print_swap();
+	t_list *a = reserve_swap_blocks(5);
+	for (int i = 0; i < list_size(a); i++)
+	{
+		log_debug(utils->logger, "Reservar devuelve bloque: %d", list_get(a, i));
+	}
+	t_list *b = list_create();
+	list_add(b, 0);
+	list_add(b, 2);
+	free_swap_blocks(b);
+	t_list *c = reserve_swap_blocks(10);
+	// print_swap();
 
-	// list_destroy(b);
-	// destroy_fs_config(&fs_config);
+	list_destroy(a);
+	list_destroy(c);
+	// destroy_swap_list();
+	destroy_fs_config(&fs_config);
 
 	// create_fat_file(utils);
 	// create_block_file(utils);

@@ -10,18 +10,19 @@
 #include <commons/bitarray.h>
 #include <commons/memory.h>
 #include <initial_configuration/fs_config.h>
+#include "fat-bloque.h"
 
 extern t_utils *utils;
 extern t_fs_config fs_config;
 int fd_fat;
 int fd_block;
 uint32_t *fat_data;
+void *block_map;
 
 // FAT
 t_list *fat_list;
 // Archivo de bloques
-t_list *swap_list;
-t_list *fat_block_list;
+t_list *blocks_list;
 
 /*
     TODO
@@ -278,35 +279,87 @@ ARCHIVO DE BLOQUES
 SWAP + FAT
 */
 
-void initialize_swap_list()
-{
-    swap_list = list_create();
+// SWAP
 
-    for (int i = 0; i < fs_config.block_swap_count; i++)
+void create_block_file()
+{
+    int block_total = fs_config.block_total_count;
+    int block_swap = fs_config.block_swap_count;
+    int block_size = fs_config.block_size;
+
+    // Size en bytes
+    size_t block_file_size = block_total * block_size;
+
+    char *path = fs_config.path_block;
+
+    fd_block = open(path, O_CREAT | O_RDWR, S_IRWXU);
+    if (fd_block == -1)
     {
-        // Lo lleno con 0s?
-        list_add(swap_list, 0);
+        log_error(utils->logger, "Error al crear el archivo de la tabla FAT");
+        close(fd_block);
+        exit(1);
     }
+
+    ftruncate(fd_block, block_file_size);
+
+    block_map = mmap(NULL, block_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_block, 0);
+
+    if (block_map == MAP_FAILED)
+    {
+        log_error(utils->logger, "No se pudo mapear el archivo %s", path);
+        close(fd_block);
+        exit(1);
+    }
+
+    // Ver con que rellenar
+    memset(block_map, '0', block_file_size);
+    msync(block_map, block_file_size, MS_SYNC);
+
+    log_info(utils->logger, "Archivo de bloques creado con éxito");
 }
+
+// Puedes utilizar el mismo block_map para gestionar el estado de los bloques de SWAP.
+// Al iniciar el proceso, podrías reservar un rango específico de bloques en block_map
+// para la SWAP (por ejemplo, los primeros bloques después de la partición de FAT).
+// Al reservar un bloque, actualizarías el estado de ese bloque tanto en la lista especial
+// como en block_map.
+// Al finalizar un proceso, marcarías los bloques de SWAP como libres tanto en la lista como
+// en block_map.
 
 int find_free_swap_block()
 {
-    for (int i = 0; i < list_size(swap_list); i++)
+    for (int i = 0; i < fs_config.block_swap_count; i++)
     {
-        if (list_get(swap_list, i) == 0)
+        char *block = (char *)(block_map + i * fs_config.block_size);
+
+        int is_free = 1;
+        for (int j = 0; j < fs_config.block_size; j++)
         {
+            if (block[j] != '0')
+            {
+                is_free = 0;
+                break;
+            }
+        }
+
+        if (is_free)
+        {
+            // bloque libre -> lo lleno con '\0'
+            // log_debug(utils->logger, "Bloque libre %d\n", i);
+            // memset(block, '\0', fs_config.block_size);
+            // log_debug(utils->logger, "Block content: %.*s\n", fs_config.block_size, (char *)block);
             return i;
         }
     }
+
     return -1;
 }
 
-// TODO: No pasar int como ocupado, sino char '\0' - si esta libre = ""
 t_list *reserve_swap_blocks(int blocks_count)
 {
     t_list *blocks_swap = list_create();
 
-    if (blocks_count >= list_size(swap_list))
+    if (blocks_count > fs_config.block_swap_count)
     {
         log_debug(utils->logger, "No hay tantos bloques en SWAP");
         return NULL;
@@ -315,107 +368,47 @@ t_list *reserve_swap_blocks(int blocks_count)
     for (int i = 0; i < blocks_count; i++)
     {
         int block = find_free_swap_block();
-        log_debug(utils->logger, "Block libre de swap %d", block);
-        list_replace(swap_list, block, 1);
+        log_debug(utils->logger, "Bloque libre de swap %d - Pasa a '\\0'", block);
+
+        if (block == -1)
+        {
+            log_debug(utils->logger, "No se pudo encontrar un bloque libre en SWAP");
+            break;
+        }
+
+        char *block_data = (char *)(block_map + block * fs_config.block_size);
+        memset(block_data, '\0', fs_config.block_size);
+
         list_add(blocks_swap, block);
     }
-
-    write_swap_file();
 
     return blocks_swap;
 }
 
 void free_swap_blocks(t_list *blocks_to_release)
 {
-    for (int i = 0; i < list_size(blocks_to_release); i++)
+    if (blocks_to_release == NULL)
     {
-        int block_to_release = list_get(blocks_to_release, i);
-        if (block_to_release >= 0 && block_to_release < list_size(swap_list))
-        {
-            // Marcar el bloque como libre
-            list_replace(swap_list, block_to_release, 0);
-        }
-    }
-
-    write_swap_file();
-}
-
-// Hace falta abrir el archivo devuelta si tengo el fd cuando lo cree?
-// TODO: USAR MMAP
-void write_swap_file()
-{
-    int block_size = fs_config.block_size;
-
-    FILE *file = fopen(fs_config.path_block, "wb");
-
-    // Revisar
-    if (file == NULL)
-    {
+        log_debug(utils->logger, "La lista de bloques a liberar es nula");
         return;
     }
 
-    // Itera sobre la lista swap_list y escribe cada bloque en el archivo
-    for (int i = 0; i < list_size(swap_list); i++)
+    for (int i = 0; i < list_size(blocks_to_release); i++)
     {
-        uint32_t block_value = (uint32_t)list_get(swap_list, i);
-        fwrite(&block_value, sizeof(uint32_t), 1, file);
-    }
+        int block_index = (int)list_get(blocks_to_release, i);
 
-    fclose(file);
-}
-
-void create_block_file()
-{
-    int block_total = fs_config.block_total_count;
-    int block_swap = fs_config.block_swap_count;
-    int block_size = fs_config.block_size;
-
-    size_t block_file_size = block_total * block_size;
-
-    char *path = config_get_string_value(utils->config, "PATH_BLOQUES");
-
-    fd_block = open(path, O_CREAT | O_RDWR, S_IRWXU);
-    if (fd_block == -1)
-    {
-        log_error(utils->logger, "Error al crear el archivo de bloques");
-        exit(1);
-    }
-
-    ftruncate(fd_block, block_file_size);
-
-    void *block_data = mmap(NULL, block_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_block, 0);
-
-    if (block_data == MAP_FAILED)
-    {
-        log_error(utils->logger, "No se pudo mapear el archivo de bloques %s", path);
-        close(fd_block);
-        exit(1);
-    }
-
-    memset(block_data, 0, block_file_size);
-    msync(block_data, block_file_size, MS_SYNC);
-
-    // CHECK
-    // munmap(block_data, block_file_size);
-    // close(fd_block);
-
-    log_info(utils->logger, "Archivo de bloques creado con éxito.");
-}
-
-void print_swap()
-{
-    for (int i = 0; i < list_size(swap_list); i++)
-    {
-        uint32_t bloque = list_get(swap_list, i);
-        if (bloque != 0)
+        if (block_index < 0 || block_index >= fs_config.block_swap_count)
         {
-            log_debug(utils->logger, "Bloque swap %d - Valor: %d", i, bloque);
+            log_debug(utils->logger, "Índice de bloque no válido: %d", block_index);
+            continue;
         }
-    }
-}
 
-void write_block()
-{
+        char *block_data = (char *)(block_map + block_index * fs_config.block_size);
+        memset(block_data, '0', fs_config.block_size);
+        log_debug(utils->logger, "Bloque ocupado de swap %d - Pasa a '0'", block_index);
+    }
+
+    list_destroy(blocks_to_release);
 }
 
 // INIT
@@ -424,8 +417,7 @@ void write_block()
 void destroy_fs()
 {
     list_destroy(fat_list);
-    list_destroy(swap_list);
-    list_destroy(fat_block_list);
+    list_destroy(blocks_list);
 
     close(fd_block);
     close(fd_fat);

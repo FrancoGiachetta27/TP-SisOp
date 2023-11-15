@@ -9,12 +9,6 @@
 #include <config/config.h>
 #include <initial_configuration/fs_config.h>
 
-typedef struct
-{
-    int index;
-    char *data;
-} SwapBlock;
-
 // FAT
 void create_fat_file();
 void initialize_fat_list();
@@ -33,9 +27,9 @@ void free_blocks(int initial_block, int blocks_needed);
 void create_block_file();
 void initialize_swap_list();
 void print_swap();
-// bool reserve_swap_blocks(int);
 t_list *reserve_swap_blocks(int);
 int find_free_swap_block();
+void destroy_swap_list();
 void free_swap_blocks(t_list *blocks_to_release);
 void write_swap_file();
 
