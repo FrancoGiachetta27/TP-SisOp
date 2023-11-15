@@ -382,6 +382,8 @@ t_list *reserve_swap_blocks(int blocks_count)
         list_add(blocks_swap, block);
     }
 
+    // Destruir lista
+
     return blocks_swap;
 }
 
@@ -411,6 +413,58 @@ void free_swap_blocks(t_list *blocks_to_release)
     list_destroy(blocks_to_release);
 }
 
+void write_to_swap_block(int block_index, void *data)
+{
+    if (block_index < 0 || block_index >= fs_config.block_swap_count)
+    {
+        log_debug(utils->logger, "Índice de bloque no válido: %d", block_index);
+        return;
+    }
+
+    if (data == NULL)
+    {
+        log_debug(utils->logger, "La cadena de datos es NULL");
+        return;
+    }
+
+    void *block = block_map + block_index * fs_config.block_size;
+
+    size_t data_length = strlen(data);
+    size_t format_length = (data_length < fs_config.block_size) ? data_length : fs_config.block_size;
+
+    memcpy(block, data, format_length);
+
+    // rellenar bloque con \0 - hace falta?
+    if (format_length < fs_config.block_size)
+    {
+        memset(block + format_length, '\0', fs_config.block_size - format_length);
+    }
+
+    // mem_hexdump(block_map, fs_config.block_total_count);
+
+    log_debug(utils->logger, "Datos escritos en el bloque %d de la swap", block_index);
+}
+
+void *read_from_swap_block(int block_index)
+{
+    if (block_index < 0 || block_index >= fs_config.block_swap_count)
+    {
+        log_debug(utils->logger, "Índice de bloque no válido: %d\n", block_index);
+        return;
+    }
+
+    void *buffer = malloc(fs_config.block_size);
+
+    void *block = block_map + block_index * fs_config.block_size;
+
+    // Leo el bloque entero
+    memcpy(buffer, block, fs_config.block_size);
+
+    log_debug(utils->logger, "Datos leídos desde el bloque %d de la swap: %s", block_index, (char *)buffer);
+
+    return buffer;
+}
+
 // INIT
 // TODO: Init estructuras
 
@@ -418,6 +472,8 @@ void destroy_fs()
 {
     list_destroy(fat_list);
     list_destroy(blocks_list);
+
+    munmap(block_map, fs_config.block_size * fs_config.block_total_count);
 
     close(fd_block);
     close(fd_fat);

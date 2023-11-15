@@ -128,7 +128,7 @@ void print_fcb_list()
     for (int i = 0; i < list_size(fcbs); i++)
     {
         t_fcb *fcb = list_get(fcbs, i);
-        log_debug(utils->logger, "FCB numero: %d\nNombre: %s\nTamanio: %d\nBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
+        log_debug(utils->logger, "FCB numero: %d\n\tNombre: %s\n\tTamanio: %d\n\tBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
     }
     // free(fcb);
 }

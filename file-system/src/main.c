@@ -54,23 +54,51 @@ int main(int argc, char *argv[])
 	// Bloques
 
 	// SWAP
-	create_block_file();
-	t_list *a = reserve_swap_blocks(5);
-	for (int i = 0; i < list_size(a); i++)
-	{
-		log_debug(utils->logger, "Reservar devuelve bloque: %d", list_get(a, i));
-	}
-	t_list *b = list_create();
-	list_add(b, 0);
-	list_add(b, 2);
-	free_swap_blocks(b);
-	t_list *c = reserve_swap_blocks(10);
+	// create_block_file();
+	// t_list *a = reserve_swap_blocks(5);
+	// for (int i = 0; i < list_size(a); i++)
+	// {
+	// 	log_debug(utils->logger, "Reservar devuelve bloque: %d", list_get(a, i));
+	// }
+	// t_list *b = list_create();
+	// list_add(b, 0);
+	// list_add(b, 2);
+	// free_swap_blocks(b);
+	// t_list *c = reserve_swap_blocks(10);
 	// print_swap();
 
-	list_destroy(a);
-	list_destroy(c);
+	// list_destroy(a);
+	// list_destroy(c);
 	// destroy_swap_list();
-	destroy_fs_config(&fs_config);
+	// destroy_fs_config(&fs_config);
+
+	create_block_file();
+	t_list *reserved_blocks = reserve_swap_blocks(3);
+
+	// Imprime los bloques reservados
+	for (int i = 0; i < list_size(reserved_blocks); i++)
+	{
+		int block_index = (int)list_get(reserved_blocks, i);
+		printf("Bloque reservado: %d\n", block_index);
+	}
+
+	// Libera algunos bloques
+	// t_list *b = list_create();
+	// list_add(b, 1);
+	// free_swap_blocks(b);
+
+	// list_destroy(reserved_blocks);
+
+	// Datos para escribir en un bloque de la swap
+	void *data = "Q ONDA 213";
+
+	write_to_swap_block(2, data);
+
+	void *buffer = read_from_swap_block(2);
+	printf("Buffer: %s\n", (char *)buffer);
+
+	free(buffer);
+	list_destroy(reserved_blocks);
 
 	// create_fat_file(utils);
 	// create_block_file(utils);
