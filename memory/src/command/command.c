@@ -27,7 +27,7 @@ void* wait_for_command(t_thread *thread_info)
             break;
         case LOAD_PAGE:
             t_pag* received_page = receive_page(thread_info->port, thread_info->logger);
-            load_page(received_page->pid, received_page->page_number, thread_info->logger);
+            load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, thread_info->logger);
             t_package* result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->port, thread_info->logger);
             break;
@@ -54,14 +54,18 @@ void* wait_for_command(t_thread *thread_info)
         case MOV_OUT:
             t_mov_out* mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
             t_page* page2 = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
-            write_on_frame(mov_out_page->pid, page2->frame_number * memory_config.page_size + mov_out_page->displacement, thread_info->logger, mov_out_page->register_value);
+            int address1 = page2->frame_number * memory_config.page_size + mov_out_page->displacement;
+            write_on_frame(address1, sizeof(uint32_t), &mov_out_page->register_value);
+            log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page2->pid, address1);
             t_package* result_package1 = create_integer_package(MOV_OUT, 0);
             send_package(result_package1, thread_info->port, thread_info->logger);
             break;
         case MOV_IN:
             t_pag* mov_in_page = receive_page(thread_info->port, thread_info->logger);
             t_page* page3 = reference_page(mov_in_page->pid, mov_in_page->page_number, thread_info->logger);
-            uint32_t value_in_frame = read_frame(mov_in_page->pid, page3->frame_number * memory_config.page_size + mov_in_page->displacement, thread_info->logger);
+            int address2 = page3->frame_number * memory_config.page_size + mov_in_page->displacement;
+            uint32_t value_in_frame = *(uint32_t*) read_frame(address2, sizeof(uint32_t));
+            log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page3->pid, address2);
             t_package* result_package2 = create_uint32_package(MOV_OUT, value_in_frame);
             send_package(result_package2, thread_info->port, thread_info->logger);
             break;

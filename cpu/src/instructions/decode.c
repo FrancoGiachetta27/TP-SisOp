@@ -10,10 +10,10 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
     {
         list_add(ins.params, formatted_ins[i]);
     }
-    if (strcmp(ins.instruction, "MOV_IN")==0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
+    if (strcmp(ins.instruction, "MOV_IN") == 0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
         char* logic_direction = list_get(ins.params, 1);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
-        if (physical_direction->pid == -1) {
+        if (physical_direction->pid == 0) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
             free(physical_direction);
@@ -22,10 +22,10 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
             ins.original_address = logic_direction;
             list_replace(ins.params, 1, physical_direction);
         }
-    } else if (strcmp(ins.instruction, "MOV_OUT")==0) {
+    } else if (strcmp(ins.instruction, "MOV_OUT") == 0) {
         char* logic_direction = list_get(ins.params, 0);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
-        if (physical_direction->pid == -1) {
+        if (physical_direction->pid == 0) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
             free(physical_direction);
@@ -42,7 +42,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
 t_pag* mmu_translate(uint32_t pid, char* logic_direction, int page_size, t_log* logger, int memory_socket) {
     t_pag* physical_direction = malloc(sizeof(*physical_direction));
     int int_logic_direction = atoi(logic_direction);
-    physical_direction->page_number = floor(int_logic_direction / page_size);
+    physical_direction->page_number = (int) floor(int_logic_direction / page_size);
     physical_direction->displacement = int_logic_direction - physical_direction->page_number * page_size;
     physical_direction->pid = pid;
     send_page(8, physical_direction, memory_socket, logger);
@@ -51,7 +51,7 @@ t_pag* mmu_translate(uint32_t pid, char* logic_direction, int page_size, t_log* 
     switch (op_code)
     {
     case PAGE_FAULT_COMMAND:
-        physical_direction->pid = -1;
+        physical_direction->pid = 0;
         break;
     case PAGE_FRAME_COMMAND:
         log_info(logger, "PID: %d - OBTENER MARCO - Página: %d - Marco: %d", pid, physical_direction->page_number, *frame);

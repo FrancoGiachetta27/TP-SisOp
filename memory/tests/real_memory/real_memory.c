@@ -25,8 +25,9 @@ context (real_memory) {
         }end
 
         it("Testing real memory reading and writing") {
-            write_on_frame(1, 500, logger, 123);
-            should_int((int) read_frame(1, 500, logger)) be equal to(123);
+            uint32_t data = 123;
+            write_on_frame(500, sizeof(uint32_t), &data);
+            should_int(*(uint32_t*) read_frame(500, sizeof(uint32_t))) be equal to(data);
         }end
     }end
 }

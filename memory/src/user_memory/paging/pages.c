@@ -8,7 +8,7 @@ void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
 	send_package(package_page, conn->socket_cpu, utils->logger);
 }
 
-t_page* page_create(int pid, int swap_block, int number) {
+t_page* page_create(uint32_t pid, int swap_block, int number) {
 	t_page* page = malloc(sizeof(*page));
 
 	page->pid = pid;
@@ -37,20 +37,16 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	log_info(logger, "PID: %d - Tamaño: %d", pcb->pid, total_pages);
 }
 
-t_page* search_on_table(int pid, int page_number) {
+static t_page* search_on_table(uint32_t pid, int page_number) {
 	int _is_table(t_page_table* page_table) {
 		return page_table->process_pid == pid;
 	};
-	int _is_page(t_page* page) {
-		return page->page_number == page_number;
-	};
-
 	t_page_table* page_table = (t_page_table*) list_find(page_tables, (void*) _is_table);
 	
-	return (t_page*) list_find(page_table->pages, (void*) _is_page);
+	return (t_page*) list_get(page_table->pages, page_number);
 }
 
-t_page* reference_page(int pid, int page_number, t_log* logger) {
+t_page* reference_page(uint32_t pid, int page_number, t_log* logger) {
 	t_page* page = search_on_table(pid, page_number);
 	if (page == NULL) {
 		return NULL;

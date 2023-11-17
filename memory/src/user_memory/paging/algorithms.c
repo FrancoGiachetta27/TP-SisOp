@@ -6,15 +6,14 @@ t_list* pages_to_replace;
 int working = 1;
 
 static int is_page_copy(t_page* page) {
-	// page_number should be frame_number, replace in the future
-	int frame_number = last_page_referenced->frame_number;
-	return page->frame_number == frame_number;
+	int same_page_number = page->page_number == last_page_referenced->page_number;
+	int same_pid = page->pid == last_page_referenced->page_number;
+	return same_pid && same_page_number;
 };
 
 void sort_pages_by_fifo(void) {
     while(working) {
         sem_wait(&sort_pages);
-
         pthread_mutex_lock(&mtx_select_page);
 		if(last_page_referenced->bit_precense != 1) {
 			list_add(pages_to_replace, last_page_referenced);
@@ -26,7 +25,6 @@ void sort_pages_by_fifo(void) {
 void sort_pages_by_lru(void) {
     while(working) {
         sem_wait(&sort_pages);
-
 		pthread_mutex_lock(&mtx_select_page);
 		if(last_page_referenced->bit_precense == 1) {
 			t_page* lr_page = (t_page*) list_remove_by_condition(pages_to_replace, (void*) is_page_copy);
