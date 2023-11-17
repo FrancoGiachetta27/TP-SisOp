@@ -33,7 +33,7 @@ void* wait_for_command(t_thread *thread_info)
             break;
         case PAGE_NUMBER:
             t_pag* received_page2 = receive_page(thread_info->port, thread_info->logger);
-            t_page* page1 = reference_page(received_page2->pid, received_page2->page_number, thread_info->logger);
+            t_page_entry* page1 = reference_page(received_page2->pid, received_page2->page_number, thread_info->logger);
             if (page1 == NULL) {
                 send_page_fault(thread_info->port, thread_info->logger);
             } else {
@@ -53,7 +53,7 @@ void* wait_for_command(t_thread *thread_info)
             break;
         case MOV_OUT:
             t_mov_out* mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
-            t_page* page2 = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
+            t_page_entry* page2 = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
             int address1 = page2->frame_number * memory_config.page_size + mov_out_page->displacement;
             write_on_frame(address1, sizeof(uint32_t), &mov_out_page->register_value);
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page2->pid, address1);
@@ -62,7 +62,7 @@ void* wait_for_command(t_thread *thread_info)
             break;
         case MOV_IN:
             t_pag* mov_in_page = receive_page(thread_info->port, thread_info->logger);
-            t_page* page3 = reference_page(mov_in_page->pid, mov_in_page->page_number, thread_info->logger);
+            t_page_entry* page3 = reference_page(mov_in_page->pid, mov_in_page->page_number, thread_info->logger);
             int address2 = page3->frame_number * memory_config.page_size + mov_in_page->displacement;
             uint32_t value_in_frame = *(uint32_t*) read_frame(address2, sizeof(uint32_t));
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page3->pid, address2);

@@ -3,10 +3,8 @@
 
 #include <config/config.h>
 #include <commons/config.h>
-#include <commons/bitarray.h>
 #include <instruction_memory/process/process.h>
 #include <user_memory/paging/algorithms.h>
-#include <user_memory/paging/pages.h>
 #include <user_memory/real_memory.h>
 #include <semaphore.h>
 

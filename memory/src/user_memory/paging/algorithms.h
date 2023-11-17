@@ -2,11 +2,8 @@
 #define SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 
 #include <initial_configuration/memory_config.h>
-#include <commons/log.h>
 #include <commons/collections/list.h>
-#include <commons/collections/dictionary.h>
 #include <semaphore.h>
-#include <pthread.h>
 
 pthread_mutex_t mtx_select_page;
 sem_t sort_pages;

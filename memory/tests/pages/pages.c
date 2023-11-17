@@ -24,7 +24,7 @@ context(pages) {
         it("Testing sorting by fifo algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "FIFO")) {
                 int page_numbers[14] = { 0, 1, 7, 2, 3 };
-                t_page* page;
+                t_page_entry* page;
                 int i = 0;
 
                 reference_page(1,0,logger);
@@ -57,7 +57,7 @@ context(pages) {
         it("Testing sorting by lru algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "LRU")) {
                 int page_numbers[14] = { 7, 0, 2, 3, 1 };
-                t_page* page;
+                t_page_entry* page;
                 int i = 0;
 
                 reference_page(1,0,logger);
