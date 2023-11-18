@@ -34,13 +34,13 @@ int get_swap_blocks(int bytes, int fs_socket, t_log* logger) {
 }
 
 void swap_in(t_page_entry* page_referenced, int frame_number, int fs_socket, t_log* logger) {
-    void* page_data = get_page_info(page_referenced->swap_position, fs_socket, logger);
+    //void* page_data = get_page_info(page_referenced->swap_position, fs_socket, logger);
     int frame_position = frame_number * memory_config.page_size;
 
     page_referenced->frame_number = frame_number;
     page_referenced->bit_precense = 1;
 
-    write_on_frame(frame_position, (size_t) memory_config.page_size, page_data);
+    //write_on_frame(frame_position, (size_t) memory_config.page_size, page_data);
     
     log_info(logger, "SWAP IN -  PID: %d - Marco: %d - Page In: %d-%d",
         page_referenced->pid,

@@ -3,6 +3,7 @@
 #include <config/config.h>
 #include <command/command.h>
 #include <initial_configuration/memory_config.h>
+#include <user_memory/paging/algorithms.h>
 #include <user_memory/paging/pages.h>
 #include <user_memory/real_memory.h>
 
@@ -14,6 +15,7 @@ int main(int argc, char* argv[]) {
 	
 	init_memory_config(utils->config);
 	init_real_memory();
+	init_sorter_thread();
 
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;

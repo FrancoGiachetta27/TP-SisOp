@@ -5,8 +5,8 @@
 #include <initial_configuration/server_start.h>
 #include <initial_configuration/memory_config.h>
 #include <user_memory/paging/algorithms.h>
+#include <command/opcodes.h>
 #include <pcb/pcb.h>
-#include <command/command.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <semaphore.h>

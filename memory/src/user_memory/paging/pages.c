@@ -55,8 +55,6 @@ t_page_entry* reference_page(uint32_t pid, int page_number, t_log* logger) {
 
 	last_page_referenced = page;
 	sem_post(&sort_pages);
-	// usleep(10000); // just for testing, delete in the future
-	// page->bit_precense = 1;
 
 	return page;
 }
