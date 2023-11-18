@@ -44,8 +44,5 @@ char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
         return "";
     }
 
-    for(int i = 0; i < list_size(current_process->instructions_set); i++)
-        log_debug(logger, "INSTRUCCION: %s", list_get(current_process->instructions_set, i));
-
     return string_duplicate(list_get(current_process->instructions_set, program_pointer));
 }

@@ -8,14 +8,14 @@ void send_page_size_to_cpu(t_conn* conn, t_utils* utils) {
 	send_package(package_page, conn->socket_cpu, utils->logger);
 }
 
-t_page_entry* page_create(uint32_t pid, int swap_block, int number) {
+t_page_entry* page_create(uint32_t pid, int bit_modified, int bit_precense, int frame, int page_number, int swap_block) {
 	t_page_entry* page = malloc(sizeof(*page));
 
 	page->pid = pid;
-	page->bit_modified = 0;
-	page->bit_precense = 0;
-	page->frame_number = 0;
-	page->page_number = number;
+	page->bit_modified = bit_modified;
+	page->bit_precense = bit_precense;
+	page->frame_number = frame;
+	page->page_number = page_number;
 	page->swap_position = swap_block;
 
 	return page;
@@ -29,7 +29,7 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	page_table->pages = list_create();
 
 	for(int i = 0; i < total_pages; i++) {
-		list_add(page_table->pages, page_create(pcb->pid, swap_blocks, i));
+		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, swap_blocks));
 	}
 
 	list_add(page_tables, page_table);

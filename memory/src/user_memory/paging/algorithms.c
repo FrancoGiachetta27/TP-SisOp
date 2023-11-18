@@ -15,7 +15,14 @@ static bool is_page_copy(t_page_entry* page) {
 void sort_pages_by_fifo(void) {
     while(working) {
         sem_wait(&sort_pages);
-		t_page_entry* page = last_page_referenced;
+		t_page_entry* page = page_create(
+			last_page_referenced->pid,
+			last_page_referenced->bit_modified, 
+			last_page_referenced->bit_precense,
+			last_page_referenced->frame_number,
+			last_page_referenced->page_number,
+			last_page_referenced->swap_position
+		);
         pthread_mutex_lock(&mtx_select_page);
 		if(last_page_referenced->bit_precense != 1) {
 			list_add(pages_to_replace, page);
@@ -27,7 +34,14 @@ void sort_pages_by_fifo(void) {
 void sort_pages_by_lru(void) {
     while(working) {
         sem_wait(&sort_pages);
-		t_page_entry* page = last_page_referenced;
+		t_page_entry* page = page_create(
+			last_page_referenced->pid,
+			last_page_referenced->bit_modified, 
+			last_page_referenced->bit_precense,
+			last_page_referenced->frame_number,
+			last_page_referenced->page_number,
+			last_page_referenced->swap_position
+		);
 		pthread_mutex_lock(&mtx_select_page);
 		if(!list_is_empty(pages_to_replace) && page->bit_precense == 1) {
 			t_page_entry* lr_page = (t_page_entry*) list_remove_by_condition(pages_to_replace, (void*) is_page_copy);
