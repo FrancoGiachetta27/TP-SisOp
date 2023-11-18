@@ -57,7 +57,7 @@ t_frame_search check_available_frames(void) {
 
 void load_page(int pid, int page_number, int fs_socket, t_log* logger) {
     t_frame_search result = check_available_frames();
-    t_page_entry* page_referenced = reference_page(pid, page_number, logger);
+    t_page_entry* page_referenced = search_on_table(pid, page_number);
 
     result.available 
         ? load_page_in_free_space(page_referenced, result.frame_number, fs_socket, logger)

@@ -24,12 +24,14 @@ void* wait_for_command(t_thread *thread_info)
             int is_ok = create_process(thread_info->logger, pcb1, swap_blocks);
             t_package* package_process = create_integer_package(PROCESS_OK, is_ok);
             send_package(package_process, thread_info->port, thread_info->logger);
+            destroy_pcb(pcb1);
             break;
         case LOAD_PAGE:
             t_pag* received_page = receive_page(thread_info->port, thread_info->logger);
             load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, thread_info->logger);
             t_package* result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->port, thread_info->logger);
+            destroy_page(received_page);
             break;
         case PAGE_NUMBER:
             t_pag* received_page2 = receive_page(thread_info->port, thread_info->logger);
@@ -41,6 +43,7 @@ void* wait_for_command(t_thread *thread_info)
                     ? send_page_frame(page1, thread_info->port, thread_info->logger)
                     : send_page_fault(thread_info->port, thread_info->logger);
             }
+            destroy_page(received_page2);
             break;
         case FETCH_INSTRUCTION:
             t_pcb* pcb2 = receive_pcb(thread_info->port, thread_info->logger);
@@ -59,6 +62,7 @@ void* wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page2->pid, address1);
             t_package* result_package1 = create_integer_package(MOV_OUT, 0);
             send_package(result_package1, thread_info->port, thread_info->logger);
+            destroy_page(page2);
             break;
         case MOV_IN:
             t_pag* mov_in_page = receive_page(thread_info->port, thread_info->logger);
@@ -68,6 +72,7 @@ void* wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page3->pid, address2);
             t_package* result_package2 = create_uint32_package(MOV_OUT, value_in_frame);
             send_package(result_package2, thread_info->port, thread_info->logger);
+            destroy_page(page3);
             break;
         case END_PROCESS:
             t_pcb* pcb3 = receive_pcb(thread_info->port, thread_info->logger);

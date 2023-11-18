@@ -12,13 +12,13 @@
 int main(int argc, char* argv[]) {
 	t_utils* utils = create_initial_config(argc, argv, LOGS_MEMORIA, true, LOG_LEVEL_TRACE);
 	if (utils == NULL) return EXIT_FAILURE;
-	
-	init_memory_config(utils->config);
-	init_real_memory();
-	init_sorter_thread();
 
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
+
+	init_memory_config(utils->config);
+	init_real_memory();
+	init_sorter_thread();
 	
 	send_page_size_to_cpu(conn, utils);
 

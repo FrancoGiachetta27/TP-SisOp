@@ -37,7 +37,7 @@ void page_table_create(t_pcb* pcb, int swap_blocks, t_log* logger) {
 	log_info(logger, "PID: %d - Tamaño: %d", pcb->pid, total_pages);
 }
 
-static t_page_entry* search_on_table(uint32_t pid, int page_number) {
+t_page_entry* search_on_table(uint32_t pid, int page_number) {
 	int _is_table(t_page_table* page_table) {
 		return page_table->process_pid == pid;
 	};
@@ -48,12 +48,15 @@ static t_page_entry* search_on_table(uint32_t pid, int page_number) {
 
 t_page_entry* reference_page(uint32_t pid, int page_number, t_log* logger) {
 	t_page_entry* page = search_on_table(pid, page_number);
-	if (page == NULL) {
-		return NULL;
-	}
-	log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page_number, page->frame_number);
+	if (page == NULL) return NULL;
 
+	if(page->bit_precense == 1)
+		log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page->page_number, page->frame_number);
+
+	pthread_mutex_lock(&page_reference);
 	last_page_referenced = page;
+	pthread_mutex_unlock(&page_reference);
+
 	sem_post(&sort_pages);
 
 	return page;
