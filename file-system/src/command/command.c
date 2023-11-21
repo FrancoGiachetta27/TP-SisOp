@@ -3,6 +3,7 @@
 #include <fcb/fcb.h>
 #include <fs-struct/fat-bloque.h>
 #include "initial_configuration/fs_config.h"
+#include "page/page.h"
 
 // extern t_utils *utils;
 
@@ -19,15 +20,17 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 		char *file_name;
 		int block_count;
 		int block;
+		t_pag_swap *page_swap;
+		t_package *package;
 
 		switch (op_code)
 		{
 		case ECHO_FILESYSTEM:
 			message = receive_buffer(socket_kernel, utils->logger);
 			log_info(utils->logger, "OpCode: %d and Message: %s", op_code, message);
-			free(message);
-			t_package *package = create_string_package(ECHO_MEMORY, "ECHO To Memory From FS");
+			package = create_string_package(ECHO_MEMORY, "ECHO To Memory From FS");
 			send_package(package, memory_socket, utils->logger);
+			free(message);
 			break;
 
 		case F_OPEN:
@@ -58,7 +61,7 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			package = create_string_package(F_TRUNCATE, "OK");
 			log_info(utils->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, socket_kernel, utils->logger);
-			free(file_name);
+			// free(file_name);
 			break;
 
 		// SWAP
@@ -67,8 +70,9 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			block_count = receive_buffer(memory_socket, utils);
 			log_info(utils->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", block_count);
 			t_list *blocks_reserved = reserve_swap_blocks(block_count);
-			// Crear paquete array
+			void *buffer = serialize_list(blocks_reserved);
 			// Enviar paquete array
+			send_list(GET_SWAP_BLOCKS, blocks_reserved, memory_socket, utils->logger);
 			list_destroy(blocks_reserved);
 			free(block_count);
 			break;
@@ -78,12 +82,19 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			block = receive_buffer(memory_socket, utils);
 			log_info(utils->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", block);
 			void *data = read_from_swap_block(block);
-
+			package = create_string_package(GET_FROM_SWAP, (char *)data);
+			send_package(package, memory_socket, utils->logger);
 			free(block);
 			break;
 
-		// Recibo bloque y void * data - actualizo y devuelvo un ok?
+		// Recibo t_pag_swap - devuelvo un ok?
 		case UPDATE_SWAP:
+			page_swap = receive_page_for_swap(memory_socket, utils->logger);
+			log_info(utils->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", block);
+			write_to_swap_block(page_swap->swap_block, page_swap->page_content);
+			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
+			package = create_string_package(UPDATE_SWAP, "OK");
+			send_package(package, memory_socket, utils->logger);
 			break;
 
 		// Recibo una lista o que de bloques a liberar - libero - devuelvo ok?
