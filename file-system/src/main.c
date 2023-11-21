@@ -76,11 +76,11 @@ int main(int argc, char *argv[])
 	t_list *reserved_blocks = reserve_swap_blocks(3);
 
 	// Imprime los bloques reservados
-	for (int i = 0; i < list_size(reserved_blocks); i++)
-	{
-		int block_index = (int)list_get(reserved_blocks, i);
-		printf("Bloque reservado: %d\n", block_index);
-	}
+	// for (int i = 0; i < list_size(reserved_blocks); i++)
+	// {
+	// int block_index = (int)list_get(reserved_blocks, i);
+	// printf("Bloque reservado: %d\n", block_index);
+	// }
 
 	// Libera algunos bloques
 	// t_list *b = list_create();

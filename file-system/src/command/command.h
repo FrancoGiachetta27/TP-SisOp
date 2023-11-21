@@ -12,7 +12,16 @@ enum KERNEL_CODE_OP
 {
     F_OPEN = 19,
     F_CREATE = 20,
-    F_TRUNCATE = 21
+    F_TRUNCATE = 21,
+    F_READ = 22
+};
+
+enum MEMORY_CODE_OP
+{
+    GET_SWAP_BLOCKS = 7,
+    GET_FROM_SWAP = 12,
+    UPDATE_SWAP = 13,
+    FREE_PAGES = 14,
 };
 
 int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils);

@@ -276,7 +276,7 @@ void print_fat()
 
 /*
 ARCHIVO DE BLOQUES
-SWAP + FAT
+SWAP + BLOQUES FAT
 */
 
 // SWAP
@@ -325,7 +325,6 @@ void create_block_file()
 // como en block_map.
 // Al finalizar un proceso, marcarías los bloques de SWAP como libres tanto en la lista como
 // en block_map.
-
 int find_free_swap_block()
 {
     for (int i = 0; i < fs_config.block_swap_count; i++)
@@ -344,10 +343,6 @@ int find_free_swap_block()
 
         if (is_free)
         {
-            // bloque libre -> lo lleno con '\0'
-            // log_debug(utils->logger, "Bloque libre %d\n", i);
-            // memset(block, '\0', fs_config.block_size);
-            // log_debug(utils->logger, "Block content: %.*s\n", fs_config.block_size, (char *)block);
             return i;
         }
     }
@@ -381,8 +376,6 @@ t_list *reserve_swap_blocks(int blocks_count)
 
         list_add(blocks_swap, block);
     }
-
-    // Destruir lista
 
     return blocks_swap;
 }
@@ -464,6 +457,8 @@ void *read_from_swap_block(int block_index)
 
     return buffer;
 }
+
+// BLOQUES FAT - INFO ARCHIVOS
 
 // INIT
 // TODO: Init estructuras

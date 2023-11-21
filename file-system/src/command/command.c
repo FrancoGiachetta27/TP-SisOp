@@ -15,11 +15,15 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 	}
 	while (op_code)
 	{
+		char *message;
 		char *file_name;
+		int block_count;
+		int block;
+
 		switch (op_code)
 		{
 		case ECHO_FILESYSTEM:
-			char *message = receive_buffer(socket_kernel, utils->logger);
+			message = receive_buffer(socket_kernel, utils->logger);
 			log_info(utils->logger, "OpCode: %d and Message: %s", op_code, message);
 			free(message);
 			t_package *package = create_string_package(ECHO_MEMORY, "ECHO To Memory From FS");
@@ -28,31 +32,62 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 
 		case F_OPEN:
 			file_name = receive_buffer(socket_kernel, utils->logger);
-			log_debug(utils->logger, "F_OPEN Kernel con archivo %s", file_name);
+			log_info(utils->logger, "F_OPEN Kernel con archivo %s", file_name);
 			int file_size = open_file(utils, file_name);
 			package = create_integer_package(F_OPEN, file_size);
+			log_info(utils->logger, "Se envio el file size %d a Kernel", file_size);
 			send_package(package, socket_kernel, utils->logger);
 			free(file_name);
 			break;
 
 		case F_CREATE:
 			file_name = receive_buffer(socket_kernel, utils->logger);
-			log_debug(utils->logger, "F_CREATE Kernel con archivo %s", file_name);
+			log_info(utils->logger, "F_CREATE Kernel con archivo %s", file_name);
 			int ok = create_file(utils, file_name);
 			package = create_string_package(F_CREATE, "OK");
+			log_info(utils->logger, "Se envio el OK a Kernel");
 			send_package(package, socket_kernel, utils->logger);
 			free(file_name);
 			break;
 
 		case F_TRUNCATE:
-			//
-			file_name = "Damian";
-			file_size = 100;
-			log_debug(utils->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
+			file_name = "Damian"; // Receive buffer
+			file_size = 100;	  // Receive buffer
+			log_info(utils->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
 			truncate_file(utils->logger, file_name, file_size);
-			package = create_string_package(F_TRUNCATE, "ARCHIVO TRUNCADO");
+			package = create_string_package(F_TRUNCATE, "OK");
+			log_info(utils->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, socket_kernel, utils->logger);
 			free(file_name);
+			break;
+
+		// SWAP
+		// Recibo cantidad de bloques (int) - reservo - devuelvo lista?
+		case GET_SWAP_BLOCKS:
+			block_count = receive_buffer(memory_socket, utils);
+			log_info(utils->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", block_count);
+			t_list *blocks_reserved = reserve_swap_blocks(block_count);
+			// Crear paquete array
+			// Enviar paquete array
+			list_destroy(blocks_reserved);
+			free(block_count);
+			break;
+
+		// Recibo bloque a leer (int) - leo data - devuelvo solo el void * con la informacion?
+		case GET_FROM_SWAP:
+			block = receive_buffer(memory_socket, utils);
+			log_info(utils->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", block);
+			void *data = read_from_swap_block(block);
+
+			free(block);
+			break;
+
+		// Recibo bloque y void * data - actualizo y devuelvo un ok?
+		case UPDATE_SWAP:
+			break;
+
+		// Recibo una lista o que de bloques a liberar - libero - devuelvo ok?
+		case FREE_PAGES:
 			break;
 
 		default:
@@ -90,13 +125,6 @@ int create_file(t_utils *utils, char *file_name)
 	create_fcb_file(file_name);
 	return 1;
 }
-
-// Al momento de truncar un archivo, pueden ocurrir 2 situaciones:
-// Ampliar el tamaño del archivo: Al momento de ampliar el tamaño del archivo deberá actualizar el tamaño del archivo en el FCB
-// y se le deberán asignar tantos bloques como sea necesario para poder direccionar el nuevo tamaño.
-// Reducir el tamaño del archivo: Se deberá asignar el nuevo tamaño del archivo en el FCB y se deberán marcar
-// como libres todos los bloques que ya no sean necesarios para direccionar el tamaño del archivo (descartando desde el final del archivo hacia el principio).
-// Siempre se van a poder truncar archivos para ampliarlos, no se realizará la prueba de llenar el FS.
 
 void truncate_file(t_utils *utils, char *file_name, int new_size)
 {
