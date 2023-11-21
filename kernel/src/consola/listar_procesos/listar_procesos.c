@@ -1,31 +1,32 @@
 #include "listar_procesos.h"
 
-void listar_proceso(t_list* lista){
-	int i = 0;
-	t_pcb* pcb;
-	int cantElem = lista->elements_count;
-	for(i = 0; i <= cantElem - 1; i++){
-		pcb = list_get(lista,i);
-		printf("Proceso : %d\n", pcb->pid);
-	}
+void listar_procesos(char* name, t_list* list, t_log* logger, pthread_mutex_t mutex){
+	pthread_mutex_lock(&mutex);
+	char* pids = get_string_of_pids_in_list(list);
+	pthread_mutex_unlock(&mutex);
+	log_info(logger, "Estado: %s - Procesos: %s", name, pids);
+	free(pids);
 }
 
-void listar_procesos_por_estados(){
-	printf("Listado procesos en NEW:\n");
-	listar_proceso(lista_estado_NEW);
-	printf("Listado procesos en READY:\n");
-	listar_proceso(lista_estado_READY);
-	printf("Listado procesos en EXIT:\n");
-	listar_proceso(lista_estado_EXIT);
+void listar_procesos_por_estados(t_log* logger){
+	listar_procesos("SLEEP", lista_estado_INTERRUPT, logger, cola_sleep);
+	listar_procesos("INTERRUPT", lista_estado_SLEEP, logger, cola_interrupt);
+	listar_procesos("NEW", lista_estado_NEW, logger, cola_new);
+	listar_procesos("READY", lista_estado_READY, logger, cola_ready);
+	listar_procesos("EXIT", lista_estado_EXIT, logger, cola_exit);
 	if (estado_EXEC == NULL) {
 		printf("No hay proceso en EXECUTE\n");
 	} else {
-		printf("Proceso en EXECUTE: %d", estado_EXEC->pid);
+		log_info(logger, "Estado: EXECUTE - Proceso: %d", estado_EXEC->pid);
 	}
 
 	void _list_process_in_blocked(char* key, t_block* block) {
-		printf("Listado procesos de recurso %s\n", key);
-		listar_proceso(block->blocked_list);
+		char* state = string_new();
+  		string_append_with_format(&state, " %s", key);
+		char* pids = get_string_of_pids_in_list(block->blocked_list);
+		log_info(logger, "Estado: %s - Procesos: %s", state, pids);
+		free(pids);
+		free(state);
     };
 
 	dictionary_iterator(colas_BLOCKED, (void*) _list_process_in_blocked);

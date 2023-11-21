@@ -13,7 +13,7 @@ typedef struct {
     int time_delay;
 } t_memory_cfg;
 
-void init_memory(t_config* config, t_memory_cfg* memory_config, t_list** active_processes);
+void init_memory_config(t_config* config);
 
 extern t_memory_cfg memory_config;
 
