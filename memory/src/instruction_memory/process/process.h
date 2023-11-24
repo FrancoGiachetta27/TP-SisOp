@@ -10,15 +10,15 @@
 typedef struct
 {
     uint32_t pid;
-    char* file_name;
+    char *file_name;
     int bytes;
-    t_list* instructions_set;
+    t_list *instructions_set;
 } t_process;
 
-int create_process(t_log *logger, t_pcb* pcb, int swap_blocks);
-t_process* search_process(int pid);
+int create_process(t_log *logger, t_pcb *pcb, t_list *swap_blocks);
+t_process *search_process(int pid);
 void deallocate_porcess(int pid);
 
-extern t_list* active_processes;
+extern t_list *active_processes;
 
 #endif /* SRC_INSTRUCTION_MEMORY_PROCESS_PROCESS */

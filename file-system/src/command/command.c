@@ -82,7 +82,8 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			block = receive_buffer(memory_socket, utils);
 			log_info(utils->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", block);
 			void *data = read_from_swap_block(block);
-			package = create_string_package(GET_FROM_SWAP, (char *)data);
+			// Ver como enviar un void *
+			package = create_void_package(GET_FROM_SWAP, fs_config.block_size, data);
 			send_package(package, memory_socket, utils->logger);
 			free(block);
 			break;
@@ -93,7 +94,7 @@ int wait_for_commands(int socket_kernel, int memory_socket, t_utils *utils)
 			log_info(utils->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", block);
 			write_to_swap_block(page_swap->swap_block, page_swap->page_content);
 			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
-			package = create_string_package(UPDATE_SWAP, "OK");
+			package = create_integer_package(UPDATE_SWAP, 0);
 			send_package(package, memory_socket, utils->logger);
 			break;
 

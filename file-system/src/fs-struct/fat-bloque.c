@@ -461,7 +461,13 @@ void *read_from_swap_block(int block_index)
 // BLOQUES FAT - INFO ARCHIVOS
 
 // INIT
-// TODO: Init estructuras
+
+void init_fs_struct()
+{
+    create_fat_file();
+    initialize_fat_list();
+    create_block_file();
+}
 
 void destroy_fs()
 {

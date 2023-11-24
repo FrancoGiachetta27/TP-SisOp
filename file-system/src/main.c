@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	init_fs_config(utils->config, &fs_config);
 
 	fcbs = list_create();
+	init_fs_struct();
 
 	int memory_socket = connect_to_memory(utils);
 	if (memory_socket == -1)
@@ -40,5 +41,8 @@ int main(int argc, char *argv[])
 	int wait_for_commands_result = wait_for_commands(socket_kernel, memory_socket, utils);
 
 	utils_destroy_with_connection(utils, memory_socket);
+	destroy_fs();
+	list_destroy(fcbs);
+
 	return wait_for_commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

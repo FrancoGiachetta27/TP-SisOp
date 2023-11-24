@@ -9,6 +9,10 @@
 #include <config/config.h>
 #include <initial_configuration/fs_config.h>
 
+// INIT
+void init_fs_struct();
+void destroy_fs();
+
 // FAT
 void create_fat_file();
 void initialize_fat_list();

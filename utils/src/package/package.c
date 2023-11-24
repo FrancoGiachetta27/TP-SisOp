@@ -9,6 +9,14 @@ t_package *create_empty_package(int op_code)
 	return package;
 }
 
+t_package *create_void_package(int op_code, int block_size, void *message)
+{
+	t_package *package = create_empty_package(op_code);
+	package->size = block_size;
+	package->buffer = message;
+	return package;
+}
+
 t_package *create_string_package(int op_code, char *message)
 {
 	t_package *package = create_empty_package(op_code);
@@ -132,4 +140,10 @@ void *receive_buffer(int client_socket, t_log *logger)
 	if (check_recv(recv(client_socket, buffer, size, MSG_WAITALL), logger) != 0)
 		return NULL;
 	return buffer;
+}
+
+t_list *receive_list(int client_socket, t_log *logger)
+{
+	void *buffer = receive_buffer(client_socket, logger);
+	return deserialize_list(buffer);
 }
