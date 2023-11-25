@@ -3,6 +3,7 @@
 
 #include <package/package.h>
 #include <user_memory/paging/pages.h>
+#include <user_memory/paging/algorithms.h>
 #include <command/opcodes.h>
 #include <page/page.h>
 #include <commons/collections/list.h>

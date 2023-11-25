@@ -61,11 +61,13 @@ void swap_out(t_page_entry *victim, int fs_socket, t_log *logger)
         update_page(fs_socket, victim, logger);
 
         log_info(logger, "SWAP OUT -  PID: %d - Marco: %d - Page Out: %d-%d",
-                 victim->pid,
-                 victim->frame_number,
-                 victim->pid,
-                 victim->page_number);
+            victim->pid,
+            victim->frame_number,
+            victim->pid,
+            victim->page_number
+        );
     }
-
     victim->bit_precense = 0;
+    
+    remove_from_victims(victim);
 }

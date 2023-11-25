@@ -14,6 +14,7 @@ extern int working;
 
 void sort_pages_by_fifo(void);
 void sort_pages_by_lru(void);
+void remove_from_victims(t_page_entry* victim);
 void init_sorter_thread(void); 
 
 #endif /* SRC_USER_MEMORY_PAGING_ALGORITHMS_H */
