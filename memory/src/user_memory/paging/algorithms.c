@@ -1,9 +1,6 @@
 #include <user_memory/paging/algorithms.h>
 
 pthread_mutex_t mtx_select_page;
-pthread_mutex_t page_reference;
-sem_t sort_pages;
-t_list* pages_to_replace;
 int working = 1;
 
 static bool is_page_copy(t_page_entry* page) {
@@ -13,18 +10,6 @@ static bool is_page_copy(t_page_entry* page) {
 	pthread_mutex_unlock(&page_reference);
 	return same_pid && same_page_number;
 };
-
-void remove_from_victims(t_page_entry* victim) {
-	bool is_page(t_page_entry* page) {
-		pthread_mutex_lock(&page_reference);
-		bool same_page_number = page->page_number == last_page_referenced->page_number;
-		bool same_pid = page->pid == last_page_referenced->pid;
-		pthread_mutex_unlock(&page_reference);
-		
-		return same_pid && same_page_number;
-	};
-	list_remove_by_condition(pages_to_replace, (void*) is_page);
-}
 
 void sort_pages_by_fifo(void) {
     while(working) {
@@ -42,7 +27,7 @@ void sort_pages_by_lru(void) {
         sem_wait(&sort_pages);
 		pthread_mutex_lock(&mtx_select_page);
 		if(!list_is_empty(pages_to_replace) && last_page_referenced->bit_precense == 1) {
-			list_remove_and_destroy_by_condition(pages_to_replace, (void*) is_page_copy, (void*) destroy_page);
+			list_remove_and_destroy_by_condition(pages_to_replace, (void*) is_page_copy, (void*) destroy_page_entry);
 			list_add(pages_to_replace, last_page_referenced);
 			pthread_mutex_unlock(&mtx_select_page);
 		}else{
@@ -50,6 +35,19 @@ void sort_pages_by_lru(void) {
 			pthread_mutex_unlock(&mtx_select_page);
 		}
     }
+}
+
+
+void remove_from_victims(t_page_entry* victim) {
+	bool is_page(t_page_entry* page) {
+		pthread_mutex_lock(&page_reference);
+		bool same_page_number = page->page_number == last_page_referenced->page_number;
+		bool same_pid = page->pid == last_page_referenced->pid;
+		pthread_mutex_unlock(&page_reference);
+		
+		return same_pid && same_page_number;
+	};
+	list_remove_by_condition(pages_to_replace, (void*) is_page);
 }
 
 void init_sorter_thread(void) {

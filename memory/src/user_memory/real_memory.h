@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <initial_configuration/memory_config.h>
-#include <user_memory/paging/pages.h>
+#include <user_memory/paging/algorithms.h>
 #include <user_memory/swaping/swaping.h>
 #include <command/command.h>
 #include <commons/bitarray.h>

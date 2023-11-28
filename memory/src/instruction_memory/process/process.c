@@ -42,11 +42,15 @@ static void _free_process(t_process *process)
     free(process);
 };
 
-void deallocate_porcess(int pid)
+void deallocate_porcess(uint32_t pid, int fs_socket, t_log *logger)
 {
     int _is_pid(t_process * process)
     {
         return process->pid == pid;
     };
+    t_page_table* page_table = search_page_table(pid);
+
     list_remove_and_destroy_by_condition(active_processes, (void *)_is_pid, (void *)_free_process);
+    free_swap_blocks(page_table, fs_socket, logger);
+    destroy_page_table(page_table);
 }

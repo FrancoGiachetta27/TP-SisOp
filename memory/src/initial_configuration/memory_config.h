@@ -3,7 +3,6 @@
 
 #include <config/config.h>
 #include <commons/config.h>
-#include <instruction_memory/process/process.h>
 
 typedef struct {
     int memory_size;

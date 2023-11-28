@@ -37,11 +37,11 @@ t_mov_out* page_for_mov_out(uint32_t pid, int page_number, int displacement, uin
 	return page;
 }
 
-static void destroy_page(t_pag* page) {
+void destroy_page(t_pag* page) {
 	free(page);
 }
 
-static void destroy_page_for_mov_out(t_mov_out* page) {
+void destroy_page_for_mov_out(t_mov_out* page) {
 	free(page);
 }
 
@@ -136,7 +136,7 @@ void send_page_for_mov_out(int op_code, t_mov_out* page, int client_socket, t_lo
 
 void send_page_for_swap(int op_code, t_pag_swap* page, int client_socket, t_log* logger) {
 	t_package* package = create_empty_package(op_code);
-    package->size = size_of_page_for_swap(page->page_content);
+    package->size = size_of_page_for_swap(page->page_info_size);
     package->buffer = serialize_page_for_swap(page);
     send_package(package, client_socket, logger);
 	destroy_page_for_swap(page);

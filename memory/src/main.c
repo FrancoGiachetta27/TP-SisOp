@@ -5,6 +5,7 @@
 #include <initial_configuration/memory_config.h>
 #include <user_memory/paging/algorithms.h>
 #include <user_memory/paging/pages.h>
+#include <instruction_memory/process/process.h>
 #include <user_memory/real_memory.h>
 
 #define LOGS_MEMORIA "memoria.log"
@@ -15,6 +16,8 @@ int main(int argc, char* argv[]) {
 
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
+
+	t_list* active_processes = list_create(); 
 
 	init_memory_config(utils->config);
 	init_real_memory();
