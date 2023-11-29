@@ -1,5 +1,9 @@
 #include <command/command.h>
 
+t_pcb *pcb_create;
+t_pag *received_page;
+t_page_entry *referenced_page;
+
 void *wait_for_command(t_thread *thread_info)
 {
     int op_code = receive_op_code(thread_info->port, thread_info->logger);
@@ -19,18 +23,33 @@ void *wait_for_command(t_thread *thread_info)
             free(message);
             break;
         case CREATE_PROCESS:
-            t_pcb *pcb1 = receive_pcb(thread_info->port, thread_info->logger);
-            t_list *swap_blocks = get_swap_blocks(pcb1->tamanio, thread_info->conn->socket_filesystem, thread_info->logger);
-            int is_ok = create_process(thread_info->logger, pcb1, swap_blocks);
+            pcb_create = receive_pcb(thread_info->port, thread_info->logger);
+            log_debug(thread_info->logger, "PIDO SWAP");
+            get_swap_blocks(pcb_create->tamanio, thread_info->conn->socket_filesystem, thread_info->logger, thread_info->dict_key);
+            // log_debug(thread_info->logger, "Cantidad de bloques %d", list_size(swap_blocks));
+            // int is_ok = create_process(thread_info->logger, pcb1, swap_blocks);
+            // t_package *package_process = create_integer_package(PROCESS_OK, is_ok);
+            // send_package(package_process, thread_info->port, thread_info->logger);
+            // destroy_pcb(pcb1);
+            break;
+        case GET_SWAP_BLOCKS:
+            t_list *swap_blocks = receive_list(thread_info->conn->socket_filesystem, thread_info->logger);
+            log_debug(thread_info->logger, "Cantidad de bloques %d", list_size(swap_blocks));
+            int is_ok = create_process(thread_info->logger, pcb_create, swap_blocks);
             t_package *package_process = create_integer_package(PROCESS_OK, is_ok);
-            send_package(package_process, thread_info->port, thread_info->logger);
-            destroy_pcb(pcb1);
+            send_package(package_process, thread_info->conn->socket_kernel, thread_info->logger);
+            destroy_pcb(pcb_create);
             break;
         case LOAD_PAGE:
-            t_pag *received_page = receive_page(thread_info->port, thread_info->logger);
-            load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, thread_info->logger);
+            received_page = receive_page(thread_info->port, thread_info->logger);
+            referenced_page = load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, thread_info->logger);
+            get_page_info(referenced_page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
+            break;
+        case GET_FROM_SWAP:
+            void *page_data = receive_buffer(thread_info->port, thread_info->logger);
+            swap_in(referenced_page, received_page->page_number, page_data, thread_info->logger);
             t_package *result_package = create_integer_package(LOAD_PAGE, 0);
-            send_package(result_package, thread_info->port, thread_info->logger);
+            send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
             destroy_page(received_page);
             break;
         case PAGE_NUMBER:
@@ -82,7 +101,7 @@ void *wait_for_command(t_thread *thread_info)
             deallocate_porcess(pcb3->pid);
             break;
         default:
-            log_error(thread_info->logger, "Unknown OpCode");
+            log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
             dictionary_remove(thread_info->dict, thread_info->dict_key);
             free(thread_info);
             return NULL;

@@ -52,10 +52,12 @@ void *serialize_list(t_list *list)
 	int offset = sizeof(int);
 	for (int i = 0; i < size_list; i++)
 	{
-		int block_index = (int)list_get(list, i);
+		int block_index = list_get(list, i);
 		memcpy(buffer + offset, &block_index, sizeof(int));
 		offset += sizeof(int);
 	}
+
+	list_destroy(list);
 
 	return buffer;
 }
@@ -64,14 +66,14 @@ t_list *deserialize_list(void *serialized_data)
 {
 	int list_size;
 	memcpy(&list_size, serialized_data, sizeof(int));
+	printf("List size: %d\n", list_size);
 	t_list *result = list_create();
 	int offset = sizeof(int);
 	for (int i = 0; i < list_size; i++)
 	{
 		int *block_index_ptr = malloc(sizeof(int));
 		memcpy(block_index_ptr, serialized_data + offset, sizeof(int));
-		list_add(result, *block_index_ptr);
-		free(block_index_ptr);
+		list_add(result, block_index_ptr);
 		offset += sizeof(int);
 	}
 
@@ -100,7 +102,6 @@ void send_list(int op_code, t_list *list, int client_socket, t_log *logger)
 	package->size = sizeof(int) + list_size(list) * sizeof(int);
 	package->buffer = serialize_list(list);
 	send_package(package, client_socket, logger);
-	destroy_package(package);
 }
 
 void send_package(t_package *package, int client_socket, t_log *logger)
@@ -145,5 +146,6 @@ void *receive_buffer(int client_socket, t_log *logger)
 t_list *receive_list(int client_socket, t_log *logger)
 {
 	void *buffer = receive_buffer(client_socket, logger);
+	log_debug(logger, "SE RECIBIO BUFFER");
 	return deserialize_list(buffer);
 }

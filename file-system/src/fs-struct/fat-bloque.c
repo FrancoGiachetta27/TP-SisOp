@@ -22,7 +22,6 @@ void *block_map;
 // FAT
 t_list *fat_list;
 // Archivo de bloques
-t_list *blocks_list;
 
 /*
     TODO
@@ -472,7 +471,6 @@ void init_fs_struct()
 void destroy_fs()
 {
     list_destroy(fat_list);
-    list_destroy(blocks_list);
 
     munmap(block_map, fs_config.block_size * fs_config.block_total_count);
 

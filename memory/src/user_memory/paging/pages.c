@@ -33,7 +33,7 @@ void page_table_create(t_pcb *pcb, t_list *swap_blocks, t_log *logger)
 
 	for (int i = 0; i < total_pages; i++)
 	{
-		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, list_get(swap_blocks, i)));
+		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, *(int *)list_get(swap_blocks, i)));
 	}
 
 	list_add(page_tables, page_table);

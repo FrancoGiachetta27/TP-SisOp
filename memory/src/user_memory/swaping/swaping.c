@@ -1,12 +1,9 @@
 #include <user_memory/swaping/swaping.h>
 
-static void *get_page_info(int swap_block, int fs_socket, t_log *logger)
+void get_page_info(int swap_block, int fs_socket, t_log *logger)
 {
     t_package *package = create_integer_package(GET_FROM_SWAP, swap_block);
     send_package(package, fs_socket, logger);
-    void *data = receive_buffer(fs_socket, logger);
-
-    return data;
 }
 
 static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
@@ -26,20 +23,17 @@ static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
     }
 }
 
-t_list *get_swap_blocks(int bytes, int fs_socket, t_log *logger)
+void get_swap_blocks(int bytes, int fs_socket, t_log *logger, char *key)
 {
     int total_blocks = bytes / memory_config.page_size;
     t_package *package = create_integer_package(GET_SWAP_BLOCKS, total_blocks);
     send_package(package, fs_socket, logger);
-
-    // = receive_swap_blocks(fs_socket);
-
-    return receive_list(fs_socket, logger);
 }
 
-void swap_in(t_page_entry *page_referenced, int frame_number, int fs_socket, t_log *logger)
+void swap_in(t_page_entry *page_referenced, int frame_number, void *page_data, t_log *logger)
 {
-    void *page_data = get_page_info(page_referenced->swap_position, fs_socket, logger);
+    log_debug(logger, "Swap position %d", page_referenced->swap_position);
+
     int frame_position = frame_number * memory_config.page_size;
 
     page_referenced->frame_number = frame_number;

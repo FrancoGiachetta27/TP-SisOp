@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
 	if (memory_socket == -1)
 		return EXIT_FAILURE;
 
+	log_debug(utils->logger, "Se conecto a memory");
+
 	int socket_kernel = start_server_port(utils);
 	if (socket_kernel == -1)
 	{
@@ -38,11 +40,11 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	int wait_for_commands_result = wait_for_commands(socket_kernel, memory_socket, utils);
+	wait_in_every_port(memory_socket, socket_kernel, utils->logger);
 
 	utils_destroy_with_connection(utils, memory_socket);
 	destroy_fs();
 	list_destroy(fcbs);
 
-	return wait_for_commands_result == -1 ? EXIT_FAILURE : EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
