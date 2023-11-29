@@ -23,6 +23,17 @@ static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
     }
 }
 
+void free_swap_blocks(t_page_table *page_table, int fs_socket, t_log *logger)
+{
+    int get_swap_block(t_page_entry * page)
+    {
+        return page->swap_position;
+    };
+    t_list *swap_blocks = list_map(page_table->pages, (void *)get_swap_block);
+
+    send_list(FREE_PAGES, swap_blocks, fs_socket, logger);
+}
+
 void get_swap_blocks(int bytes, int fs_socket, t_log *logger, char *key)
 {
     int total_blocks = bytes / memory_config.page_size;
@@ -60,6 +71,7 @@ void swap_out(t_page_entry *victim, int fs_socket, t_log *logger)
                  victim->pid,
                  victim->page_number);
     }
-
     victim->bit_precense = 0;
+
+    remove_from_victims(victim);
 }

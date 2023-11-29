@@ -84,7 +84,8 @@ void *wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page2->pid, address1);
             t_package *result_package1 = create_integer_package(MOV_OUT, 0);
             send_package(result_package1, thread_info->port, thread_info->logger);
-            destroy_page(page2);
+            //destroy_page_entry(page2);
+            destroy_page_for_mov_out(mov_out_page);
             break;
         case MOV_IN:
             t_pag *mov_in_page = receive_page(thread_info->port, thread_info->logger);
@@ -94,11 +95,16 @@ void *wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page3->pid, address2);
             t_package *result_package2 = create_uint32_package(MOV_OUT, value_in_frame);
             send_package(result_package2, thread_info->port, thread_info->logger);
-            destroy_page(page3);
+            //destroy_page_entry(page3);
+            destroy_page(mov_in_page);
             break;
         case END_PROCESS:
             t_pcb *pcb3 = receive_pcb(thread_info->port, thread_info->logger);
-            deallocate_porcess(pcb3->pid);
+            deallocate_porcess(
+                pcb3->pid, 
+                thread_info->conn->socket_filesystem, 
+                thread_info->logger
+            );
             break;
         default:
             log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);

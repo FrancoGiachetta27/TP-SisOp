@@ -1,5 +1,9 @@
 #include <user_memory/paging/pages.h>
 
+pthread_mutex_t page_reference;
+sem_t sort_pages;
+
+t_list *pages_to_replace;
 t_list *page_tables;
 
 void send_page_size_to_cpu(t_conn *conn, t_utils *utils)
@@ -41,20 +45,21 @@ void page_table_create(t_pcb *pcb, t_list *swap_blocks, t_log *logger)
 	log_info(logger, "PID: %d - Tamaño: %d", pcb->pid, total_pages);
 }
 
-t_page_entry *search_on_table(uint32_t pid, int page_number)
+t_page_table *search_page_table(uint32_t pid)
 {
 	int _is_table(t_page_table * page_table)
 	{
 		return page_table->process_pid == pid;
 	};
-	t_page_table *page_table = (t_page_table *)list_find(page_tables, (void *)_is_table);
 
-	return (t_page_entry *)list_get(page_table->pages, page_number);
+	return (t_page_table *)list_find(page_tables, (void *)_is_table);
 }
 
 t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
 {
-	t_page_entry *page = search_on_table(pid, page_number);
+	t_page_table *page_table = search_page_table(pid);
+	t_page_entry *page = (t_page_entry *)list_get(page_table->pages, page_number);
+
 	if (page == NULL)
 		return NULL;
 
@@ -82,13 +87,13 @@ void send_page_frame(t_page_entry *page, int socket, t_log *logger)
 	send_package(package, socket, logger);
 }
 
-void destroy_page(t_page_entry *page)
+void destroy_page_entry(t_page_entry *page)
 {
 	free(page);
 }
 
 void destroy_page_table(t_page_table *page_table)
 {
-	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page);
+	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page_entry);
 	free(page_table);
 }
