@@ -29,6 +29,7 @@ void free_swap_blocks(t_page_table *page_table, int fs_socket, t_log *logger)
     {
         return page->swap_position;
     };
+
     t_list *swap_blocks = list_map(page_table->pages, (void *)get_swap_block);
 
     send_list(FREE_PAGES, swap_blocks, fs_socket, logger);

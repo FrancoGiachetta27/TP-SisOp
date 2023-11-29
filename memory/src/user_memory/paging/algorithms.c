@@ -34,14 +34,21 @@ void sort_pages_by_lru(void)
 		pthread_mutex_lock(&mtx_select_page);
 		if (!list_is_empty(pages_to_replace) && last_page_referenced->bit_precense == 1)
 		{
-			t_page_entry *page = list_remove_by_condition(pages_to_replace, (void *)is_page_copy);
-			destroy_page(page);
-			list_add(pages_to_replace, last_page_referenced);
+			t_page_entry* page = list_remove_by_condition(pages_to_replace, (void *)is_page_copy);
+			list_add(pages_to_replace, page);
 			pthread_mutex_unlock(&mtx_select_page);
 		}
 		else
 		{
-			list_add(pages_to_replace, last_page_referenced);
+			t_page_entry* page = page_create(
+				last_page_referenced->pid,
+				last_page_referenced->bit_modified,
+				last_page_referenced->bit_precense,
+				last_page_referenced->frame_number,
+				last_page_referenced->page_number,
+				last_page_referenced->swap_position
+			);
+			list_add(pages_to_replace, page);
 			pthread_mutex_unlock(&mtx_select_page);
 		}
 	}

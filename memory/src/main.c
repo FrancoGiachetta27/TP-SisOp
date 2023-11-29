@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	t_conn* conn = start_server_ports(utils);
 	if (conn == NULL) return EXIT_FAILURE;
 
-	t_list* active_processes = list_create(); 
+	active_processes = list_create();
 
 	init_memory_config(utils->config);
 	init_real_memory();

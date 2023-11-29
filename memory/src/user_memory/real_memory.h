@@ -31,6 +31,6 @@ void free_memory(void);
 t_frame_search check_available_frames(void);
 void *read_frame(int real_address, size_t size);
 void write_on_frame(int real_address, size_t size, void *data);
-t_page_entry *load_page(int pid, int page_number, int fs_socket, t_log *logger);
+void load_page(uint32_t pid, int page_number, int fs_socket, void* page_data, t_log *logger);
 
 #endif /* SRC_USER_MEMORY_REAL_MEMORY_H */

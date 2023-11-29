@@ -3,6 +3,7 @@
 pthread_mutex_t page_reference;
 sem_t sort_pages;
 
+t_page_entry *last_page_referenced;
 t_list *pages_to_replace;
 t_list *page_tables;
 
@@ -55,10 +56,15 @@ t_page_table *search_page_table(uint32_t pid)
 	return (t_page_table *)list_find(page_tables, (void *)_is_table);
 }
 
+t_page_entry* get_page(uint32_t pid, int page_number) {
+	t_page_table* page_table = search_page_table(pid);
+	
+	return list_get(page_table->pages, page_number);
+}
+
 t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
 {
-	t_page_table *page_table = search_page_table(pid);
-	t_page_entry *page = (t_page_entry *)list_get(page_table->pages, page_number);
+	t_page_entry *page = get_page(pid, page_number);
 
 	if (page == NULL)
 		return NULL;
@@ -70,6 +76,7 @@ t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
 	last_page_referenced = page;
 	pthread_mutex_unlock(&page_reference);
 
+	usleep(memory_config.time_delay * 1000);
 	sem_post(&sort_pages);
 
 	return page;

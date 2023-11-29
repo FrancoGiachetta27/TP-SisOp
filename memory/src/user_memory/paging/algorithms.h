@@ -2,6 +2,7 @@
 #define SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 
 #include <initial_configuration/memory_config.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 #include <semaphore.h>
 #include <user_memory/paging/pages.h>
