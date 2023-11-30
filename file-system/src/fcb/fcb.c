@@ -129,7 +129,6 @@ void print_fcb_list()
     // free(fcb);
 }
 
-// TODO: Levantar lista FCBs si existen
 void load_FCBs_from_directory(char *directory_path)
 {
     log_debug(utils->logger, "Path %s", directory_path);
