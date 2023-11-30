@@ -389,11 +389,11 @@ void free_swap_blocks(t_list *blocks_to_release)
 
     for (int i = 0; i < list_size(blocks_to_release); i++)
     {
-        int block_index = (int)list_get(blocks_to_release, i);
+        int block_index = *(int *)list_get(blocks_to_release, i);
 
         if (block_index < 0 || block_index >= fs_config.block_swap_count)
         {
-            log_debug(utils->logger, "Índice de bloque no válido: %d", block_index);
+            log_debug(utils->logger, "FREE - Índice de bloque no válido: %d", block_index);
             continue;
         }
 
@@ -401,15 +401,13 @@ void free_swap_blocks(t_list *blocks_to_release)
         memset(block_data, '0', fs_config.block_size);
         log_debug(utils->logger, "Bloque ocupado de swap %d - Pasa a '0'", block_index);
     }
-
-    list_destroy(blocks_to_release);
 }
 
 void write_to_swap_block(int block_index, void *data)
 {
     if (block_index < 0 || block_index >= fs_config.block_swap_count)
     {
-        log_debug(utils->logger, "Índice de bloque no válido: %d", block_index);
+        log_debug(utils->logger, "WRITE - Índice de bloque no válido: %d", block_index);
         return;
     }
 
@@ -441,7 +439,7 @@ void *read_from_swap_block(int block_index)
 {
     if (block_index < 0 || block_index >= fs_config.block_swap_count)
     {
-        log_debug(utils->logger, "Índice de bloque no válido: %d\n", block_index);
+        log_debug(utils->logger, "READ - Índice de bloque no válido: %d\n", block_index);
         return;
     }
 

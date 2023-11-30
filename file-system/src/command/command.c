@@ -69,7 +69,6 @@ void *wait_for_commands(t_thread *thread_info)
 			int *block_count = (int *)receive_buffer(thread_info->port, thread_info->logger);
 			t_list *blocks_reserved = reserve_swap_blocks(*block_count);
 			log_debug(thread_info->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", *block_count);
-			// Enviar paquete array
 			send_list(GET_SWAP_BLOCKS, blocks_reserved, thread_info->port, thread_info->logger);
 			free(block_count);
 			break;
@@ -100,6 +99,7 @@ void *wait_for_commands(t_thread *thread_info)
 			t_list *free_blocks = receive_list(thread_info->port, thread_info->logger);
 			free_swap_blocks(free_blocks);
 			log_info(thread_info->logger, "Libero %d bloques de SWAP", list_size(free_blocks));
+			list_destroy(free_blocks);
 			package = create_integer_package(FREE_PAGES, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			break;
