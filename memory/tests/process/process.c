@@ -13,6 +13,7 @@
 
 //         before {
 //             init_memory_config(config);
+//             active_processes = list_create();
 //             create_process(logger, crear_pcb(1, "1", 1, 1), 0);
 //             create_process(logger, crear_pcb(2, "2", 1, 1), 0);
 //             create_process(logger, crear_pcb(3, "3", 1, 1), 0);

@@ -1,11 +1,11 @@
 #ifndef SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 #define SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 
+#include <user_memory/paging/pages.h>
 #include <initial_configuration/memory_config.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <semaphore.h>
-#include <user_memory/paging/pages.h>
 
 pthread_mutex_t mtx_select_page;
 extern int working;

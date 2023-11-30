@@ -76,8 +76,8 @@ t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
 	last_page_referenced = page;
 	pthread_mutex_unlock(&page_reference);
 
-	usleep(memory_config.time_delay * 1000);
 	sem_post(&sort_pages);
+	usleep(memory_config.time_delay * 1000);
 
 	return page;
 }

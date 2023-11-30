@@ -13,10 +13,10 @@ context (real_memory) {
     t_config* config = config_create("./config/memory.config");
     
     describe("Testing Real Memory") {
-
         before {
             init_memory_config(config);
             init_real_memory();
+            active_processes = list_create();
             create_process(logger, crear_pcb(1, "1", 1, 1), 0);
         }end
 
