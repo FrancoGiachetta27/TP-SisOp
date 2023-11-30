@@ -44,8 +44,20 @@ int serialized_pcb_size(t_pcb* pcb) {
 	int instruction_size = 0;
 	switch (pcb->instruccion)
 	{
+		case FOPEN:
+			instruction_size = serialized_fopen_size(pcb->params) + sizeof(int);
+			break;
+		case FSEEK:
+		case FTRUNCATE:
+			instruction_size = serialized_fchange_size(pcb->params) + sizeof(int);
+			break;
+		case FWRITE:
+		case FREAD:
+			instruction_size = serialized_fmodify_size(pcb->params) + sizeof(int);
+			break;
 		case WAIT:
 		case SIGNAL:
+		case FCLOSE:
 			instruction_size = sizeof(char) * (strlen(pcb->params) + 1) + sizeof(int);
 			break;
 		case PAGE_FAULT:
@@ -88,8 +100,38 @@ void* serialize_pcb(t_pcb* pcb) {
 	offset += sizeof(uint32_t);
 	switch (pcb->instruccion)
 	{
+		case FOPEN:
+			int fopen_size = serialized_fopen_size(pcb->params);
+			memcpy(buffer + offset, &fopen_size, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fopen = serialize_fopen(pcb->params);
+			memcpy(buffer + offset, buffer_fopen, fopen_size);
+			offset += fopen_size;
+			free(buffer_fopen);
+			break;
+		case FSEEK:
+		case FTRUNCATE:
+			int fchange_size = serialized_fchange_size(pcb->params);
+			memcpy(buffer + offset, &fchange_size, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fchange = serialize_fchange(pcb->params);
+			memcpy(buffer + offset, buffer_fchange, fchange_size);
+			offset += fchange_size;
+			free(buffer_fchange);
+			break;
+		case FWRITE:
+		case FREAD:
+			int fmodify_size = serialized_fmodify_size(pcb->params);
+			memcpy(buffer + offset, &fmodify_size, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fmodify = serialize_fmodify(pcb->params);
+			memcpy(buffer + offset, buffer_fmodify, fmodify_size);
+			offset += fmodify_size;
+			free(buffer_fmodify);
+			break;
 		case WAIT:
 		case SIGNAL:
+		case FCLOSE:
 			int param_size = strlen(pcb->params) + 1;
 			memcpy(buffer + offset, &param_size, sizeof(int));
 			offset += sizeof(int);
@@ -171,8 +213,41 @@ t_pcb* deserialize_pcb(void* buffer) {
 		case NORMAL:
 			pcb->params = NULL;
 			break;
+		case FOPEN:
+			int fopen_size;
+			memcpy(&fopen_size, buffer + offset, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fopen = malloc(fopen_size);
+			memcpy(buffer_fopen, buffer + offset, fopen_size);
+			pcb->params = deserialize_fopen(buffer_fopen);
+			free(buffer_fopen);
+			offset += fopen_size;
+			break;
+		case FTRUNCATE:
+		case FSEEK:
+			int fchange_size;
+			memcpy(&fchange_size, buffer + offset, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fchange = malloc(fchange_size);
+			memcpy(buffer_fchange, buffer + offset, fchange_size);
+			pcb->params = deserialize_fchange(buffer_fchange);
+			free(buffer_fchange);
+			offset += fchange_size;
+			break;
+		case FWRITE:
+		case FREAD:
+			int fmodify_size;
+			memcpy(&fmodify_size, buffer + offset, sizeof(int));
+			offset += sizeof(int);
+			void* buffer_fmodify = malloc(fmodify_size);
+			memcpy(buffer_fmodify, buffer + offset, fmodify_size);
+			pcb->params = deserialize_fmodify(buffer_fmodify);
+			free(buffer_fmodify);
+			offset += fmodify_size;
+			break;
 		case WAIT:
 		case SIGNAL:
+		case FCLOSE:
 			int params_size;
 			memcpy(&params_size, buffer + offset, sizeof(int));
 			offset += sizeof(int);
@@ -236,8 +311,28 @@ t_pcb* deserialize_pcb(void* buffer) {
 void destroy_params(t_pcb* pcb) {
 	switch (pcb->instruccion)
 	{
+	case FOPEN:
+		t_fopen* fopen_params = (t_fopen*) pcb->params;
+		free(fopen_params->file_name);
+		free(fopen_params->open_mode);
+		free(pcb->params);
+		break;
+	case FSEEK:
+	case FTRUNCATE:
+		t_fchange* fchange_params = (t_fchange*) pcb->params;
+		free(fchange_params->file_name);
+		free(pcb->params);
+		break;
+	case FREAD:
+	case FWRITE:
+		t_fmodify* fmodify_params = (t_fmodify*) pcb->params;
+		free(fmodify_params->file_name);
+		free(fmodify_params->page);
+		free(pcb->params);
+		break;
 	case WAIT:
 	case SIGNAL:
+	case FCLOSE:
 		free(pcb->params);
 		break;
 	}
@@ -245,7 +340,11 @@ void destroy_params(t_pcb* pcb) {
 
 void destroy_pcb(t_pcb* pcb) {
 	destroy_params(pcb);
-	list_destroy(pcb->open_files);
+	void* _remove_openf_in_list(t_openf* openf) {
+		free(openf->file);
+		free(openf);
+    };
+	list_destroy_and_destroy_elements(pcb->open_files, _remove_openf_in_list);
 	free(pcb->nom_arch_inst);
 	free(pcb);
 }

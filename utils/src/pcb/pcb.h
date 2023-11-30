@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <package/package.h>
+#include "fs.h"
 #include <commons/collections/list.h>
 
 typedef struct {
@@ -31,8 +32,13 @@ enum INSTRUCCION {
     SLEEP = 4,
     INTERRUPTED = 5,
     INTERRUPT_FINISH = 6,
-    FS = 7,
-    PAGE_FAULT = 8
+    PAGE_FAULT = 8,
+    FOPEN = 7,
+    FCLOSE = 9,
+    FSEEK = 10,
+    FREAD = 11,
+    FWRITE = 12,
+    FTRUNCATE = 13
 };
 
 enum END_STATE {

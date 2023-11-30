@@ -18,6 +18,8 @@ context (page) {
             should_int(deserialized_page->page_number) be equal to (2);
             should_int(deserialized_page->pid) be equal to (3);
             free(page);
+            free(deserialized_page);
+            free(serialized_page);
         } end
     } end
 }

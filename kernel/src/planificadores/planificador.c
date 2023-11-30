@@ -8,6 +8,7 @@ t_pcb* estado_EXEC = NULL;
 
 t_list* lista_estado_SLEEP;
 t_list* lista_estado_INTERRUPT;
+t_dictionary* open_files_global_table; 
 
 pthread_mutex_t cola_ready;
 pthread_mutex_t cola_exit;
@@ -38,6 +39,7 @@ void iniciar_estructuras_planificadores(t_utils* config_kernel){
 	lista_estado_SLEEP = list_create();
 	lista_estado_INTERRUPT = list_create();
 	colas_BLOCKED = dictionary_create();
+	open_files_global_table = dictionary_create();
     algoritmo = config_get_string_value(config_kernel->config, "ALGORITMO_PLANIFICACION");
 	char** resources = config_get_array_value(config_kernel->config,"RECURSOS");
 	char** resources_instances = config_get_array_value(config_kernel->config,"INSTANCIAS_RECURSOS");

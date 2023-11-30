@@ -11,6 +11,27 @@ void execute_process(t_planificador* info) {
             t_pcb* pcb = receive_pcb(info->conn->cpu_dispatcher_socket, info->utils->logger);
             switch (pcb->instruccion)
             {
+                case FSEEK:
+                    destroy_executing_process();
+                    t_fchange* fseek_params = (t_fchange*) pcb->params;
+                    int _file_by_name_in_list(t_openf *openf) {
+                        return openf->file == fseek_params->file_name;
+                    };
+                    t_openf * openf = list_find(pcb->open_files, _file_by_name_in_list);
+                    openf->file = fseek_params->value;
+                    modify_executing_process(pcb);
+                    sem_post(&executing_process);
+                    break;
+                case FCLOSE:
+                    break;
+                case FTRUNCATE:
+                    break;
+                case FREAD:
+                    break;
+                case FWRITE:
+                    break;
+                case FOPEN:
+                    break;
                 case INTERRUPTED:
                 case SLEEP:
                     destroy_executing_process();

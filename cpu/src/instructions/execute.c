@@ -90,17 +90,73 @@ int execute(t_pcb* pcb, t_conn* conn, int memory_socket, t_reg* registers, t_ins
         log_info(logger, "PID: %d - Acción: ESCRIBIR - Dirección Física: [%d, %d] - Valor: %d", pcb->pid, page->page_number, page->displacement, *register_value);
         free(ins.original_address);
     } else if (strcmp(ins.instruction, "F_OPEN")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        char* open_mode = list_get(ins.params, 1);
+        t_fopen* fopen = malloc(sizeof(*fopen));
+        fopen->file_name = string_duplicate(file_name);
+        fopen->open_mode = string_duplicate(open_mode);
+        log_info(logger, "PID: %d - Ejecutando: F_OPEN - %s, %s", pcb->pid, file_name, open_mode);
+        pcb->instruccion = FOPEN;
+        pcb->params = fopen;
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "F_CLOSE")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        log_info(logger, "PID: %d - Ejecutando: F_CLOSE - %s", pcb->pid, file_name);
+        pcb->instruccion = FCLOSE;
+        pcb->params = string_duplicate(file_name);
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "F_SEEK")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        char* position = list_get(ins.params, 1);
+        t_fchange* fchange = malloc(sizeof(*fchange));
+        fchange->file_name = string_duplicate(file_name);
+        fchange->value = atoi(position);
+        log_info(logger, "PID: %d - Ejecutando: F_SEEK - %s, %s", pcb->pid, file_name, position);
+        pcb->instruccion = FSEEK;
+        pcb->params = fchange;
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "F_READ")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        t_pag* page = list_get(ins.params, 1);
+        t_fmodify* fmodify = malloc(sizeof(*fmodify));
+        fmodify->file_name = string_duplicate(file_name);
+        fmodify->page = page_new(page->pid, page->page_number, page->displacement);
+        log_info(logger, "PID: %d - Ejecutando: F_READ - %s, %s", pcb->pid, file_name, ins.original_address);
+        pcb->instruccion = FREAD;
+        pcb->params = fmodify;
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "F_WRITE")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        t_pag* page = list_get(ins.params, 1);
+        t_fmodify* fmodify = malloc(sizeof(*fmodify));
+        fmodify->file_name = string_duplicate(file_name);
+        fmodify->page = page_new(page->pid, page->page_number, page->displacement);
+        log_info(logger, "PID: %d - Ejecutando: F_WRITE - %s, %s", pcb->pid, file_name, ins.original_address);
+        pcb->instruccion = FWRITE;
+        pcb->params = fmodify;
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "F_TRUNCATE")==0) {
-        pcb->instruccion = NORMAL;
+        char* file_name = list_get(ins.params, 0);
+        char* size = list_get(ins.params, 1);
+        t_fchange* fchange = malloc(sizeof(*fchange));
+        fchange->file_name = string_duplicate(file_name);
+        fchange->value = atoi(size);
+        log_info(logger, "PID: %d - Ejecutando: F_TRUNCATE - %s, %s", pcb->pid, file_name, size);
+        pcb->instruccion = FTRUNCATE;
+        pcb->params = fchange;
+        pcb->programCounter++;
+        destroy_instruction(ins);
+        return RETURN_CONTEXT;
     } else if (strcmp(ins.instruction, "EXIT")==0) {
         log_info(logger, "PID: %d - Ejecutando: EXIT", pcb->pid);
         pcb->instruccion = FINISH;

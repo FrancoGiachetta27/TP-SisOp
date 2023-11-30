@@ -37,6 +37,7 @@ pthread_mutex_t cola_ready;
 pthread_mutex_t mtx_execute_process;
 pthread_mutex_t cola_sleep;
 pthread_mutex_t cola_interrupt;
+t_dictionary* open_files_global_table; 
 char* algoritmo;
 bool working;
 int actual_grd_mult;
