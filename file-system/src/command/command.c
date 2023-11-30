@@ -34,8 +34,8 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case F_OPEN:
 			file_name = receive_buffer(thread_info->port, thread_info->logger);
-			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", file_name);
 			int file_size = open_file(thread_info->logger, file_name);
+			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			log_info(thread_info->logger, "Se envio el file size %d a Kernel", file_size);
 			send_package(package, thread_info->port, thread_info->logger);
@@ -44,8 +44,8 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case F_CREATE:
 			file_name = receive_buffer(thread_info->port, thread_info->logger);
-			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", file_name);
 			int ok = create_file(thread_info->logger, file_name);
+			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", file_name);
 			package = create_string_package(F_CREATE, "OK");
 			log_info(thread_info->logger, "Se envio el OK a Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
@@ -55,8 +55,8 @@ void *wait_for_commands(t_thread *thread_info)
 		case F_TRUNCATE:
 			file_name = "Damian"; // Receive buffer
 			file_size = 100;	  // Receive buffer
-			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
 			truncate_file(thread_info->logger, file_name, file_size);
+			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
 			package = create_string_package(F_TRUNCATE, "OK");
 			log_info(thread_info->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
@@ -67,8 +67,8 @@ void *wait_for_commands(t_thread *thread_info)
 		// Recibo cantidad de bloques (int) - reservo - devuelvo lista?
 		case GET_SWAP_BLOCKS:
 			int *block_count = (int *)receive_buffer(thread_info->port, thread_info->logger);
-			log_debug(thread_info->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", *block_count);
 			t_list *blocks_reserved = reserve_swap_blocks(*block_count);
+			log_debug(thread_info->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", *block_count);
 			// Enviar paquete array
 			send_list(GET_SWAP_BLOCKS, blocks_reserved, thread_info->port, thread_info->logger);
 			free(block_count);
@@ -77,8 +77,8 @@ void *wait_for_commands(t_thread *thread_info)
 		// Recibo bloque a leer (int) - leo data - devuelvo solo el void * con la informacion?
 		case GET_FROM_SWAP:
 			block = (int *)receive_buffer(thread_info->port, thread_info->logger);
-			log_info(thread_info->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", *block);
 			void *data = read_from_swap_block(*block);
+			log_info(thread_info->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", *block);
 			// Ver como enviar un void *
 			package = create_void_package(GET_FROM_SWAP, fs_config.block_size, data);
 			send_package(package, thread_info->port, thread_info->logger);
@@ -88,8 +88,8 @@ void *wait_for_commands(t_thread *thread_info)
 		// Recibo t_pag_swap - devuelvo un ok?
 		case UPDATE_SWAP:
 			page_swap = receive_page_for_swap(thread_info->port, thread_info->logger);
-			log_info(thread_info->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", page_swap->swap_block);
 			write_to_swap_block(page_swap->swap_block, page_swap->page_content);
+			log_info(thread_info->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", page_swap->swap_block);
 			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
 			package = create_integer_package(UPDATE_SWAP, 0);
 			send_package(package, thread_info->port, thread_info->logger);
@@ -97,6 +97,11 @@ void *wait_for_commands(t_thread *thread_info)
 
 		// Recibo una lista o que de bloques a liberar - libero - devuelvo ok?
 		case FREE_PAGES:
+			t_list *free_blocks = receive_list(thread_info->port, thread_info->logger);
+			free_swap_blocks(free_blocks);
+			log_info(thread_info->logger, "Libero %d bloques de SWAP", list_size(free_blocks));
+			package = create_integer_package(FREE_PAGES, 0);
+			send_package(package, thread_info->port, thread_info->logger);
 			break;
 
 		default:

@@ -5,9 +5,10 @@
 #include <config/config.h>
 #include "initial_configuration/fs_config.h"
 
-void create_fcb_file(char* fileName);
+void create_fcb_file(char *fileName);
 void print_fcb_list();
 t_fcb *find_fcb_file(char *file_name);
 void update_fcb(t_fcb *fcb);
+void load_FCBs_from_directory(char *directory_path);
 
 #endif

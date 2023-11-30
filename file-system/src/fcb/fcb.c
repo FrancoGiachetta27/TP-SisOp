@@ -11,15 +11,11 @@
 #include <commons/string.h>
 #include <commons/memory.h>
 #include "initial_configuration/fs_config.h"
+#include <dirent.h>
 
 extern t_utils *utils;
 extern t_fs_config fs_config;
 extern t_list *fcbs;
-
-/*
-    TODO:
-        - Cargar FCBs si existen
-*/
 
 void create_fcb_file(char *file_name)
 {
@@ -134,3 +130,37 @@ void print_fcb_list()
 }
 
 // TODO: Levantar lista FCBs si existen
+void load_FCBs_from_directory(char *directory_path)
+{
+    log_debug(utils->logger, "Path %s", directory_path);
+
+    DIR *dir = opendir(directory_path);
+
+    if (dir != NULL)
+    {
+        struct dirent *entry;
+
+        while ((entry = readdir(dir)) != NULL)
+        {
+            if (string_contains(entry->d_name, ".fcb"))
+            {
+                log_debug(utils->logger, "Archivo: %s", entry->d_name);
+                t_fcb *exist_fcb = malloc(sizeof(t_fcb));
+                t_config *fcb_config = create_config(string_from_format("%s/%s", directory_path, entry->d_name), utils->logger);
+
+                exist_fcb->file_size = config_get_int_value(fcb_config, "TAMANIO_ARCHIVO");
+                exist_fcb->initial_block = config_get_int_value(fcb_config, "BLOQUE_INICIAL");
+                char *file_name = config_get_string_value(fcb_config, "NOMBRE_ARCHIVO");
+                exist_fcb->file_name = malloc(strlen(file_name));
+                strcpy(exist_fcb->file_name, file_name);
+                list_add(fcbs, exist_fcb);
+                config_destroy(fcb_config);
+            }
+            // exist_fcb->file_size =
+        }
+
+        closedir(dir);
+    }
+
+    log_debug(utils->logger, "Se inicio la lista con %d", list_size(fcbs));
+}

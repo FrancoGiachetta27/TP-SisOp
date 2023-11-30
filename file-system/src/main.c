@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	init_fs_config(utils->config, &fs_config);
 
 	fcbs = list_create();
+	load_FCBs_from_directory("./fcbs/");
 	init_fs_struct();
 
 	int memory_socket = connect_to_memory(utils);
