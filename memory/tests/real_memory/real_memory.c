@@ -13,10 +13,10 @@ context (real_memory) {
     t_config* config = config_create("./config/memory.config");
     
     describe("Testing Real Memory") {
-
         before {
             init_memory_config(config);
             init_real_memory();
+            active_processes = list_create();
             create_process(logger, crear_pcb(1, "1", 1, 1), 0);
         }end
 
@@ -25,8 +25,9 @@ context (real_memory) {
         }end
 
         it("Testing real memory reading and writing") {
-            write_on_frame(1, 500, logger, 123);
-            should_int((int) read_frame(1, 500, logger)) be equal to(123);
+            uint32_t data = 123;
+            write_on_frame(500, sizeof(uint32_t), &data);
+            should_int(*(uint32_t*) read_frame(500, sizeof(uint32_t))) be equal to(data);
         }end
     }end
 }

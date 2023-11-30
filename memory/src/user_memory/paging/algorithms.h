@@ -1,19 +1,18 @@
 #ifndef SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 #define SRC_USER_MEMORY_PAGING_ALGORITHMS_H
 
+#include <user_memory/paging/pages.h>
 #include <initial_configuration/memory_config.h>
-#include <commons/log.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
-#include <commons/collections/dictionary.h>
 #include <semaphore.h>
-#include <pthread.h>
 
 pthread_mutex_t mtx_select_page;
-sem_t sort_pages;
-extern t_list* pages_to_replace;
-int working;
+extern int working;
 
+void remove_from_victims(t_page_entry* victim);
 void sort_pages_by_fifo(void);
 void sort_pages_by_lru(void);
+void init_sorter_thread(void); 
 
 #endif /* SRC_USER_MEMORY_PAGING_ALGORITHMS_H */

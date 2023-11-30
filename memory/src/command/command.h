@@ -10,7 +10,8 @@
 #include <initial_configuration/server_start.h>
 #include <instruction_memory/process/process.h>
 #include <instruction_memory/instructions/instructions.h>
-#include <user_memory/paging/pages.h>
+#include <user_memory/real_memory.h>
+#include <command/opcodes.h>
 #include <initial_configuration/memory_config.h>
 #include <pcb/pcb.h>
 #include <page/page.h>
@@ -22,30 +23,6 @@ typedef struct {
     char* dict_key;
     t_conn* conn;
 } t_thread;
-
-enum KERNEL_CODE_OP {
-    CREATE_PROCESS = 2,
-    PROCESS_OK = 5,
-    LOAD_PAGE = 11,
-    END_PROCESS = 6,
-};
-
-enum CPU_CODE_OP {
-    FETCH_INSTRUCTION = 3,
-    PAGE_SIZE = 4,
-    PAGE_NUMBER = 8,
-    PAGE_FRAME = 9,
-    PAGE_FAULT_COMMAND = 10,
-    MOV_IN = 15,
-    MOV_OUT = 16,
-};
-
-enum FS_OP {
-    GET_SWAP_BLOCKS = 7,
-    GET_FROM_SWAP = 12, 
-    UPDATE_SWAP = 13,
-    FREE_PAGES = 14,
-};
 
 void wait_in_every_port(t_conn* conn, t_log* logger);
 void* wait_for_command(t_thread* thread_info);

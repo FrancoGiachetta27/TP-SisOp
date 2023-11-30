@@ -3,12 +3,6 @@
 
 #include <config/config.h>
 #include <commons/config.h>
-#include <commons/bitarray.h>
-#include <instruction_memory/process/process.h>
-#include <user_memory/paging/algorithms.h>
-#include <user_memory/paging/pages.h>
-#include <user_memory/real_memory.h>
-#include <semaphore.h>
 
 typedef struct {
     int memory_size;
@@ -19,8 +13,6 @@ typedef struct {
 } t_memory_cfg;
 
 void init_memory_config(t_config* config);
-void init_real_memory(void);
-void free_memory(void);
 
 extern t_memory_cfg memory_config;
 

@@ -17,6 +17,8 @@ context(pages) {
         before {
             init_memory_config(config);
             init_real_memory();
+            init_sorter_thread();
+            active_processes = list_create();
             create_process(logger, crear_pcb(1, "1", 256, 1), 0);
             create_process(logger, crear_pcb(2, "2", 160, 1), 0);
         }end
@@ -24,7 +26,7 @@ context(pages) {
         it("Testing sorting by fifo algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "FIFO")) {
                 int page_numbers[14] = { 0, 1, 7, 2, 3 };
-                t_page* page;
+                t_page_entry* page;
                 int i = 0;
 
                 reference_page(1,0,logger);
@@ -57,7 +59,7 @@ context(pages) {
         it("Testing sorting by lru algorithm (with one process)") {
             if(string_equals_ignore_case(memory_config.algorithm, "LRU")) {
                 int page_numbers[14] = { 7, 0, 2, 3, 1 };
-                t_page* page;
+                t_page_entry* page;
                 int i = 0;
 
                 reference_page(1,0,logger);
