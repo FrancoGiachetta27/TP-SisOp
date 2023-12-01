@@ -7,12 +7,20 @@
 #include <pcb/pcb.h>
 
 // extern t_utils *utils;
+sem_t wait;
 
 void *wait_for_commands(t_thread *thread_info)
 {
 	int op_code = receive_op_code(thread_info->port, thread_info->logger);
 	if (op_code == -1)
 	{
+		if (strcmp(thread_info->dict_key, "KRL") == 0) {
+            log_trace(thread_info->logger, "Se corta por caida en Kernel");
+			shutdown(thread_info->memory, SHUT_RDWR);
+            close(thread_info->memory);
+        }
+		free(thread_info);
+		sem_post(&wait);
 		return -1;
 	}
 	while (op_code)
@@ -111,21 +119,36 @@ void *wait_for_commands(t_thread *thread_info)
 			break;
 
 		default:
+		    if (strcmp(thread_info->dict_key, "KRL") == 0) {
+				log_trace(thread_info->logger, "Se corta por caida en Kernel");
+				shutdown(thread_info->memory, SHUT_RDWR);
+				close(thread_info->memory);
+        	}
 			log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
-			dictionary_remove(thread_info->dict, thread_info->dict_key);
 			free(thread_info);
+			sem_post(&wait);
 			return NULL;
 		}
 		op_code = receive_op_code(thread_info->port, thread_info->logger);
 		if (op_code == -1)
 		{
-			dictionary_remove(thread_info->dict, thread_info->dict_key);
+			if (strcmp(thread_info->dict_key, "KRL") == 0) {
+				log_trace(thread_info->logger, "Se corta por caida en Kernel");
+				shutdown(thread_info->memory, SHUT_RDWR);
+				close(thread_info->memory);
+        	}
 			free(thread_info);
+			sem_post(&wait);
 			return NULL;
 		};
 	}
-	dictionary_remove(thread_info->dict, thread_info->dict_key);
-	free(thread_info);
+	if (strcmp(thread_info->dict_key, "KRL") == 0) {
+        log_trace(thread_info->logger, "Se corta por caida en Kernel");
+		shutdown(thread_info->memory, SHUT_RDWR);
+        close(thread_info->memory);
+    }
+    free(thread_info);
+    sem_post(&wait);
 	return NULL;
 }
 
@@ -206,7 +229,7 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 // TODO: REVISAR
 void wait_in_every_port(int memory, int kernel, t_log *logger)
 {
-	t_dictionary *dict = dictionary_create();
+	sem_init(&wait, 0, 0);
 	for (int i = 0; i < 2; i++)
 	{
 		pthread_t thread_id;
@@ -214,7 +237,7 @@ void wait_in_every_port(int memory, int kernel, t_log *logger)
 		switch (i)
 		{
 		case 0:
-			thread_info->dict_key = "MEMORY";
+			thread_info->dict_key = "MRY";
 			log_trace(logger, "Iniciada thread de Memory");
 			thread_info->port = memory;
 			break;
@@ -222,17 +245,17 @@ void wait_in_every_port(int memory, int kernel, t_log *logger)
 			thread_info->dict_key = "KRL";
 			log_trace(logger, "Iniciada thread de Kernel");
 			thread_info->port = kernel;
+			thread_info->memory = memory;
 			break;
 		default:
 			break;
 		}
 		thread_info->logger = logger;
-		thread_info->dict = dict;
-		dictionary_put(dict, thread_info->dict_key, thread_info->dict_key);
 		pthread_create(&thread_id, NULL, (void *)wait_for_commands, thread_info);
 		pthread_detach(thread_id);
 	}
-	while (!dictionary_is_empty(dict))
-		;
-	dictionary_destroy(dict);
+    for (int i = 0; i < 2; i++)
+    {
+        sem_wait(&wait);
+    }
 }

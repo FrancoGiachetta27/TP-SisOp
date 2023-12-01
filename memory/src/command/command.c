@@ -3,14 +3,15 @@
 t_pcb *pcb_create;
 t_pag *received_page;
 t_page_entry *page;
+sem_t wait;
 
 void *wait_for_command(t_thread *thread_info)
 {
     int op_code = receive_op_code(thread_info->port, thread_info->logger);
     if (op_code == -1)
     {
-        dictionary_remove(thread_info->dict, thread_info->dict_key);
         free(thread_info);
+        sem_post(&wait);
         return NULL;
     };
     while (op_code)
@@ -103,27 +104,28 @@ void *wait_for_command(t_thread *thread_info)
                 break;
             default:
                 log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
-                dictionary_remove(thread_info->dict, thread_info->dict_key);
                 free(thread_info);
+                sem_post(&wait);
                 return NULL;
         }
         op_code = receive_op_code(thread_info->port, thread_info->logger);
         if (op_code == -1)
         {
-            dictionary_remove(thread_info->dict, thread_info->dict_key);
             free(thread_info);
+            sem_post(&wait);
             return NULL;
         };
     }
-    dictionary_remove(thread_info->dict, thread_info->dict_key);
     destroy_page_entry(page);
+    free(thread_info->dict_key);
     free(thread_info);
+    sem_post(&wait);
     return NULL;
 }
 
 void wait_in_every_port(t_conn *conn, t_log *logger)
 {
-    t_dictionary *dict = dictionary_create();
+    sem_init(&wait, 0, 0);
     for (int i = 0; i < MODULOS_A_CONECTAR; i++)
     {
         pthread_t thread_id;
@@ -131,31 +133,30 @@ void wait_in_every_port(t_conn *conn, t_log *logger)
         switch (i)
         {
         case 0:
-            thread_info->dict_key = "FS";
             log_trace(logger, "Iniciada thread de FileSystem");
             thread_info->port = conn->socket_filesystem;
+            thread_info->dict_key = "FS";
             break;
         case 1:
-            thread_info->dict_key = "KRL";
             log_trace(logger, "Iniciada thread de Kernel");
             thread_info->port = conn->socket_kernel;
+            thread_info->dict_key = "KRL";
             break;
         case 2:
-            thread_info->dict_key = "CPU";
             log_trace(logger, "Iniciada thread de CPU");
             thread_info->port = conn->socket_cpu;
+            thread_info->dict_key = "CPU";
             break;
         default:
             break;
         }
         thread_info->logger = logger;
-        thread_info->dict = dict;
         thread_info->conn = conn;
-        dictionary_put(dict, thread_info->dict_key, thread_info->dict_key);
         pthread_create(&thread_id, NULL, (void *)wait_for_command, thread_info);
         pthread_detach(thread_id);
     }
-    while (!dictionary_is_empty(dict))
-        ;
-    dictionary_destroy(dict);
+    for (int i = 0; i < MODULOS_A_CONECTAR; i++)
+    {
+        sem_wait(&wait);
+    }
 }

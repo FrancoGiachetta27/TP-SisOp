@@ -27,7 +27,7 @@ void add_read_lock(t_open_file* file, t_pcb* pcb) {
 
 t_openf* find_seek(t_pcb* pcb, char* file_name) {
     bool _file_by_name_in_list(t_openf *openf) {
-        return openf->file == file_name;
+        return strcmp(openf->file, file_name) == 0;
     };
     return list_find(pcb->open_files, _file_by_name_in_list);
 }

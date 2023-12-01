@@ -3,6 +3,7 @@
 
 #include <package/package.h>
 #include <config/config.h>
+#include <semaphore.h>
 
 // F_OPEN,
 // F_CREATE,
@@ -26,11 +27,11 @@ enum MEMORY_CODE_OP
 
 typedef struct
 {
-    t_dictionary *dict;
     t_log *logger;
     int port;
     char *dict_key;
     int socket;
+    int memory;
 } t_thread;
 
 void *wait_for_commands(t_thread *);

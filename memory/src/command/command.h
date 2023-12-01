@@ -17,7 +17,6 @@
 #include <page/page.h>
 
 typedef struct {
-    t_dictionary* dict;
     t_log* logger;
     int port;
     char* dict_key;
