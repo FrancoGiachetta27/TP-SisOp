@@ -1,1 +1,265 @@
 #include "file_system.h"
+
+t_lock* create_lock(t_pcb* pcb, bool is_write_lock) {
+    t_lock* lock = malloc(sizeof(lock));
+    lock->participants = list_create();
+    list_add(lock->participants, pcb->pid);
+    lock->is_write_lock = is_write_lock;
+    return lock;
+}
+
+void add_read_lock(t_open_file* file, t_pcb* pcb) {
+    bool _is_read_lock(t_lock* lock) {
+        return lock->is_write_lock == false;
+    };
+    t_lock* read_lock = list_find(file->locks, _is_read_lock);
+    if (read_lock == NULL) {
+        read_lock = create_lock(pcb, false);
+        pthread_mutex_lock(&open_files_global_table_mutex);
+        list_add(file->locks, read_lock);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+    } else {
+        pthread_mutex_lock(&open_files_global_table_mutex);
+        list_add(read_lock->participants, pcb->pid);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+    }
+}
+
+void f_seek(t_pcb* pcb) {
+    destroy_executing_process();
+    t_fchange* fseek_params = (t_fchange*) pcb->params;
+    bool _file_by_name_in_list(t_openf *openf) {
+        return openf->file == fseek_params->file_name;
+    };
+    t_openf * openf = list_find(pcb->open_files, _file_by_name_in_list);
+    openf->file = fseek_params->value;
+    modify_executing_process(pcb);
+    sem_post(&executing_process);
+}
+
+void* treat_wait_for_read_lock(t_wait_for_read_lock* interrupted_info) {
+    interrupted_info->open_file->quantity_blocked++;
+    sem_wait(&interrupted_info->open_file->write_locked);
+    add_read_lock(interrupted_info->open_file, interrupted_info->pcb);
+    sem_wait(&grd_mult);
+    log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
+    agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
+    free(interrupted_info);
+}
+
+void* treat_wait_for_write_lock(t_wait_for_write_lock* interrupted_info) {
+    sem_wait(&interrupted_info->lock->locked);
+    sem_wait(&grd_mult);
+    log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
+    agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
+    free(interrupted_info);
+}
+
+void f_open(t_pcb* pcb, int fs_socket, t_log* logger) {
+    destroy_executing_process();
+    t_fopen* open_data = pcb->params;
+    t_open_file* file;
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    if (dictionary_has_key(open_files_global_table, open_data->file_name)) {
+        file = dictionary_get(open_files_global_table, open_data->file_name);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        send_pcb(F_OPEN_COMMAND, pcb, fs_socket, logger);
+        int op_code = receive_op_code(fs_socket, logger);
+        if (op_code != F_OPEN_COMMAND) {
+            log_warning("Invalid OP_CODE in F_OPEN: %d", op_code);
+        }
+        int* file_size = (int*) receive_buffer(fs_socket, logger);
+        if (*file_size == -1) {
+            log_warning("Invalid response in F_OPEN: %d", *file_size);
+        }
+        free(file_size);
+    } else {
+        file = malloc(sizeof(*file));
+        file->locks = list_create();
+        file->quantity_blocked = 0;
+        sem_init(&file->write_locked, 0, 0);
+        dictionary_put(open_files_global_table, open_data->file_name, file);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        send_pcb(F_CREATE_COMMAND, pcb, fs_socket, logger);
+        int op_code = receive_op_code(fs_socket, logger);
+        if (op_code != F_CREATE_COMMAND) {
+            log_warning("Invalid OP_CODE in F_CREATE: %d", op_code);
+        }
+        int* ok = (int*) receive_buffer(fs_socket, logger);
+        if (*ok != 0) {
+            log_warning("Invalid response in F_CREATE: %d", *ok);
+        }
+        free(ok);
+    }
+
+
+
+    if (strcmp(open_data->open_mode, "R") == 0) {
+        if (file->locks->elements_count != 0 && ((t_lock*) list_get(file->locks,0))->is_write_lock == true) {
+            pcb->estado = BLOCKED;
+            log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+            pthread_t wait_process_for_start_lock;
+            t_wait_for_read_lock* interrupted_info = malloc(sizeof(*interrupted_info));
+            interrupted_info->pcb = pcb;
+            interrupted_info->logger = logger;
+            interrupted_info->open_file = file;
+            pthread_create(&wait_process_for_start_lock, NULL, (void*)treat_wait_for_read_lock, interrupted_info);
+            pthread_detach(wait_process_for_start_lock);
+            sem_post(&proceso_en_cola_ready);
+        } else {
+            add_read_lock(file, pcb);
+            modify_executing_process(pcb);
+            sem_post(&executing_process);
+        }
+    } else if (strcmp(open_data->open_mode, "W") == 0) {
+        t_lock* lock = create_lock(pcb, true);
+        if (file->locks->elements_count != 0) {
+            lock->is_blocked = true;
+            sem_init(&lock->locked, 0, 0);
+            pcb->estado = BLOCKED;
+            log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+            pthread_t wait_process_for_start_lock;
+            t_wait_for_write_lock* interrupted_info = malloc(sizeof(*interrupted_info));
+            interrupted_info->pcb = pcb;
+            interrupted_info->logger = logger;
+            interrupted_info->lock = lock;
+            pthread_create(&wait_process_for_start_lock, NULL, (void*)treat_wait_for_write_lock, interrupted_info);
+            pthread_detach(wait_process_for_start_lock);
+            sem_post(&proceso_en_cola_ready);
+        } else {
+            lock->is_blocked = false;
+            pthread_mutex_lock(&open_files_global_table_mutex);
+            list_add(file->locks, lock);
+            pthread_mutex_unlock(&open_files_global_table_mutex);
+            modify_executing_process(pcb);
+            sem_post(&executing_process);
+        }
+    } else {
+        log_error("Llego cualquier open_mode %s", open_data->open_mode);
+    }
+}
+
+
+void f_close(t_pcb* pcb, int fs_socket, t_log* logger) {
+    destroy_executing_process();
+    char* file_name = pcb->params;
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    t_open_file* file = dictionary_get(open_files_global_table, file_name);
+    t_lock* lock = list_get(file->locks, 0);
+    pthread_mutex_unlock(&open_files_global_table_mutex);
+
+    if (lock->is_write_lock) {
+        for (int i = 0; i < file->quantity_blocked; i++)
+        {
+            sem_post(&file->write_locked);
+        }
+        pthread_mutex_lock(&open_files_global_table_mutex);
+        list_remove(file->locks, 0);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        if (lock->is_blocked) {
+            sem_destroy(&lock->locked);
+        }
+        free(lock);
+    } else {
+        int _pid_in_list(uint32_t pid) {
+            return pid == pcb->pid;
+        };
+        list_remove_by_condition(lock->participants, _pid_in_list);
+        if (lock->participants->elements_count == 0) {
+            pthread_mutex_lock(&open_files_global_table_mutex);
+            list_remove(file->locks, 0);
+            pthread_mutex_unlock(&open_files_global_table_mutex);
+            list_destroy(lock->participants);
+            free(lock);
+        }
+    }
+    
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    if (file->locks->elements_count != 0) {
+        t_lock* lock = list_get(file->locks, 0);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        if (lock->is_write_lock && lock->is_blocked) {
+            sem_post(&lock->locked);
+        }
+    }
+    modify_executing_process(pcb);
+    sem_post(&executing_process);
+}
+
+void f_truncate(t_pcb* pcb, int fs_socket, t_log* logger) {
+    destroy_executing_process();
+    pcb->estado = BLOCKED;
+    log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+    pthread_t call_fs_thread;
+    t_fs_call* interrupted_info = malloc(sizeof(*interrupted_info));
+    interrupted_info->pcb = pcb;
+    interrupted_info->logger = logger;
+    interrupted_info->fs_socket = fs_socket;
+    interrupted_info->command = F_TRUNCATE_COMMAND;
+    pthread_create(&call_fs_thread, NULL, (void*)treat_fs_function, interrupted_info);
+    pthread_detach(call_fs_thread);
+    sem_post(&proceso_en_cola_ready);
+}
+
+void* treat_fs_function(t_fs_call* data) {
+    send_pcb(data->command, data->pcb, data->fs_socket, data->logger);
+    int op_code = receive_op_code(data->fs_socket, data->logger);
+    if (op_code != data->command) {
+        log_warning("Invalid OP_CODE in %d: %d", data->command, op_code);
+    }
+    int* ok = (int*) receive_buffer(data->fs_socket, data->logger);
+    if (*ok != 0) {
+        log_warning("Invalid response in %d: %d", data->command, *ok);
+    }
+    free(ok);
+    sem_wait(&grd_mult);
+    log_info(data->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", data->pcb->pid, BLOCKED, READY);
+    agregar_pcb_a_cola_READY(data->pcb, data->logger);
+    free(data);
+}
+
+void f_read(t_pcb* pcb, int fs_socket, t_log* logger) {
+    destroy_executing_process();
+    pcb->estado = BLOCKED;
+    log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+    pthread_t call_fs_thread;
+    t_fs_call* interrupted_info = malloc(sizeof(*interrupted_info));
+    interrupted_info->pcb = pcb;
+    interrupted_info->logger = logger;
+    interrupted_info->fs_socket = fs_socket;
+    interrupted_info->command = F_READ_COMMAND;
+    pthread_create(&call_fs_thread, NULL, (void*)treat_fs_function, interrupted_info);
+    pthread_detach(call_fs_thread);
+    sem_post(&proceso_en_cola_ready);
+}
+
+void f_write(t_pcb* pcb, int fs_socket, t_log* logger) {
+    destroy_executing_process();
+    bool _is_read_lock(t_lock* lock) {
+        return lock->is_write_lock == false;
+    };
+    t_fmodify* modify_data = (t_fmodify*) pcb->params;
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    t_open_file* file = dictionary_get(open_files_global_table, modify_data->file_name);
+    pthread_mutex_unlock(&open_files_global_table_mutex);
+    t_lock* read_lock = list_find(file->locks, _is_read_lock);
+    bool _same_pid(uint32_t pid) {
+        return pcb->pid == pid;
+    };
+    bool is_read_lock = list_any_satisfy(read_lock->participants, _same_pid);
+    if (is_read_lock) {
+        send_to_exit(pcb, logger, INVALID_WRITE);
+    } else {
+        pcb->estado = BLOCKED;
+        log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
+        pthread_t call_fs_thread;
+        t_fs_call* interrupted_info = malloc(sizeof(*interrupted_info));
+        interrupted_info->pcb = pcb;
+        interrupted_info->logger = logger;
+        interrupted_info->fs_socket = fs_socket;
+        interrupted_info->command = F_WRITE_COMMAND;
+        pthread_create(&call_fs_thread, NULL, (void*)treat_fs_function, interrupted_info);
+        pthread_detach(call_fs_thread);
+        sem_post(&proceso_en_cola_ready);
+    }
+}

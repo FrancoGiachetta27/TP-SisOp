@@ -16,6 +16,7 @@ pthread_mutex_t cola_sleep;
 pthread_mutex_t cola_interrupt;
 pthread_mutex_t cola_new;
 pthread_mutex_t mtx_execute_process;
+pthread_mutex_t open_files_global_table_mutex;
 
 sem_t grd_mult;
 sem_t proceso_en_cola_ready;
@@ -90,6 +91,13 @@ void terminar_estructuras_planificadores() {
 	sem_destroy(&process_in_exit);
 	sem_destroy(&finish_interrupted_process);
 	sem_destroy(&process_in_new);
+
+	void* _remove_open_file(t_open_file* file) {
+		sem_destroy(&file->write_locked);
+    	list_destroy(file->locks);
+		free(file);
+    };
+	dictionary_destroy_and_destroy_elements(open_files_global_table, _remove_open_file);
 }
 
 void destroy_executing_process() {

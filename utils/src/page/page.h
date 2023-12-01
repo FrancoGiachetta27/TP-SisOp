@@ -39,5 +39,8 @@ void destroy_page_for_mov_out(t_mov_out* page);
 t_pag *receive_page(int client_socket, t_log *logger);
 t_mov_out *receive_page_for_mov_out(int client_socket, t_log *logger);
 t_pag_swap* receive_page_for_swap(int client_socket, t_log* logger);
+int size_of_page(void);
+t_pag* deserialize_page(void* buffer);
+void* serialize_page(t_pag* page);
 
 #endif /* SRC_PAGE_PAGE_H_ */

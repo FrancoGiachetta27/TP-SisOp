@@ -1,6 +1,6 @@
 #include "page.h"
 
-static int size_of_page(void) {
+int size_of_page(void) {
 	return sizeof(uint32_t) + 2 * sizeof(int);
 }
 
@@ -64,7 +64,7 @@ static void* serialize_page_for_mov_out(t_mov_out* page) {
 	return buffer;
 }
 
-static void* serialize_page(t_pag* page) {
+void* serialize_page(t_pag* page) {
 	void* buffer = malloc(size_of_page());
 	int offset = 0;
 	memcpy(buffer + offset, &page->page_number, sizeof(int));
@@ -88,7 +88,7 @@ static void* serialize_page_for_swap(t_pag_swap* page) {
 	return buffer;
 }
 
-static t_pag* deserialize_page(void* buffer) {
+t_pag* deserialize_page(void* buffer) {
 	t_pag* page = malloc(sizeof(*page));
 	int offset = 0;
 	memcpy(&page->page_number, buffer + offset, sizeof(int));

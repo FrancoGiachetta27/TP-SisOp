@@ -12,6 +12,12 @@
 #include <pthread.h>
 
 typedef struct {
+    t_list* locks;
+    sem_t write_locked;
+    int quantity_blocked;
+} t_open_file;
+
+typedef struct {
     int instances;
     t_dictionary* pids;
     t_list* blocked_list;
@@ -31,6 +37,7 @@ sem_t executing_process;
 sem_t freed_resource;
 sem_t process_in_exit;
 sem_t process_in_new;
+pthread_mutex_t open_files_global_table_mutex;
 pthread_mutex_t cola_exit;
 pthread_mutex_t cola_new;
 pthread_mutex_t cola_ready;

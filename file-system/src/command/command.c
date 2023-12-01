@@ -4,6 +4,7 @@
 #include <fs-struct/fat-bloque.h>
 #include "initial_configuration/fs_config.h"
 #include "page/page.h"
+#include <pcb/pcb.h>
 
 // extern t_utils *utils;
 
@@ -21,6 +22,9 @@ void *wait_for_commands(t_thread *thread_info)
 		int *block;
 		t_pag_swap *page_swap;
 		t_package *package;
+		t_pcb* pcb;
+		t_fopen* open_data;
+		t_fchange* change_data;
 
 		switch (op_code)
 		{
@@ -33,34 +37,36 @@ void *wait_for_commands(t_thread *thread_info)
 			break;
 
 		case F_OPEN:
-			file_name = receive_buffer(thread_info->port, thread_info->logger);
-			int file_size = open_file(thread_info->logger, file_name);
-			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", file_name);
+			pcb = receive_pcb(thread_info->port, thread_info->logger);
+			open_data = (t_fopen*) pcb->params;
+			int file_size = open_file(thread_info->logger, open_data->file_name);
+			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", open_data->file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			log_info(thread_info->logger, "Se envio el file size %d a Kernel", file_size);
 			send_package(package, thread_info->port, thread_info->logger);
-			free(file_name);
+			destroy_pcb(pcb);
 			break;
 
 		case F_CREATE:
-			file_name = receive_buffer(thread_info->port, thread_info->logger);
-			int ok = create_file(thread_info->logger, file_name);
-			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", file_name);
-			package = create_string_package(F_CREATE, "OK");
+			pcb = receive_pcb(thread_info->port, thread_info->logger);
+			open_data = (t_fopen*) pcb->params;
+			int ok = create_file(thread_info->logger, open_data->file_name);
+			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", open_data->file_name);
+			package = create_integer_package(F_CREATE, 0);
 			log_info(thread_info->logger, "Se envio el OK a Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
-			free(file_name);
+			destroy_pcb(pcb);
 			break;
 
-		case F_TRUNCATE:
-			file_name = "Damian"; // Receive buffer
-			file_size = 100;	  // Receive buffer
-			truncate_file(thread_info->logger, file_name, file_size);
-			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", file_name, file_size);
-			package = create_string_package(F_TRUNCATE, "OK");
+		case F_TRUNCATE: 
+			pcb = receive_pcb(thread_info->port, thread_info->logger);
+			change_data = (t_fchange*) pcb->params;
+			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
+			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
+			package = create_integer_package(F_TRUNCATE, 0);
 			log_info(thread_info->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
-			// free(file_name);
+			destroy_pcb(pcb);
 			break;
 
 		// SWAP
@@ -136,7 +142,7 @@ int open_file(t_log *logger, char *file_name)
 	}
 
 	log_info(logger, "Archivo %s no existe", file_name);
-	return 0;
+	return -1;
 }
 
 // Return OK

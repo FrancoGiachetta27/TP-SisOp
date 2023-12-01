@@ -7,6 +7,7 @@
 #include <package/package.h>
 #include "fs.h"
 #include <commons/collections/list.h>
+#include <page/page.h>
 
 typedef struct {
     uint32_t AX;

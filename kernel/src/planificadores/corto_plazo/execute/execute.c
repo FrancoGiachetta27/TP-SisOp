@@ -12,25 +12,22 @@ void execute_process(t_planificador* info) {
             switch (pcb->instruccion)
             {
                 case FSEEK:
-                    destroy_executing_process();
-                    t_fchange* fseek_params = (t_fchange*) pcb->params;
-                    int _file_by_name_in_list(t_openf *openf) {
-                        return openf->file == fseek_params->file_name;
-                    };
-                    t_openf * openf = list_find(pcb->open_files, _file_by_name_in_list);
-                    openf->file = fseek_params->value;
-                    modify_executing_process(pcb);
-                    sem_post(&executing_process);
+                    f_seek(pcb);
                     break;
                 case FCLOSE:
+                    f_close(pcb, info->conn->filesystem_socket, info->utils->logger);
                     break;
                 case FTRUNCATE:
+                    f_truncate(pcb, info->conn->filesystem_socket, info->utils->logger);
                     break;
                 case FREAD:
+                    f_read(pcb, info->conn->filesystem_socket, info->utils->logger);
                     break;
                 case FWRITE:
+                    f_write(pcb, info->conn->filesystem_socket, info->utils->logger);
                     break;
                 case FOPEN:
+                    f_open(pcb, info->conn->filesystem_socket, info->utils->logger);
                     break;
                 case INTERRUPTED:
                 case SLEEP:
