@@ -4,13 +4,6 @@
 #include <planificadores/planificador.h>
 
 typedef struct {
-    bool is_write_lock;
-    bool is_blocked;
-    sem_t locked;
-    t_list* participants;
-} t_lock;
-
-typedef struct {
     t_pcb* pcb;
     t_log* logger;
     t_open_file* open_file;

@@ -179,8 +179,62 @@ char* get_string_of_pids_in_list(t_list* list) {
 	return pids;
 }
 
+void close_lock(t_pcb* pcb, t_open_file* file, t_lock* lock) {
+    if (lock->is_write_lock) {
+        for (int i = 0; i < file->quantity_blocked; i++)
+        {
+            sem_post(&file->write_locked);
+        }
+        pthread_mutex_lock(&open_files_global_table_mutex);
+        list_remove(file->locks, 0);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        if (lock->is_blocked) {
+            sem_destroy(&lock->locked);
+        }
+        list_destroy(lock->participants);
+        free(lock);
+    } else {
+        int _pid_in_list(uint32_t pid) {
+            return pid == pcb->pid;
+        };
+        list_remove_by_condition(lock->participants, _pid_in_list);
+        if (lock->participants->elements_count == 0) {
+            pthread_mutex_lock(&open_files_global_table_mutex);
+            list_remove(file->locks, 0);
+            pthread_mutex_unlock(&open_files_global_table_mutex);
+            list_destroy(lock->participants);
+            free(lock);
+        }
+    }
+    
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    if (file->locks->elements_count != 0) {
+        t_lock* lock = list_get(file->locks, 0);
+        pthread_mutex_unlock(&open_files_global_table_mutex);
+        if (lock->is_write_lock && lock->is_blocked) {
+            sem_post(&lock->locked);
+        }
+    }
+    pthread_mutex_unlock(&open_files_global_table_mutex);
+}
+
 void eliminar_proceso(t_pcb* pcb, int socket, t_log* logger) {
     // Liberar instancias de archivos
+	void* _free_files(t_openf* file) {
+		pthread_mutex_lock(&open_files_global_table_mutex);
+		t_open_file* open_file = dictionary_get(open_files_global_table, file->file);
+		pthread_mutex_unlock(&open_files_global_table_mutex);
+
+		bool _find_lock(t_lock* lock) {
+			bool _contains_pid(uint32_t pid) {
+				return pid == pcb->pid;
+			}
+			return list_any_satisfy(lock->participants, _contains_pid);
+		}
+		t_lock* lock = list_find(open_file->locks, _find_lock);
+		close_lock(pcb, open_file, lock);
+    };
+	list_iterate(pcb->open_files, _free_files);
     // Llamar a memoria para liberar
 	send_pcb(FINISH_PROCESS, pcb, socket, logger);
 	void* _free_instances_in_block(char* _, t_block* block) {

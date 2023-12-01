@@ -158,41 +158,7 @@ void f_close(t_pcb* pcb, int fs_socket, t_log* logger) {
     t_lock* lock = list_get(file->locks, 0);
     pthread_mutex_unlock(&open_files_global_table_mutex);
     log_info(logger, "PID: % - Cerrar Archivo: %s", pcb->pid, file_name);
-
-    if (lock->is_write_lock) {
-        for (int i = 0; i < file->quantity_blocked; i++)
-        {
-            sem_post(&file->write_locked);
-        }
-        pthread_mutex_lock(&open_files_global_table_mutex);
-        list_remove(file->locks, 0);
-        pthread_mutex_unlock(&open_files_global_table_mutex);
-        if (lock->is_blocked) {
-            sem_destroy(&lock->locked);
-        }
-        free(lock);
-    } else {
-        int _pid_in_list(uint32_t pid) {
-            return pid == pcb->pid;
-        };
-        list_remove_by_condition(lock->participants, _pid_in_list);
-        if (lock->participants->elements_count == 0) {
-            pthread_mutex_lock(&open_files_global_table_mutex);
-            list_remove(file->locks, 0);
-            pthread_mutex_unlock(&open_files_global_table_mutex);
-            list_destroy(lock->participants);
-            free(lock);
-        }
-    }
-    
-    pthread_mutex_lock(&open_files_global_table_mutex);
-    if (file->locks->elements_count != 0) {
-        t_lock* lock = list_get(file->locks, 0);
-        pthread_mutex_unlock(&open_files_global_table_mutex);
-        if (lock->is_write_lock && lock->is_blocked) {
-            sem_post(&lock->locked);
-        }
-    }
+    close_lock(pcb, file, lock);
     modify_executing_process(pcb);
     sem_post(&executing_process);
 }

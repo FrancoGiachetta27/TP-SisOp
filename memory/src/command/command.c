@@ -47,6 +47,13 @@ void *wait_for_command(t_thread *thread_info)
                 send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
                 destroy_page(received_page);
                 break;
+            case FREE_PAGES:
+                int* ok = receive_buffer(thread_info->port, thread_info->logger);
+                if (*ok != 0) {
+                    log_warning(thread_info->logger, "Error mientras se liberaban paginas, %d", *ok);
+                }
+                free(ok);
+                break;
             case PAGE_NUMBER:
                 received_page = receive_page(thread_info->port, thread_info->logger);
                 page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
@@ -94,9 +101,6 @@ void *wait_for_command(t_thread *thread_info)
                 );
                 destroy_pcb(pcb_create);
                 break;
-            case FREE_PAGES:
-                if(!receive_buffer(thread_info->port, thread_info->logger))
-                    log_warning(thread_info->logger, "Error al librear las paginas del proceso %d", pcb_create->pid);
             default:
                 log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
                 dictionary_remove(thread_info->dict, thread_info->dict_key);
