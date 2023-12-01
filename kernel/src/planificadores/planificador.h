@@ -15,6 +15,7 @@ typedef struct {
     t_list* locks;
     sem_t write_locked;
     int quantity_blocked;
+    int size;
 } t_open_file;
 
 typedef struct {

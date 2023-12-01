@@ -12,7 +12,7 @@ void execute_process(t_planificador* info) {
             switch (pcb->instruccion)
             {
                 case FSEEK:
-                    f_seek(pcb);
+                    f_seek(pcb, info->utils->logger);
                     break;
                 case FCLOSE:
                     f_close(pcb, info->conn->filesystem_socket, info->utils->logger);

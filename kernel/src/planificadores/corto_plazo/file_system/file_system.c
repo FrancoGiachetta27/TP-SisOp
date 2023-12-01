@@ -25,14 +25,19 @@ void add_read_lock(t_open_file* file, t_pcb* pcb) {
     }
 }
 
-void f_seek(t_pcb* pcb) {
+t_openf* find_seek(t_pcb* pcb, char* file_name) {
+    bool _file_by_name_in_list(t_openf *openf) {
+        return openf->file == file_name;
+    };
+    return list_find(pcb->open_files, _file_by_name_in_list);
+}
+
+void f_seek(t_pcb* pcb, t_log* logger) {
     destroy_executing_process();
     t_fchange* fseek_params = (t_fchange*) pcb->params;
-    bool _file_by_name_in_list(t_openf *openf) {
-        return openf->file == fseek_params->file_name;
-    };
-    t_openf * openf = list_find(pcb->open_files, _file_by_name_in_list);
-    openf->file = fseek_params->value;
+    t_openf * openf = find_seek(pcb, fseek_params->file_name);
+    openf->seek = fseek_params->value;
+    log_info(logger, "PID: %d - Actualizar puntero Archivo: %s - Puntero %d", pcb->pid, fseek_params->file_name, fseek_params->value);
     modify_executing_process(pcb);
     sem_post(&executing_process);
 }
@@ -58,6 +63,10 @@ void* treat_wait_for_write_lock(t_wait_for_write_lock* interrupted_info) {
 void f_open(t_pcb* pcb, int fs_socket, t_log* logger) {
     destroy_executing_process();
     t_fopen* open_data = pcb->params;
+    t_openf* seek_file = malloc(sizeof(*seek_file));
+    seek_file->seek = 0;
+    seek_file->file = string_duplicate(open_data->file_name);
+    list_add(pcb->open_files, seek_file);
     t_open_file* file;
     pthread_mutex_lock(&open_files_global_table_mutex);
     if (dictionary_has_key(open_files_global_table, open_data->file_name)) {
@@ -77,6 +86,7 @@ void f_open(t_pcb* pcb, int fs_socket, t_log* logger) {
         file = malloc(sizeof(*file));
         file->locks = list_create();
         file->quantity_blocked = 0;
+        file->size = 0;
         sem_init(&file->write_locked, 0, 0);
         dictionary_put(open_files_global_table, open_data->file_name, file);
         pthread_mutex_unlock(&open_files_global_table_mutex);
@@ -91,7 +101,7 @@ void f_open(t_pcb* pcb, int fs_socket, t_log* logger) {
         }
         free(ok);
     }
-
+    log_info(logger, "PID: % - Abrir Archivo: %s", pcb->pid, open_data->file_name);
 
 
     if (strcmp(open_data->open_mode, "R") == 0) {
@@ -147,6 +157,7 @@ void f_close(t_pcb* pcb, int fs_socket, t_log* logger) {
     t_open_file* file = dictionary_get(open_files_global_table, file_name);
     t_lock* lock = list_get(file->locks, 0);
     pthread_mutex_unlock(&open_files_global_table_mutex);
+    log_info(logger, "PID: % - Cerrar Archivo: %s", pcb->pid, file_name);
 
     if (lock->is_write_lock) {
         for (int i = 0; i < file->quantity_blocked; i++)
@@ -188,6 +199,11 @@ void f_close(t_pcb* pcb, int fs_socket, t_log* logger) {
 
 void f_truncate(t_pcb* pcb, int fs_socket, t_log* logger) {
     destroy_executing_process();
+    t_fchange* truncate_data = pcb->params;
+    pthread_mutex_lock(&open_files_global_table_mutex);
+    t_open_file* file = dictionary_get(open_files_global_table, truncate_data->file_name);
+    file->size = truncate_data->value;
+    pthread_mutex_unlock(&open_files_global_table_mutex);
     pcb->estado = BLOCKED;
     log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
     pthread_t call_fs_thread;
@@ -196,6 +212,7 @@ void f_truncate(t_pcb* pcb, int fs_socket, t_log* logger) {
     interrupted_info->logger = logger;
     interrupted_info->fs_socket = fs_socket;
     interrupted_info->command = F_TRUNCATE_COMMAND;
+    interrupted_info->open_file = file;
     pthread_create(&call_fs_thread, NULL, (void*)treat_fs_function, interrupted_info);
     pthread_detach(call_fs_thread);
     sem_post(&proceso_en_cola_ready);
@@ -212,6 +229,26 @@ void* treat_fs_function(t_fs_call* data) {
         log_warning("Invalid response in %d: %d", data->command, *ok);
     }
     free(ok);
+    switch (data->command)
+    {
+    case F_TRUNCATE_COMMAND:
+        t_fchange* truncate_data = data->pcb->params;
+        log_info(data->logger, "PID: %d - Archivo: %s - Tamaño: %d", data->pcb->pid, truncate_data->file_name, truncate_data->value);
+        break;
+    case F_READ_COMMAND:
+        t_fmodify* read_data = data->pcb->params;
+        t_openf* read_seek = find_seek(data->pcb, read_data->file_name);
+        log_info(data->logger, "PID: %d - Leer Archivo: %s - Puntero %d - Dirección Memoria [%d,%d] - Tamaño %d", data->pcb->pid, read_data->file_name, read_seek->seek, read_data->page->page_number, read_data->page->displacement, data->open_file->size);
+        break;
+    case F_WRITE_COMMAND:
+        t_fmodify* write_data = data->pcb->params;
+        t_openf* write_seek = find_seek(data->pcb, write_data->file_name);
+        log_info(data->logger, "PID: %d - Escribir Archivo: %s - Puntero %d - Dirección Memoria [%d,%d] - Tamaño %d", data->pcb->pid, write_data->file_name, write_seek->seek, write_data->page->page_number, write_data->page->displacement, data->open_file->size);
+        break;
+    default:
+        log_warning(data->logger, "Invalid opCode: %d", data->command);
+        break;
+    }
     sem_wait(&grd_mult);
     log_info(data->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", data->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(data->pcb, data->logger);
