@@ -99,8 +99,9 @@ void destroy_page_entry(t_page_entry *page)
 	free(page);
 }
 
-void destroy_page_table(t_page_table *page_table)
+void destroy_page_table(t_page_table *page_table, t_log* logger)
 {
+	log_info(logger, "PID: %d - Tamaño: %d", page_table->process_pid, list_size(page_table->pages));
 	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page_entry);
 	free(page_table);
 }

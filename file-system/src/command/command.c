@@ -1,10 +1,4 @@
 #include <command/command.h>
-#include <fcntl.h>
-#include <fcb/fcb.h>
-#include <fs-struct/fat-bloque.h>
-#include "initial_configuration/fs_config.h"
-#include "page/page.h"
-#include <pcb/pcb.h>
 
 // extern t_utils *utils;
 sem_t wait;

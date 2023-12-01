@@ -44,6 +44,7 @@ t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger);
 void send_page_fault(int socket, t_log *logger);
 void send_page_frame(t_page_entry *page, int socket, t_log *logger);
 void destroy_page_entry(t_page_entry *page);
-void destroy_page_table(t_page_table *page_table);
+void destroy_page_table(t_page_table *page_table, t_log* logger);
+void destroy_page_tables(t_log* logger);
 
 #endif /* SRC_USER_MEMORY_PAGING_PAGES_H */

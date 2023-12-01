@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <initial_configuration/memory_config.h>
 #include <user_memory/paging/algorithms.h>
+#include <user_memory/paging/pages.h>
 #include <user_memory/swaping/swaping.h>
 #include <command/command.h>
 #include <commons/bitarray.h>
@@ -27,7 +28,7 @@ pthread_mutex_t mtx_frame_access;
 extern t_user_space real_memory;
 
 void init_real_memory(void);
-void free_memory(void);
+void free_memory(t_log* logger);
 t_frame_search check_available_frames(void);
 void *read_frame(int real_address, size_t size);
 void write_on_frame(int real_address, size_t size, void *data);

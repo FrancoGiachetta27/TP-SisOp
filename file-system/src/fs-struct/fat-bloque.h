@@ -1,12 +1,17 @@
 #ifndef FAT_BLOQUE_H_
 #define FAT_BLOQUE_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include <commons/config.h>
-#include <commons/log.h>
+#include <sys/mman.h>
 #include <config/config.h>
+#include <commons/config.h>
+#include <commons/bitarray.h>
+#include <commons/memory.h>
 #include <initial_configuration/fs_config.h>
 
 // INIT

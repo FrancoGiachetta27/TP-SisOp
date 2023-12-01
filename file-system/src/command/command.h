@@ -1,6 +1,13 @@
 #ifndef SRC_COMMAND_COMMAND_H_
 #define SRC_COMMAND_COMMAND_H_
 
+#include <command/command.h>
+#include <fcntl.h>
+#include <fcb/fcb.h>
+#include <fs-struct/fat-bloque.h>
+#include "initial_configuration/fs_config.h"
+#include "page/page.h"
+#include <pcb/pcb.h>
 #include <package/package.h>
 #include <config/config.h>
 #include <semaphore.h>
