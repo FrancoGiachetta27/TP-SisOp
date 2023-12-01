@@ -32,8 +32,11 @@ void sort_pages_by_lru(void)
 	{
 		sem_wait(&sort_pages);
 		pthread_mutex_lock(&mtx_select_page);
-		list_remove_element(pages_to_replace, last_page_referenced);
-		list_add(pages_to_replace, last_page_referenced);
+		if(list_size(pages_to_replace) != 1) 
+		{
+			list_remove_element(pages_to_replace, last_page_referenced);
+			list_add(pages_to_replace, last_page_referenced);
+		};
 		pthread_mutex_unlock(&mtx_select_page);
 	}
 }
