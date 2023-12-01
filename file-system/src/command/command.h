@@ -1,8 +1,13 @@
 #ifndef SRC_COMMAND_COMMAND_H_
 #define SRC_COMMAND_COMMAND_H_
 
-#include <package/package.h>
-#include <config/config.h>
+#include <command/command.h>
+#include <fcntl.h>
+#include <fcb/fcb.h>
+#include <fs-struct/fat-bloque.h>
+#include "initial_configuration/fs_config.h"
+#include "page/page.h"
+#include <pcb/pcb.h>
 
 // F_OPEN,
 // F_CREATE,

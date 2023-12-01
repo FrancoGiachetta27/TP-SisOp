@@ -1,15 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <config/config.h>
-#include <commons/config.h>
-#include <commons/bitarray.h>
-#include <commons/memory.h>
-#include <initial_configuration/fs_config.h>
 #include "fat-bloque.h"
 
 extern t_utils *utils;
