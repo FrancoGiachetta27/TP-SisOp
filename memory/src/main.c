@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 	wait_in_every_port(conn, utils->logger);
 
 	log_trace(utils->logger, "Se termina el programa");
-	free_memory();
+	free_memory(utils->logger);
 	free(conn);
 	utils_destroy(utils);
 	
