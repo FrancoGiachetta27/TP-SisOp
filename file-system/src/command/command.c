@@ -49,7 +49,6 @@ void *wait_for_commands(t_thread *thread_info)
 			int file_size = open_file(thread_info->logger, open_data->file_name);
 			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", open_data->file_name);
 			package = create_integer_package(F_OPEN, file_size);
-			log_info(thread_info->logger, "Se envio el file size %d a Kernel", file_size);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
 			break;
@@ -60,7 +59,6 @@ void *wait_for_commands(t_thread *thread_info)
 			int ok = create_file(thread_info->logger, open_data->file_name);
 			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", open_data->file_name);
 			package = create_integer_package(F_CREATE, 0);
-			log_info(thread_info->logger, "Se envio el OK a Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
 			break;
@@ -71,7 +69,6 @@ void *wait_for_commands(t_thread *thread_info)
 			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
 			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
 			package = create_integer_package(F_TRUNCATE, 0);
-			log_debug(thread_info->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
 			break;
@@ -149,14 +146,11 @@ void *wait_for_commands(t_thread *thread_info)
 				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
 			seek_data_write = list_find(pcb_write->open_files, _find_filename2);
-			log_debug(thread_info->logger, "F_WRITE: Seek filename %s - size %d", seek_data_write->file, seek_data_write->seek);
 			send_page(MOV_IN_FS, modify_data->page, thread_info->memory, thread_info->logger);
 			break;
 
 		case MOV_IN_FS:
-			log_debug(thread_info->logger, "INTENTA TRAER DATA_MOV_IN");
 			void *data_mov_in = receive_buffer(thread_info->port, thread_info->logger);
-			log_debug(thread_info->logger, "MOV_IN_FS: Seek filename %s - size %d", seek_data_write->file, seek_data_write->seek);
 			write_file(seek_data_write->file, seek_data_write->seek, data_mov_in);
 			package = create_integer_package(F_WRITE, 0);
 			send_package(package, thread_info->socket, thread_info->logger);
@@ -220,19 +214,19 @@ int open_file(t_log *logger, char *file_name)
 // Return OK
 int create_file(t_log *logger, char *file_name)
 {
-	log_info(logger, "Crear Archivo: %s", file_name);
+	t_fcb *file = find_fcb_file(file_name);
 
-	create_fcb_file(file_name);
+	if (!file)
+	{
+		create_fcb_file(file_name);
+	}
+
 	return 1;
 }
 
 void truncate_file(t_log *logger, char *file_name, int new_size)
 {
-	// log_info(logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
-
 	t_fcb *fcb = find_fcb_file(file_name);
-
-	// Condicion de incremento, igualdad o decremento del nuevo tamanio
 
 	if (fcb->file_size == new_size)
 	{

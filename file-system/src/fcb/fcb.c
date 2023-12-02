@@ -37,10 +37,7 @@ void create_fcb_file(char *file_name)
         msync(mapped_data, content_size, MS_SYNC);
         munmap(mapped_data, content_size);
 
-        log_debug(utils->logger, "Archivo creado: %s", file_name);
-
         list_add(fcbs, fcb_struct);
-        log_debug(utils->logger, "FCB Struct agregada a la lista. Lista size: %d", list_size(fcbs));
 
         close(fd);
         free(content);
@@ -65,12 +62,9 @@ t_fcb *find_fcb_file(char *file_name)
         t_fcb *fcb = list_get(fcbs, i);
         if (strcmp(fcb->file_name, file_name) == 0)
         {
-            log_debug(utils->logger, "FCB %s encontrado", file_name);
-            // free(fcb);
             return fcb;
         }
     }
-    log_debug(utils->logger, "FCB %s NO encontrado", file_name);
     // free(fcb);
     return NULL;
 }
