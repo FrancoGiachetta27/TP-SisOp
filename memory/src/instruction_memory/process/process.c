@@ -48,8 +48,10 @@ void deallocate_process(uint32_t pid, int fs_socket, t_log *logger)
     {
         return process->pid == pid;
     };
-    t_page_table* page_table = search_page_table(pid);
+    t_page_table *page_table = search_page_table(pid);
 
     free_swap_blocks(page_table, fs_socket, logger);
+    list_remove_element(page_tables, page_table);
+    destroy_page_table(page_table, logger);
     list_remove_and_destroy_by_condition(active_processes, (void *)_is_pid, (void *)_free_process);
 }

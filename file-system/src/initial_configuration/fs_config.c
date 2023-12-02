@@ -16,7 +16,5 @@ void init_fs_config(t_config *config, t_fs_config *fs_config)
 
 void destroy_fs_config(t_fs_config *fs_config)
 {
-    free(fs_config->path_fat);
-    free(fs_config->path_block);
-    free(fs_config->path_fcb);
+    free(fs_config);
 }

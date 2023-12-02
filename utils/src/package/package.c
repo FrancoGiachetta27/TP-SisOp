@@ -66,7 +66,6 @@ t_list *deserialize_list(void *serialized_data)
 {
 	int list_size;
 	memcpy(&list_size, serialized_data, sizeof(int));
-	printf("List size: %d\n", list_size);
 	t_list *result = list_create();
 	int offset = sizeof(int);
 	for (int i = 0; i < list_size; i++)

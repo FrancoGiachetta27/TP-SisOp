@@ -2,6 +2,18 @@
 
 // extern t_utils *utils;
 sem_t wait;
+char *message;
+char *file_name;
+int *block;
+t_pag_swap *page_swap;
+t_package *package;
+t_pcb *pcb;
+t_pcb *pcb_write;
+t_fopen *open_data;
+t_fchange *change_data;
+t_fmodify *modify_data;
+t_openf *seek_data;
+t_openf *seek_data_write;
 
 void *wait_for_commands(t_thread *thread_info)
 {
@@ -20,16 +32,6 @@ void *wait_for_commands(t_thread *thread_info)
 	}
 	while (op_code)
 	{
-		char *message;
-		char *file_name;
-		int *block;
-		t_pag_swap *page_swap;
-		t_package *package;
-		t_pcb *pcb;
-		t_fopen *open_data;
-		t_fchange *change_data;
-		t_fmodify *modify_data;
-		t_openf *seek_data;
 
 		switch (op_code)
 		{
@@ -69,7 +71,7 @@ void *wait_for_commands(t_thread *thread_info)
 			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
 			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
 			package = create_integer_package(F_TRUNCATE, 0);
-			log_info(thread_info->logger, "Se trunco el archivo y devuelvo OK al Kernel");
+			log_debug(thread_info->logger, "Se trunco el archivo y devuelvo OK al Kernel");
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
 			break;
@@ -120,7 +122,7 @@ void *wait_for_commands(t_thread *thread_info)
 			modify_data = (t_fmodify *)pcb->params;
 			bool _find_filename(t_openf * openf)
 			{
-				return strcmp(openf->file, modify_data->file_name);
+				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
 			seek_data = list_find(pcb->open_files, _find_filename);
 			data = read_file(seek_data->file, seek_data->seek);
@@ -133,30 +135,33 @@ void *wait_for_commands(t_thread *thread_info)
 			break;
 
 		case MOV_OUT_FS:
-			int *ok = (int *)receive_buffer(thread_info->port, thread_info->logger);
+			int *ok2 = (int *)receive_buffer(thread_info->port, thread_info->logger);
 			package = create_integer_package(F_READ, 0);
 			send_package(package, thread_info->socket, thread_info->logger);
-			free(ok);
+			free(ok2);
 			break;
 
 		case F_WRITE:
-			pcb = receive_pcb(thread_info->port, thread_info->logger);
-			modify_data = (t_fmodify *)pcb->params;
+			pcb_write = receive_pcb(thread_info->port, thread_info->logger);
+			modify_data = (t_fmodify *)pcb_write->params;
 			bool _find_filename2(t_openf * openf)
 			{
-				return strcmp(openf->file, modify_data->file_name);
+				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
-			seek_data = list_find(pcb->open_files, _find_filename2);
+			seek_data_write = list_find(pcb_write->open_files, _find_filename2);
+			log_debug(thread_info->logger, "F_WRITE: Seek filename %s - size %d", seek_data_write->file, seek_data_write->seek);
 			send_page(MOV_IN_FS, modify_data->page, thread_info->memory, thread_info->logger);
 			break;
 
 		case MOV_IN_FS:
+			log_debug(thread_info->logger, "INTENTA TRAER DATA_MOV_IN");
 			void *data_mov_in = receive_buffer(thread_info->port, thread_info->logger);
-			write_file(seek_data->file, seek_data->seek, data_mov_in);
+			log_debug(thread_info->logger, "MOV_IN_FS: Seek filename %s - size %d", seek_data_write->file, seek_data_write->seek);
+			write_file(seek_data_write->file, seek_data_write->seek, data_mov_in);
 			package = create_integer_package(F_WRITE, 0);
 			send_package(package, thread_info->socket, thread_info->logger);
 			free(data_mov_in);
-			destroy_pcb(pcb);
+			destroy_pcb(pcb_write);
 			break;
 
 		default:
@@ -216,13 +221,14 @@ int open_file(t_log *logger, char *file_name)
 int create_file(t_log *logger, char *file_name)
 {
 	log_info(logger, "Crear Archivo: %s", file_name);
+
 	create_fcb_file(file_name);
 	return 1;
 }
 
 void truncate_file(t_log *logger, char *file_name, int new_size)
 {
-	log_info(logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
+	// log_info(logger, "Truncar Archivo: %s - Tamaño: %d", file_name, new_size);
 
 	t_fcb *fcb = find_fcb_file(file_name);
 
@@ -230,8 +236,8 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 
 	if (fcb->file_size == new_size)
 	{
-		log_info(logger, "El nuevo tamaño es el mismo que antes, no se trunco.");
-		return /* Ver que devolver*/;
+		log_debug(logger, "El nuevo tamaño es el mismo que antes, no se trunco.");
+		return;
 	}
 
 	// Caso que el file tiene tamanio 0 y asigno el initial block y el tamanio
@@ -243,8 +249,8 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 	// Tamanio nuevo mayor que al del archivo
 	else if (fcb->file_size < new_size)
 	{
-		int current_size = fcb->file_size / sizeof(uint32_t) + 1;
-		int new_block_count = (new_size / sizeof(uint32_t)) + 1;
+		int current_size = ceil(fcb->file_size / fs_config->block_size) + 1;
+		int new_block_count = ceil(new_size / fs_config->block_size) + 1;
 
 		log_debug(logger, "Cantidad de bloques actuales: %d - Cantidad de bloques total nuevos %d", current_size, new_block_count);
 
@@ -256,8 +262,8 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 	}
 	else
 	{
-		int current_size = fcb->file_size / sizeof(uint32_t) + 1;
-		int blocks_needed = (new_size / sizeof(uint32_t)) + 1;
+		int current_size = ceil(fcb->file_size / fs_config->block_size) + 1;
+		int blocks_needed = ceil(new_size / fs_config->block_size) + 1;
 
 		log_debug(logger, "Cantidad de bloques actuales: %d - Cantidad de bloques nuevos %d", current_size, blocks_needed);
 

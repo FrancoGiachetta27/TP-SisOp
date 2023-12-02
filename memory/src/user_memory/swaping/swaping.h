@@ -4,6 +4,7 @@
 #include <package/package.h>
 #include <command/opcodes.h>
 #include <user_memory/real_memory.h>
+#include <user_memory/page_entry.h>
 #include <page/page.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>

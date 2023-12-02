@@ -137,7 +137,7 @@ void load_FCBs_from_directory(char *directory_path)
                 exist_fcb->file_size = config_get_int_value(fcb_config, "TAMANIO_ARCHIVO");
                 exist_fcb->initial_block = config_get_int_value(fcb_config, "BLOQUE_INICIAL");
                 char *file_name = config_get_string_value(fcb_config, "NOMBRE_ARCHIVO");
-                exist_fcb->file_name = malloc(strlen(file_name));
+                exist_fcb->file_name = malloc(strlen(file_name) + 1);
                 strcpy(exist_fcb->file_name, file_name);
                 list_add(fcbs, exist_fcb);
                 config_destroy(fcb_config);

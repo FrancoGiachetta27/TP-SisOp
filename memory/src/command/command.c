@@ -3,6 +3,8 @@
 t_pcb *pcb_create;
 t_pag *received_page;
 t_page_entry *page;
+t_pag *received_page_mov_in;
+t_page_entry *page_mov_in;
 sem_t wait;
 int size;
 
@@ -39,12 +41,14 @@ void *wait_for_command(t_thread *thread_info)
             break;
         case LOAD_PAGE:
             received_page = receive_page(thread_info->port, thread_info->logger);
+            log_debug(thread_info->logger, "Se hace un page fault %d", received_page->page_number);
             page = get_page(received_page->pid, received_page->page_number);
             get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
             break;
         case GET_FROM_SWAP:
             void *page_data = receive_buffer(thread_info->port, thread_info->logger);
             load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
+            log_debug(thread_info->logger, "Cargo pagina swap");
             t_package *result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
             destroy_page(received_page);
@@ -104,19 +108,19 @@ void *wait_for_command(t_thread *thread_info)
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address3);
             t_package *result_package3 = create_integer_package(MOV_OUT_FS, 0);
             send_package(result_package3, thread_info->port, thread_info->logger);
-            free(mov_out_page->register_value);
+            free(mov_out_page_fs->register_value);
             free(mov_out_page_fs);
             break;
         case MOV_IN_FS:
-            received_page = receive_page(thread_info->port, thread_info->logger);
-            page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
-            int address4 = page->frame_number * memory_config.page_size + received_page->displacement;
+            received_page_mov_in = receive_page(thread_info->port, thread_info->logger);
+            page_mov_in = reference_page(received_page_mov_in->pid, received_page_mov_in->page_number, thread_info->logger);
+            int address4 = page_mov_in->frame_number * memory_config.page_size + received_page_mov_in->displacement;
             void *value_in_frame2 = read_frame(address4, memory_config.page_size);
-            log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address4);
+            log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page_mov_in->pid, address4);
             t_package *result_package4 = create_void_package(MOV_IN_FS, memory_config.page_size, value_in_frame2);
             send_package(result_package4, thread_info->port, thread_info->logger);
             free(value_in_frame2);
-            destroy_page(received_page);
+            destroy_page(received_page_mov_in);
             break;
         case END_PROCESS:
             t_pcb *pcb_create = receive_pcb(thread_info->port, thread_info->logger);

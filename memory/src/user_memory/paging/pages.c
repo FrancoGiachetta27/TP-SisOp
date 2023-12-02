@@ -3,6 +3,8 @@
 pthread_mutex_t page_reference;
 sem_t sort_pages;
 
+pthread_mutex_t table;
+
 t_page_entry *last_page_referenced;
 t_list *pages_to_replace;
 t_list *page_tables;
@@ -38,7 +40,7 @@ void page_table_create(t_pcb *pcb, t_list *swap_blocks, t_log *logger)
 
 	for (int i = 0; i < total_pages; i++)
 	{
-		int* swap_block_ptr = (int *)list_get(swap_blocks, i);
+		int *swap_block_ptr = (int *)list_get(swap_blocks, i);
 		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, *swap_block_ptr));
 		free(swap_block_ptr);
 	}
@@ -55,12 +57,17 @@ t_page_table *search_page_table(uint32_t pid)
 		return page_table->process_pid == pid;
 	};
 
-	return (t_page_table *)list_find(page_tables, (void *)_is_table);
+	pthread_mutex_lock(&table);
+	t_page_table *page_table = list_find(page_tables, (void *)_is_table);
+	pthread_mutex_unlock(&table);
+
+	return page_table;
 }
 
-t_page_entry* get_page(uint32_t pid, int page_number) {
-	t_page_table* page_table = search_page_table(pid);
-	
+t_page_entry *get_page(uint32_t pid, int page_number)
+{
+	t_page_table *page_table = search_page_table(pid);
+
 	return list_get(page_table->pages, page_number);
 }
 
@@ -98,19 +105,27 @@ void send_page_frame(t_page_entry *page, int socket, t_log *logger)
 
 void destroy_page_entry(t_page_entry *page)
 {
+	if (page->bit_precense == 1)
+	{
+		free_frame(page->frame_number);
+	}
 	free(page);
 }
 
-void destroy_page_table(t_page_table *page_table, t_log* logger)
+void destroy_page_table(t_page_table *page_table, t_log *logger)
 {
 	log_info(logger, "PID: %d - Tamaño: %d", page_table->process_pid, list_size(page_table->pages));
+	pthread_mutex_lock(&table);
 	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page_entry);
+	pthread_mutex_unlock(&table);
 	free(page_table);
 }
 
-void destroy_page_tables(t_log* logger) {
-    for(int i = 0; i < list_size(page_tables); i++) {
-        destroy_page_table(list_get(page_tables, i), logger);
-    }
+void destroy_page_tables(t_log *logger)
+{
+	for (int i = 0; i < list_size(page_tables); i++)
+	{
+		destroy_page_table(list_get(page_tables, i), logger);
+	}
 	list_destroy(page_tables);
 }
