@@ -83,6 +83,7 @@ void *wait_for_command(t_thread *thread_info)
             t_mov_out *mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
             page = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
             int address1 = page->frame_number * memory_config.page_size + mov_out_page->displacement;
+            page->bit_modified = 1;
             write_on_frame(address1, sizeof(uint32_t), &mov_out_page->register_value);
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address1);
             t_package *result_package1 = create_integer_package(MOV_OUT, 0);
@@ -104,6 +105,7 @@ void *wait_for_command(t_thread *thread_info)
             t_mov_out_fs *mov_out_page_fs = receive_page_for_mov_out_fs(thread_info->port, thread_info->logger);
             page = reference_page(mov_out_page_fs->pid, mov_out_page_fs->page_number, thread_info->logger);
             int address3 = page->frame_number * memory_config.page_size + mov_out_page_fs->displacement;
+            page->bit_modified = 1;
             write_on_frame(address3, mov_out_page_fs->size, &mov_out_page_fs->register_value);
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address3);
             t_package *result_package3 = create_integer_package(MOV_OUT_FS, 0);

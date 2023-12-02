@@ -145,6 +145,5 @@ void *receive_buffer(int client_socket, t_log *logger)
 t_list *receive_list(int client_socket, t_log *logger)
 {
 	void *buffer = receive_buffer(client_socket, logger);
-	log_debug(logger, "SE RECIBIO BUFFER");
 	return deserialize_list(buffer);
 }

@@ -73,6 +73,7 @@ void swap_out(t_page_entry *victim, int fs_socket, t_log *logger)
                  victim->page_number);
     }
     victim->bit_precense = 0;
+    victim->bit_modified = 0;
 
     remove_from_victims(victim);
 }
