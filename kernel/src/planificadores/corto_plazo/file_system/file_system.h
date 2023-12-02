@@ -24,7 +24,7 @@ typedef struct {
 } t_fs_call;
 
 t_lock* create_lock(t_pcb* pcb, bool is_write_lock);
-void add_read_lock(t_open_file* file, t_pcb* pcb);
+t_lock* add_read_lock(t_open_file* file, t_pcb* pcb, bool is_blocked);
 void f_seek(t_pcb* pcb, t_log* logger);
 void* treat_wait_for_read_lock(t_wait_for_read_lock* interrupted_info);
 void* treat_wait_for_write_lock(t_wait_for_write_lock* interrupted_info);

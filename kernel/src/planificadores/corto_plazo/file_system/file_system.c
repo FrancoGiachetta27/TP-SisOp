@@ -6,10 +6,11 @@ t_lock *create_lock(t_pcb *pcb, bool is_write_lock)
     lock->participants = list_create();
     list_add(lock->participants, pcb->pid);
     lock->is_write_lock = is_write_lock;
+    sem_init(&lock->write_locked, 0, 0);
     return lock;
 }
 
-void add_read_lock(t_open_file *file, t_pcb *pcb)
+t_lock* add_read_lock(t_open_file *file, t_pcb *pcb, bool is_blocked)
 {
     bool _is_read_lock(t_lock * lock)
     {
@@ -29,6 +30,8 @@ void add_read_lock(t_open_file *file, t_pcb *pcb)
         list_add(read_lock->participants, pcb->pid);
         pthread_mutex_unlock(&open_files_global_table_mutex);
     }
+    read_lock->is_blocked = is_blocked;
+    return read_lock;
 }
 
 t_openf *find_seek(t_pcb *pcb, char *file_name)
@@ -42,12 +45,12 @@ t_openf *find_seek(t_pcb *pcb, char *file_name)
 
 void f_seek(t_pcb *pcb, t_log *logger)
 {
-    destroy_executing_process();
     t_fchange *fseek_params = (t_fchange *)pcb->params;
     t_openf *openf = find_seek(pcb, fseek_params->file_name);
     openf->seek = fseek_params->value;
     log_info(logger, "PID: %d - Actualizar puntero Archivo: %s - Puntero %d", pcb->pid, fseek_params->file_name, fseek_params->value);
     pthread_mutex_lock(&mtx_execute_process);
+	destroy_pcb(estado_EXEC);
     estado_EXEC = pcb;
     pthread_mutex_unlock(&mtx_execute_process);
     sem_post(&executing_process);
@@ -55,18 +58,9 @@ void f_seek(t_pcb *pcb, t_log *logger)
 
 void *treat_wait_for_read_lock(t_wait_for_read_lock *interrupted_info)
 {
-    interrupted_info->open_file->quantity_blocked++;
-    sem_wait(&interrupted_info->open_file->write_locked);
-    pthread_mutex_lock(&open_files_global_table_mutex);
-    while (interrupted_info->open_file->locks->elements_count != 0 && ((t_lock *)list_get(interrupted_info->open_file->locks, 0))->is_write_lock == true)
-    {
-        pthread_mutex_unlock(&open_files_global_table_mutex);
-        interrupted_info->open_file->quantity_blocked++;
-        sem_wait(&interrupted_info->open_file->write_locked);
-        pthread_mutex_lock(&open_files_global_table_mutex);
-    }
-    pthread_mutex_unlock(&open_files_global_table_mutex);
-    add_read_lock(interrupted_info->open_file, interrupted_info->pcb);
+    t_lock* lock = add_read_lock(interrupted_info->open_file, interrupted_info->pcb, true);
+    sem_wait(&lock->write_locked);
+    log_debug(interrupted_info->logger, "Se desbloqueo %d dsps de un close", interrupted_info->pcb->pid);
     sem_wait(&grd_mult);
     log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
@@ -76,20 +70,11 @@ void *treat_wait_for_read_lock(t_wait_for_read_lock *interrupted_info)
 void *treat_wait_for_write_lock(t_wait_for_write_lock *interrupted_info)
 {
     t_lock *lock = create_lock(interrupted_info->pcb, true);
-    interrupted_info->open_file->quantity_blocked++;
-    sem_wait(&interrupted_info->open_file->write_locked);
-    pthread_mutex_lock(&open_files_global_table_mutex);
-    while (interrupted_info->open_file->locks->elements_count != 0)
-    {
-        pthread_mutex_unlock(&open_files_global_table_mutex);
-        interrupted_info->open_file->quantity_blocked++;
-        sem_wait(&interrupted_info->open_file->write_locked);
-        pthread_mutex_lock(&open_files_global_table_mutex);
-    }
-    pthread_mutex_unlock(&open_files_global_table_mutex);
+    lock->is_blocked=true;
     pthread_mutex_lock(&open_files_global_table_mutex);
     list_add(interrupted_info->open_file->locks, lock);
     pthread_mutex_unlock(&open_files_global_table_mutex);
+    sem_wait(&lock->write_locked);
     sem_wait(&grd_mult);
     log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
@@ -98,7 +83,6 @@ void *treat_wait_for_write_lock(t_wait_for_write_lock *interrupted_info)
 
 void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
 {
-    destroy_executing_process();
     t_fopen *open_data = pcb->params;
     t_openf *seek_file = malloc(sizeof(*seek_file));
     seek_file->seek = 0;
@@ -127,9 +111,7 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
     {
         file = malloc(sizeof(*file));
         file->locks = list_create();
-        file->quantity_blocked = 0;
         file->size = 0;
-        sem_init(&file->write_locked, 0, 0);
         dictionary_put(open_files_global_table, open_data->file_name, file);
         pthread_mutex_unlock(&open_files_global_table_mutex);
         send_pcb(F_CREATE_COMMAND, pcb, fs_socket, logger);
@@ -151,6 +133,7 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
     {
         if (file->locks->elements_count != 0 && ((t_lock *)list_get(file->locks, 0))->is_write_lock == true)
         {
+            destroy_executing_process();
             pcb->estado = BLOCKED;
             log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
             pthread_t wait_process_for_start_lock;
@@ -164,8 +147,9 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
         }
         else
         {
-            add_read_lock(file, pcb);
+            add_read_lock(file, pcb, false);
             pthread_mutex_lock(&mtx_execute_process);
+            destroy_pcb(estado_EXEC);
             estado_EXEC = pcb;
             pthread_mutex_unlock(&mtx_execute_process);
             sem_post(&executing_process);
@@ -175,6 +159,7 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
     {
         if (file->locks->elements_count != 0)
         {
+            destroy_executing_process();
             pcb->estado = BLOCKED;
             log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
             pthread_t wait_process_for_start_lock;
@@ -189,10 +174,12 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
         else
         {
             t_lock *lock = create_lock(pcb, true);
+            lock->is_blocked = false;
             pthread_mutex_lock(&open_files_global_table_mutex);
             list_add(file->locks, lock);
             pthread_mutex_unlock(&open_files_global_table_mutex);
             pthread_mutex_lock(&mtx_execute_process);
+            destroy_pcb(estado_EXEC);
             estado_EXEC = pcb;
             pthread_mutex_unlock(&mtx_execute_process);
             sem_post(&executing_process);
@@ -206,7 +193,6 @@ void f_open(t_pcb *pcb, int fs_socket, t_log *logger)
 
 void f_close(t_pcb *pcb, int fs_socket, t_log *logger)
 {
-    destroy_executing_process();
     char *file_name = pcb->params;
     pthread_mutex_lock(&open_files_global_table_mutex);
     t_open_file *file = dictionary_get(open_files_global_table, file_name);
@@ -220,8 +206,9 @@ void f_close(t_pcb *pcb, int fs_socket, t_log *logger)
     t_openf *openf = list_remove_by_condition(pcb->open_files, _find_openf);
     free(openf->file);
     free(openf);
-    close_lock(pcb, file, lock);
+    close_lock(pcb, file, lock, logger);
     pthread_mutex_lock(&mtx_execute_process);
+	destroy_pcb(estado_EXEC);
     estado_EXEC = pcb;
     pthread_mutex_unlock(&mtx_execute_process);
     sem_post(&executing_process);
@@ -313,21 +300,17 @@ void f_read(t_pcb *pcb, int fs_socket, t_log *logger)
 void f_write(t_pcb *pcb, int fs_socket, t_log *logger)
 {
     destroy_executing_process();
-    bool _is_read_lock(t_lock * lock)
-    {
-        return lock->is_write_lock == false;
-    };
     t_fmodify *modify_data = (t_fmodify *)pcb->params;
     pthread_mutex_lock(&open_files_global_table_mutex);
     t_open_file *file = dictionary_get(open_files_global_table, modify_data->file_name);
     pthread_mutex_unlock(&open_files_global_table_mutex);
-    t_lock *read_lock = list_find(file->locks, _is_read_lock);
+    t_lock *lock = list_get(file->locks, 0);
     // bool _same_pid(uint32_t pid)
     // {
     //     return pcb->pid == pid;
     // };
     // bool is_read_lock = list_any_satisfy(read_lock->participants, _same_pid);
-    if (read_lock != NULL)
+    if (!lock->is_write_lock)
     {
         send_to_exit(pcb, logger, INVALID_WRITE);
     }

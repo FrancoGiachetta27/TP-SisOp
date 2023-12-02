@@ -99,7 +99,6 @@ void terminar_estructuras_planificadores()
 
 	void *_remove_open_file(t_open_file * file)
 	{
-		sem_destroy(&file->write_locked);
 		list_destroy(file->locks);
 		free(file);
 	};
@@ -200,21 +199,27 @@ char *get_string_of_pids_in_list(t_list *list)
 	return pids;
 }
 
-void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock)
+void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log* logger)
 {
 	if (lock->is_write_lock)
 	{
-		printf("+++++++++++ Bloqueados %d +++++++++\n", file->quantity_blocked);
-		for (int i = 0; i < file->quantity_blocked; i++)
-		{
-			sem_post(&file->write_locked);
-		}
-		file->quantity_blocked = 0;
 		pthread_mutex_lock(&open_files_global_table_mutex);
 		list_remove(file->locks, 0);
 		pthread_mutex_unlock(&open_files_global_table_mutex);
+		sem_destroy(&lock->write_locked);
 		list_destroy(lock->participants);
 		free(lock);
+		if (file->locks->elements_count != 0)
+		{
+			t_lock* next_lock = list_get(file->locks, 0);
+			if (next_lock->is_blocked) {
+				log_debug(logger, "Se desbloqueo %d participants", next_lock->participants->elements_count);
+				for (int i = 0; i < next_lock->participants->elements_count; i++)
+				{
+					sem_post(&next_lock->write_locked);
+				}
+			}
+		}
 	}
 	else
 	{
@@ -230,8 +235,20 @@ void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock)
 			pthread_mutex_unlock(&open_files_global_table_mutex);
 			list_destroy(lock->participants);
 			free(lock);
+			if (file->locks->elements_count != 0)
+			{
+				t_lock* next_lock = list_get(file->locks, 0);
+    			log_debug(logger, "Se desbloqueo %d participants", next_lock->participants->elements_count);
+				if (next_lock->is_blocked) {
+					for (int i = 0; i < next_lock->participants->elements_count; i++)
+					{
+						sem_post(&next_lock->write_locked);
+					}
+				}
+			}
 		}
 	}
+
 }
 
 void eliminar_proceso(t_pcb *pcb, int socket, t_log *logger)
@@ -252,7 +269,7 @@ void eliminar_proceso(t_pcb *pcb, int socket, t_log *logger)
 			return list_any_satisfy(lock->participants, _contains_pid);
 		}
 		t_lock *lock = list_find(open_file->locks, _find_lock);
-		close_lock(pcb, open_file, lock);
+		close_lock(pcb, open_file, lock, logger);
 	};
 	list_iterate(pcb->open_files, _free_files);
 	// Llamar a memoria para liberar

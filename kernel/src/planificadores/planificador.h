@@ -13,8 +13,6 @@
 
 typedef struct {
     t_list* locks;
-    sem_t write_locked;
-    int quantity_blocked;
     int size;
 } t_open_file;
 
@@ -27,6 +25,8 @@ typedef struct {
 typedef struct {
     bool is_write_lock;
     t_list* participants;
+    bool is_blocked;
+    sem_t write_locked;
 } t_lock;
 
 t_list* lista_estado_NEW;
@@ -63,7 +63,7 @@ void send_to_exit(t_pcb* pcb, t_log* logger, int end_state);
 t_pcb* encontrar_proceso_por_PID(uint32_t pid);
 uint32_t obt_sig_PID();
 void execute_ready_process(t_pcb* pcb, t_log* logger);
-void close_lock(t_pcb* pcb, t_open_file* file, t_lock* lock);
+void close_lock(t_pcb* pcb, t_open_file* file, t_lock* lock, t_log* logger);
 void agregar_pcb_a_cola_READY(t_pcb* pcb, t_log* logger);
 char* get_string_of_pids_in_list(t_list* list);
 void prueba_agregar_proceso_a_NEW();
