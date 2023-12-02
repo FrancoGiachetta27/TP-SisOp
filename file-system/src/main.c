@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	if (utils == NULL)
 		return EXIT_FAILURE;
 
-	init_fs_config(utils->config, &fs_config);
+	init_fs_config(utils->config, fs_config);
 
 	fcbs = list_create();
 	load_FCBs_from_directory("./fcbs/");
@@ -44,8 +44,9 @@ int main(int argc, char *argv[])
 	wait_in_every_port(memory_socket, socket_kernel, utils->logger);
 
 	utils_destroy_with_connection(utils, memory_socket);
-	destroy_fs();
 	list_destroy(fcbs);
+	destroy_fs();
+	destroy_fs_config(fs_config);
 
 	return EXIT_SUCCESS;
 }

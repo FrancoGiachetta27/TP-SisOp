@@ -21,7 +21,8 @@ enum KERNEL_CODE_OP
     F_OPEN = 19,
     F_CREATE = 20,
     F_TRUNCATE = 21,
-    F_READ = 22
+    F_READ = 22,
+    F_WRITE = 23
 };
 
 enum MEMORY_CODE_OP
@@ -30,6 +31,8 @@ enum MEMORY_CODE_OP
     GET_FROM_SWAP = 12,
     UPDATE_SWAP = 13,
     FREE_PAGES = 14,
+    MOV_IN_FS = 17,
+    MOV_OUT_FS = 18,
 };
 
 typedef struct

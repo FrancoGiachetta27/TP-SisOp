@@ -1,8 +1,9 @@
 #include <initial_configuration/fs_config.h>
 
-t_fs_config fs_config;
+t_fs_config *fs_config;
 
-void init_fs_config(t_config* config, t_fs_config* fs_config) {
+void init_fs_config(t_config *config, t_fs_config *fs_config)
+{
     fs_config->path_fat = config_get_string_value(config, "PATH_FAT");
     fs_config->path_block = config_get_string_value(config, "PATH_BLOQUES");
     fs_config->path_fcb = config_get_string_value(config, "PATH_FCB");
@@ -13,7 +14,8 @@ void init_fs_config(t_config* config, t_fs_config* fs_config) {
     fs_config->fat_time_delay = config_get_int_value(config, "RETARDO_ACCESO_FAT");
 }
 
-void destroy_fs_config(t_fs_config* fs_config) {
+void destroy_fs_config(t_fs_config *fs_config)
+{
     free(fs_config->path_fat);
     free(fs_config->path_block);
     free(fs_config->path_fcb);

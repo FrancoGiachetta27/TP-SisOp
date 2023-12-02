@@ -8,11 +8,12 @@ void *wait_for_commands(t_thread *thread_info)
 	int op_code = receive_op_code(thread_info->port, thread_info->logger);
 	if (op_code == -1)
 	{
-		if (strcmp(thread_info->dict_key, "KRL") == 0) {
-            log_trace(thread_info->logger, "Se corta por caida en Kernel");
+		if (strcmp(thread_info->dict_key, "KRL") == 0)
+		{
+			log_trace(thread_info->logger, "Se corta por caida en Kernel");
 			shutdown(thread_info->memory, SHUT_RDWR);
-            close(thread_info->memory);
-        }
+			close(thread_info->memory);
+		}
 		free(thread_info);
 		sem_post(&wait);
 		return -1;
@@ -24,9 +25,11 @@ void *wait_for_commands(t_thread *thread_info)
 		int *block;
 		t_pag_swap *page_swap;
 		t_package *package;
-		t_pcb* pcb;
-		t_fopen* open_data;
-		t_fchange* change_data;
+		t_pcb *pcb;
+		t_fopen *open_data;
+		t_fchange *change_data;
+		t_fmodify *modify_data;
+		t_openf *seek_data;
 
 		switch (op_code)
 		{
@@ -40,7 +43,7 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case F_OPEN:
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
-			open_data = (t_fopen*) pcb->params;
+			open_data = (t_fopen *)pcb->params;
 			int file_size = open_file(thread_info->logger, open_data->file_name);
 			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", open_data->file_name);
 			package = create_integer_package(F_OPEN, file_size);
@@ -51,7 +54,7 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case F_CREATE:
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
-			open_data = (t_fopen*) pcb->params;
+			open_data = (t_fopen *)pcb->params;
 			int ok = create_file(thread_info->logger, open_data->file_name);
 			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", open_data->file_name);
 			package = create_integer_package(F_CREATE, 0);
@@ -60,9 +63,9 @@ void *wait_for_commands(t_thread *thread_info)
 			destroy_pcb(pcb);
 			break;
 
-		case F_TRUNCATE: 
+		case F_TRUNCATE:
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
-			change_data = (t_fchange*) pcb->params;
+			change_data = (t_fchange *)pcb->params;
 			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
 			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
 			package = create_integer_package(F_TRUNCATE, 0);
@@ -87,7 +90,7 @@ void *wait_for_commands(t_thread *thread_info)
 			void *data = read_from_swap_block(*block);
 			log_info(thread_info->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", *block);
 			// Ver como enviar un void *
-			package = create_void_package(GET_FROM_SWAP, fs_config.block_size, data);
+			package = create_void_package(GET_FROM_SWAP, fs_config->block_size, data);
 			send_package(package, thread_info->port, thread_info->logger);
 			free(block);
 			break;
@@ -112,12 +115,57 @@ void *wait_for_commands(t_thread *thread_info)
 			send_package(package, thread_info->port, thread_info->logger);
 			break;
 
+		case F_READ:
+			pcb = receive_pcb(thread_info->port, thread_info->logger);
+			modify_data = (t_fmodify *)pcb->params;
+			bool _find_filename(t_openf * openf)
+			{
+				return strcmp(openf->file, modify_data->file_name);
+			};
+			seek_data = list_find(pcb->open_files, _find_filename);
+			data = read_file(seek_data->file, seek_data->seek);
+			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data, fs_config->block_size);
+			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
+			destroy_pcb(pcb);
+			free(data);
+			free(mov_out->register_value);
+			free(mov_out);
+			break;
+
+		case MOV_OUT_FS:
+			int *ok = (int *)receive_buffer(thread_info->port, thread_info->logger);
+			package = create_integer_package(F_READ, 0);
+			send_package(package, thread_info->socket, thread_info->logger);
+			free(ok);
+			break;
+
+		case F_WRITE:
+			pcb = receive_pcb(thread_info->port, thread_info->logger);
+			modify_data = (t_fmodify *)pcb->params;
+			bool _find_filename2(t_openf * openf)
+			{
+				return strcmp(openf->file, modify_data->file_name);
+			};
+			seek_data = list_find(pcb->open_files, _find_filename2);
+			send_page(MOV_IN_FS, modify_data->page, thread_info->memory, thread_info->logger);
+			break;
+
+		case MOV_IN_FS:
+			void *data_mov_in = receive_buffer(thread_info->port, thread_info->logger);
+			write_file(seek_data->file, seek_data->seek, data_mov_in);
+			package = create_integer_package(F_WRITE, 0);
+			send_package(package, thread_info->socket, thread_info->logger);
+			free(data_mov_in);
+			destroy_pcb(pcb);
+			break;
+
 		default:
-		    if (strcmp(thread_info->dict_key, "KRL") == 0) {
+			if (strcmp(thread_info->dict_key, "KRL") == 0)
+			{
 				log_trace(thread_info->logger, "Se corta por caida en Kernel");
 				shutdown(thread_info->memory, SHUT_RDWR);
 				close(thread_info->memory);
-        	}
+			}
 			log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
 			free(thread_info);
 			sem_post(&wait);
@@ -126,23 +174,25 @@ void *wait_for_commands(t_thread *thread_info)
 		op_code = receive_op_code(thread_info->port, thread_info->logger);
 		if (op_code == -1)
 		{
-			if (strcmp(thread_info->dict_key, "KRL") == 0) {
+			if (strcmp(thread_info->dict_key, "KRL") == 0)
+			{
 				log_trace(thread_info->logger, "Se corta por caida en Kernel");
 				shutdown(thread_info->memory, SHUT_RDWR);
 				close(thread_info->memory);
-        	}
+			}
 			free(thread_info);
 			sem_post(&wait);
 			return NULL;
 		};
 	}
-	if (strcmp(thread_info->dict_key, "KRL") == 0) {
-        log_trace(thread_info->logger, "Se corta por caida en Kernel");
+	if (strcmp(thread_info->dict_key, "KRL") == 0)
+	{
+		log_trace(thread_info->logger, "Se corta por caida en Kernel");
 		shutdown(thread_info->memory, SHUT_RDWR);
-        close(thread_info->memory);
-    }
-    free(thread_info);
-    sem_post(&wait);
+		close(thread_info->memory);
+	}
+	free(thread_info);
+	sem_post(&wait);
 	return NULL;
 }
 
@@ -234,6 +284,7 @@ void wait_in_every_port(int memory, int kernel, t_log *logger)
 			thread_info->dict_key = "MRY";
 			log_trace(logger, "Iniciada thread de Memory");
 			thread_info->port = memory;
+			thread_info->socket = kernel;
 			break;
 		case 1:
 			thread_info->dict_key = "KRL";
@@ -248,8 +299,8 @@ void wait_in_every_port(int memory, int kernel, t_log *logger)
 		pthread_create(&thread_id, NULL, (void *)wait_for_commands, thread_info);
 		pthread_detach(thread_id);
 	}
-    for (int i = 0; i < 2; i++)
-    {
-        sem_wait(&wait);
-    }
+	for (int i = 0; i < 2; i++)
+	{
+		sem_wait(&wait);
+	}
 }

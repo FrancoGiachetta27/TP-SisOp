@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <config/config.h>
+#include <string.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/memory.h>

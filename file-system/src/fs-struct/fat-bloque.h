@@ -13,6 +13,7 @@
 #include <commons/bitarray.h>
 #include <commons/memory.h>
 #include <initial_configuration/fs_config.h>
+#include <math.h>
 
 // INIT
 void init_fs_struct();
@@ -40,5 +41,7 @@ int find_free_swap_block();
 void write_to_swap_block(int block_index, void *data);
 void *read_from_swap_block(int block_index);
 // Leer
+void *read_file(char *file_name, int seek);
+void write_file(char *file_name, int seek, void *data);
 
 #endif /* FAT_BLOQUE_H_ */

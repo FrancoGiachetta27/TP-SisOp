@@ -4,6 +4,7 @@ t_pcb *pcb_create;
 t_pag *received_page;
 t_page_entry *page;
 sem_t wait;
+int size;
 
 void *wait_for_command(t_thread *thread_info)
 {
@@ -18,96 +19,118 @@ void *wait_for_command(t_thread *thread_info)
     {
         switch (op_code)
         {
-            case ECHO_MEMORY:    
-                char *message = receive_buffer(thread_info->port, thread_info->logger);
-                log_info(thread_info->logger, "OpCode: %d and Message: %s", op_code, message);
-                free(message);
-                break;
-            case CREATE_PROCESS:
-                pcb_create = receive_pcb(thread_info->port, thread_info->logger);
-                log_debug(thread_info->logger, "PIDO SWAP");
-                get_swap_blocks(pcb_create->tamanio, thread_info->conn->socket_filesystem, thread_info->logger, thread_info->dict_key);
-                break;
-            case GET_SWAP_BLOCKS:
-                t_list *swap_blocks = receive_list(thread_info->conn->socket_filesystem, thread_info->logger);
-                log_debug(thread_info->logger, "Cantidad de bloques %d", list_size(swap_blocks));
-                int is_ok = create_process(thread_info->logger, pcb_create, swap_blocks);
-                t_package *package_process = create_integer_package(PROCESS_OK, is_ok);
-                send_package(package_process, thread_info->conn->socket_kernel, thread_info->logger);
-                destroy_pcb(pcb_create);
-                break;
-            case LOAD_PAGE:
-                received_page = receive_page(thread_info->port, thread_info->logger);
-                page = get_page(received_page->pid, received_page->page_number);
-                get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
-                break;
-            case GET_FROM_SWAP:
-                void *page_data = receive_buffer(thread_info->port, thread_info->logger);
-                load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
-                t_package *result_package = create_integer_package(LOAD_PAGE, 0);
-                send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
-                destroy_page(received_page);
-                break;
-            case FREE_PAGES:
-                int* ok = receive_buffer(thread_info->port, thread_info->logger);
-                if (*ok != 0) {
-                    log_warning(thread_info->logger, "Error mientras se liberaban paginas, %d", *ok);
-                }
-                free(ok);
-                break;
-            case PAGE_NUMBER:
-                received_page = receive_page(thread_info->port, thread_info->logger);
-                page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
+        case ECHO_MEMORY:
+            char *message = receive_buffer(thread_info->port, thread_info->logger);
+            log_info(thread_info->logger, "OpCode: %d and Message: %s", op_code, message);
+            free(message);
+            break;
+        case CREATE_PROCESS:
+            pcb_create = receive_pcb(thread_info->port, thread_info->logger);
+            log_debug(thread_info->logger, "PIDO SWAP");
+            get_swap_blocks(pcb_create->tamanio, thread_info->conn->socket_filesystem, thread_info->logger, thread_info->dict_key);
+            break;
+        case GET_SWAP_BLOCKS:
+            t_list *swap_blocks = receive_list(thread_info->conn->socket_filesystem, thread_info->logger);
+            log_debug(thread_info->logger, "Cantidad de bloques %d", list_size(swap_blocks));
+            int is_ok = create_process(thread_info->logger, pcb_create, swap_blocks);
+            t_package *package_process = create_integer_package(PROCESS_OK, is_ok);
+            send_package(package_process, thread_info->conn->socket_kernel, thread_info->logger);
+            destroy_pcb(pcb_create);
+            break;
+        case LOAD_PAGE:
+            received_page = receive_page(thread_info->port, thread_info->logger);
+            page = get_page(received_page->pid, received_page->page_number);
+            get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
+            break;
+        case GET_FROM_SWAP:
+            void *page_data = receive_buffer(thread_info->port, thread_info->logger);
+            load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
+            t_package *result_package = create_integer_package(LOAD_PAGE, 0);
+            send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
+            destroy_page(received_page);
+            break;
+        case FREE_PAGES:
+            int *ok = receive_buffer(thread_info->port, thread_info->logger);
+            if (*ok != 0)
+            {
+                log_warning(thread_info->logger, "Error mientras se liberaban paginas, %d", *ok);
+            }
+            free(ok);
+            break;
+        case PAGE_NUMBER:
+            received_page = receive_page(thread_info->port, thread_info->logger);
+            page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
 
-                (page == NULL || !page->bit_precense)
-                    ? send_page_fault(thread_info->port, thread_info->logger)
-                    : send_page_frame(page, thread_info->port, thread_info->logger);
-                destroy_page(received_page);
-                break;
-            case FETCH_INSTRUCTION:
-                pcb_create = receive_pcb(thread_info->port, thread_info->logger);
-                char *next_instruction = fetch_next_instruction(pcb_create->pid, pcb_create->programCounter, thread_info->logger);
-                log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
-                t_package *package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
-                usleep(memory_config.time_delay * 1000);
-                send_package(package_instruct, thread_info->port, thread_info->logger);
-                destroy_pcb(pcb_create);
-                break;
-            case MOV_OUT:
-                t_mov_out *mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
-                page = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
-                int address1 = page->frame_number * memory_config.page_size + mov_out_page->displacement;
-                write_on_frame(address1, sizeof(uint32_t), &mov_out_page->register_value);
-                log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address1);
-                t_package *result_package1 = create_integer_package(MOV_OUT, 0);
-                send_package(result_package1, thread_info->port, thread_info->logger);
-                destroy_page_for_mov_out(mov_out_page);
-                break;
-            case MOV_IN:
-                received_page = receive_page(thread_info->port, thread_info->logger);
-                page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
-                int address2 = page->frame_number * memory_config.page_size + received_page->displacement;
-                uint32_t* value_in_frame = (uint32_t *)read_frame(address2, sizeof(uint32_t));
-                log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address2);
-                t_package *result_package2 = create_uint32_package(MOV_IN, *value_in_frame);
-                send_package(result_package2, thread_info->port, thread_info->logger);
-                free(value_in_frame);
-                destroy_page(received_page);
-                break;
-            case END_PROCESS:
-                t_pcb *pcb_create = receive_pcb(thread_info->port, thread_info->logger);
-                deallocate_process(
-                    pcb_create->pid, 
-                    thread_info->conn->socket_filesystem, 
-                    thread_info->logger
-                );
-                destroy_pcb(pcb_create);
-                break;
-            default:
-                log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
-                free(thread_info);
-                sem_post(&wait);
-                return NULL;
+            (page == NULL || !page->bit_precense)
+                ? send_page_fault(thread_info->port, thread_info->logger)
+                : send_page_frame(page, thread_info->port, thread_info->logger);
+            destroy_page(received_page);
+            break;
+        case FETCH_INSTRUCTION:
+            pcb_create = receive_pcb(thread_info->port, thread_info->logger);
+            char *next_instruction = fetch_next_instruction(pcb_create->pid, pcb_create->programCounter, thread_info->logger);
+            log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
+            t_package *package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
+            usleep(memory_config.time_delay * 1000);
+            send_package(package_instruct, thread_info->port, thread_info->logger);
+            destroy_pcb(pcb_create);
+            break;
+        case MOV_OUT:
+            t_mov_out *mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
+            page = reference_page(mov_out_page->pid, mov_out_page->page_number, thread_info->logger);
+            int address1 = page->frame_number * memory_config.page_size + mov_out_page->displacement;
+            write_on_frame(address1, sizeof(uint32_t), &mov_out_page->register_value);
+            log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address1);
+            t_package *result_package1 = create_integer_package(MOV_OUT, 0);
+            send_package(result_package1, thread_info->port, thread_info->logger);
+            destroy_page_for_mov_out(mov_out_page);
+            break;
+        case MOV_IN:
+            received_page = receive_page(thread_info->port, thread_info->logger);
+            page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
+            int address2 = page->frame_number * memory_config.page_size + received_page->displacement;
+            uint32_t *value_in_frame = (uint32_t *)read_frame(address2, sizeof(uint32_t));
+            log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address2);
+            t_package *result_package2 = create_uint32_package(MOV_IN, *value_in_frame);
+            send_package(result_package2, thread_info->port, thread_info->logger);
+            free(value_in_frame);
+            destroy_page(received_page);
+            break;
+        case MOV_OUT_FS:
+            t_mov_out_fs *mov_out_page_fs = receive_page_for_mov_out_fs(thread_info->port, thread_info->logger);
+            page = reference_page(mov_out_page_fs->pid, mov_out_page_fs->page_number, thread_info->logger);
+            int address3 = page->frame_number * memory_config.page_size + mov_out_page_fs->displacement;
+            write_on_frame(address3, mov_out_page_fs->size, &mov_out_page_fs->register_value);
+            log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address3);
+            t_package *result_package3 = create_integer_package(MOV_OUT_FS, 0);
+            send_package(result_package3, thread_info->port, thread_info->logger);
+            free(mov_out_page->register_value);
+            free(mov_out_page_fs);
+            break;
+        case MOV_IN_FS:
+            received_page = receive_page(thread_info->port, thread_info->logger);
+            page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
+            int address4 = page->frame_number * memory_config.page_size + received_page->displacement;
+            void *value_in_frame2 = read_frame(address4, memory_config.page_size);
+            log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address4);
+            t_package *result_package4 = create_void_package(MOV_IN_FS, memory_config.page_size, value_in_frame2);
+            send_package(result_package4, thread_info->port, thread_info->logger);
+            free(value_in_frame2);
+            destroy_page(received_page);
+            break;
+        case END_PROCESS:
+            t_pcb *pcb_create = receive_pcb(thread_info->port, thread_info->logger);
+            deallocate_process(
+                pcb_create->pid,
+                thread_info->conn->socket_filesystem,
+                thread_info->logger);
+            destroy_pcb(pcb_create);
+            break;
+        default:
+            log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);
+            free(thread_info);
+            sem_post(&wait);
+            return NULL;
         }
         op_code = receive_op_code(thread_info->port, thread_info->logger);
         if (op_code == -1)

@@ -1,32 +1,21 @@
 #include "fat-bloque.h"
+#include "fcb/fcb.h"
 
 extern t_utils *utils;
-extern t_fs_config fs_config;
+extern t_fs_config *fs_config;
+
 int fd_fat;
 int fd_block;
 uint32_t *fat_data;
 void *block_map;
-
-// FAT
 t_list *fat_list;
-// Archivo de bloques
-
-/*
-    TODO
-        - Revisar el uso de mmap para escribir cuando actualizo las listas
-        - Revisar tamanio de bloque de fat != bloque archivos
-        - Ver bien valgrind
-        - Destruir listas, desmapear y cerrar archivos
-*/
-
-// FAT
 
 void initialize_fat_list()
 {
     fat_list = list_create();
 
     // Primer bloque siempre debe ser 0
-    for (int i = 0; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    for (int i = 0; i < fs_config->block_total_count - fs_config->block_swap_count; i++)
     {
         list_add(fat_list, (uint32_t)0);
     }
@@ -34,7 +23,7 @@ void initialize_fat_list()
 
 int find_free_current_block()
 {
-    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    for (int i = 1; i < fs_config->block_total_count - fs_config->block_swap_count; i++)
     {
         if (list_get(fat_list, i) == 0 && i != 0)
         {
@@ -46,7 +35,7 @@ int find_free_current_block()
 
 int find_free_block(int current_block)
 {
-    for (int i = 1; i < fs_config.block_total_count - fs_config.block_swap_count; i++)
+    for (int i = 1; i < fs_config->block_total_count - fs_config->block_swap_count; i++)
     {
         if (list_get(fat_list, i) == 0)
         {
@@ -69,10 +58,10 @@ void set_end_of_file(int file_block)
 
 int assign_block_size(int file_size)
 {
-    FILE *file = fopen(fs_config.path_fat, "rb+");
+    FILE *file = fopen(fs_config->path_fat, "rb+");
     if (file == NULL)
     {
-        perror("Error al abrir/crear el archivo FAT");
+        log_error(utils->logger, "Error al abrir/crear el archivo FAT");
         return;
     }
 
@@ -137,10 +126,10 @@ int find_last_block(int initial_block)
 void add_blocks(int initial_block, int additional_blocks)
 {
 
-    // FILE *file = fopen(fs_config.path_fat, "rb+");
+    // FILE *file = fopen(fs_config->path_fat, "rb+");
     // if (file == NULL)
     // {
-    //     perror("Error al abrir/crear el archivo FAT");
+    //     log_error(utils->logger, "Error al abrir/crear el archivo FAT");
     //     return;
     // }
 
@@ -198,7 +187,6 @@ t_list *recorrer_blocks(int initial_block)
 // TODO: USAR MMAP
 void free_blocks(int initial_block, int blocks_needed)
 {
-    // descartando desde el final del archivo hacia el principio).
     t_list *blocks = recorrer_blocks(initial_block);
 
     for (int i = list_size(blocks) - 1; i > blocks_needed; i--)
@@ -214,14 +202,13 @@ void free_blocks(int initial_block, int blocks_needed)
 
 void create_fat_file()
 {
-    int block_total = fs_config.block_total_count;
-    int block_swap = fs_config.block_swap_count;
+    int block_total = fs_config->block_total_count;
+    int block_swap = fs_config->block_swap_count;
 
-    // Size en bytes
     size_t fat_size = (block_total - block_swap) * sizeof(uint32_t);
 
     // malloc?
-    char *path = fs_config.path_fat;
+    char *path = fs_config->path_fat;
 
     fd_fat = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_fat == -1)
@@ -270,14 +257,14 @@ SWAP + BLOQUES FAT
 
 void create_block_file()
 {
-    int block_total = fs_config.block_total_count;
-    int block_swap = fs_config.block_swap_count;
-    int block_size = fs_config.block_size;
+    int block_total = fs_config->block_total_count;
+    int block_swap = fs_config->block_swap_count;
+    int block_size = fs_config->block_size;
 
     // Size en bytes
     size_t block_file_size = block_total * block_size;
 
-    char *path = fs_config.path_block;
+    char *path = fs_config->path_block;
 
     fd_block = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_block == -1)
@@ -298,28 +285,20 @@ void create_block_file()
         exit(1);
     }
 
-    // Ver con que rellenar
     memset(block_map, '0', block_file_size);
     msync(block_map, block_file_size, MS_SYNC);
 
     log_info(utils->logger, "Archivo de bloques creado con éxito");
 }
 
-// Puedes utilizar el mismo block_map para gestionar el estado de los bloques de SWAP.
-// Al iniciar el proceso, podrías reservar un rango específico de bloques en block_map
-// para la SWAP (por ejemplo, los primeros bloques después de la partición de FAT).
-// Al reservar un bloque, actualizarías el estado de ese bloque tanto en la lista especial
-// como en block_map.
-// Al finalizar un proceso, marcarías los bloques de SWAP como libres tanto en la lista como
-// en block_map.
 int find_free_swap_block()
 {
-    for (int i = 0; i < fs_config.block_swap_count; i++)
+    for (int i = 0; i < fs_config->block_swap_count; i++)
     {
-        char *block = (char *)(block_map + i * fs_config.block_size);
+        char *block = (char *)(block_map + i * fs_config->block_size);
 
         int is_free = 1;
-        for (int j = 0; j < fs_config.block_size; j++)
+        for (int j = 0; j < fs_config->block_size; j++)
         {
             if (block[j] != '0')
             {
@@ -341,7 +320,7 @@ t_list *reserve_swap_blocks(int blocks_count)
 {
     t_list *blocks_swap = list_create();
 
-    if (blocks_count > fs_config.block_swap_count)
+    if (blocks_count > fs_config->block_swap_count)
     {
         log_debug(utils->logger, "No hay tantos bloques en SWAP");
         return NULL;
@@ -358,8 +337,8 @@ t_list *reserve_swap_blocks(int blocks_count)
             break;
         }
 
-        char *block_data = (char *)(block_map + block * fs_config.block_size);
-        memset(block_data, '\0', fs_config.block_size);
+        char *block_data = (char *)(block_map + block * fs_config->block_size);
+        memset(block_data, '\0', fs_config->block_size);
 
         list_add(blocks_swap, block);
     }
@@ -379,21 +358,21 @@ void free_swap_blocks(t_list *blocks_to_release)
     {
         int block_index = *(int *)list_get(blocks_to_release, i);
 
-        if (block_index < 0 || block_index >= fs_config.block_swap_count)
+        if (block_index < 0 || block_index >= fs_config->block_swap_count)
         {
             log_debug(utils->logger, "FREE - Índice de bloque no válido: %d", block_index);
             continue;
         }
 
-        char *block_data = (char *)(block_map + block_index * fs_config.block_size);
-        memset(block_data, '0', fs_config.block_size);
+        char *block_data = (char *)(block_map + block_index * fs_config->block_size);
+        memset(block_data, '0', fs_config->block_size);
         log_debug(utils->logger, "Bloque ocupado de swap %d - Pasa a '0'", block_index);
     }
 }
 
 void write_to_swap_block(int block_index, void *data)
 {
-    if (block_index < 0 || block_index >= fs_config.block_swap_count)
+    if (block_index < 0 || block_index >= fs_config->block_swap_count)
     {
         log_debug(utils->logger, "WRITE - Índice de bloque no válido: %d", block_index);
         return;
@@ -405,38 +384,37 @@ void write_to_swap_block(int block_index, void *data)
         return;
     }
 
-    void *block = block_map + block_index * fs_config.block_size;
+    void *block = block_map + block_index * fs_config->block_size;
 
     size_t data_length = strlen(data);
-    size_t format_length = (data_length < fs_config.block_size) ? data_length : fs_config.block_size;
+    size_t format_length = (data_length < fs_config->block_size) ? data_length : fs_config->block_size;
 
     memcpy(block, data, format_length);
 
     // rellenar bloque con \0 - hace falta?
-    if (format_length < fs_config.block_size)
+    if (format_length < fs_config->block_size)
     {
-        memset(block + format_length, '\0', fs_config.block_size - format_length);
+        memset(block + format_length, '\0', fs_config->block_size - format_length);
     }
 
-    // mem_hexdump(block_map, fs_config.block_total_count);
+    // mem_hexdump(block_map, fs_config->block_total_count);
 
     log_debug(utils->logger, "Datos escritos en el bloque %d de la swap", block_index);
 }
 
 void *read_from_swap_block(int block_index)
 {
-    if (block_index < 0 || block_index >= fs_config.block_swap_count)
+    if (block_index < 0 || block_index >= fs_config->block_swap_count)
     {
         log_debug(utils->logger, "READ - Índice de bloque no válido: %d\n", block_index);
         return;
     }
 
-    void *buffer = malloc(fs_config.block_size);
+    void *buffer = malloc(fs_config->block_size);
 
-    void *block = block_map + block_index * fs_config.block_size;
+    void *block = block_map + block_index * fs_config->block_size;
 
-    // Leo el bloque entero
-    memcpy(buffer, block, fs_config.block_size);
+    memcpy(buffer, block, fs_config->block_size);
 
     log_debug(utils->logger, "Datos leídos desde el bloque %d de la swap: %s", block_index, (char *)buffer);
 
@@ -444,6 +422,78 @@ void *read_from_swap_block(int block_index)
 }
 
 // BLOQUES FAT - INFO ARCHIVOS
+
+void *read_file(char *file_name, int seek)
+{
+    void *data = malloc(fs_config->block_size);
+    t_fcb *fcb = find_fcb_file(file_name);
+    if (fcb == NULL)
+    {
+        log_error(utils->logger, "No existe el fcb con %s", file_name);
+        free(data);
+        return NULL;
+    }
+
+    log_debug(utils->logger, "FCB encontrado: %s", fcb->file_name);
+
+    int block_to_read = floor(seek / fs_config->block_size);
+    log_debug(utils->logger, "BLOCK TO READ %d", block_to_read);
+
+    uint32_t fat_block = fcb->initial_block;
+    uint32_t index_fat;
+
+    for (int i = 0; i < block_to_read; i++)
+    {
+        if (fat_block == UINT32_MAX)
+        {
+            log_error(utils->logger, "Se llego a un EOF");
+            free(data);
+            return NULL;
+        }
+
+        index_fat = fat_block;
+        fat_block = (uint32_t)list_get(fat_list, index_fat);
+    }
+
+    log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
+
+    void *data_to_read = block_map + fs_config->block_swap_count + (block_to_read * fs_config->block_size);
+    memcpy(data, data_to_read, fs_config->block_size);
+
+    return data;
+}
+
+void write_file(char *file_name, int seek, void *data)
+{
+    t_fcb *fcb = find_fcb_file(file_name);
+    if (fcb == NULL)
+    {
+        log_error(utils->logger, "No existe el fcb con %s", file_name);
+        return NULL;
+    }
+
+    uint32_t block_to_write = floor(seek / fs_config->block_size);
+
+    uint32_t fat_block = fcb->initial_block;
+    uint32_t index_fat;
+
+    for (int i = 0; i < block_to_write; i++)
+    {
+        if (fat_block == UINT32_MAX)
+        {
+            log_error(utils->logger, "Se llego a un EOF");
+            return NULL;
+        }
+
+        index_fat = fat_block;
+        fat_block = (uint32_t)list_get(fat_list, index_fat);
+    }
+
+    log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
+
+    void *data_to_write = block_map + fs_config->block_swap_count + (block_to_write * fs_config->block_size);
+    memcpy(data_to_write, data, fs_config->block_size);
+}
 
 // INIT
 
@@ -458,7 +508,8 @@ void destroy_fs()
 {
     list_destroy(fat_list);
 
-    munmap(block_map, fs_config.block_size * fs_config.block_total_count);
+    munmap(block_map, fs_config->block_size * fs_config->block_total_count);
+    munmap(fat_data, (fs_config->block_total_count - fs_config->block_swap_count) * sizeof(uint32_t));
 
     close(fd_block);
     close(fd_fat);

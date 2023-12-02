@@ -1,12 +1,12 @@
 #include "fcb.h"
 
 extern t_utils *utils;
-extern t_fs_config fs_config;
+extern t_fs_config *fs_config;
 extern t_list *fcbs;
 
 void create_fcb_file(char *file_name)
 {
-    char *full_path = string_from_format("%s/%s.fcb", fs_config.path_fcb, file_name);
+    char *full_path = string_from_format("%s/%s.fcb", fs_config->path_fcb, file_name);
 
     // Declaro struct de FCB para la lista
     t_fcb *fcb_struct = malloc(sizeof(t_fcb));
@@ -78,7 +78,7 @@ t_fcb *find_fcb_file(char *file_name)
 void update_fcb(t_fcb *fcb)
 {
 
-    char *full_path = string_from_format("%s/%s.fcb", fs_config.path_fcb, fcb->file_name);
+    char *full_path = string_from_format("%s/%s.fcb", fs_config->path_fcb, fcb->file_name);
     int fd = open(full_path, O_RDWR);
 
     if (fd != -1)
