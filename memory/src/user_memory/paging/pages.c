@@ -71,26 +71,6 @@ t_page_entry *get_page(uint32_t pid, int page_number)
 	return list_get(page_table->pages, page_number);
 }
 
-t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
-{
-	t_page_entry *page = get_page(pid, page_number);
-
-	if (page == NULL)
-		return NULL;
-
-	if (page->bit_precense == 1)
-		log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page->page_number, page->frame_number);
-
-	pthread_mutex_lock(&page_reference);
-	last_page_referenced = page;
-	pthread_mutex_unlock(&page_reference);
-
-	sem_post(&sort_pages);
-	usleep(memory_config.time_delay * 1000);
-
-	return page;
-}
-
 void send_page_fault(int socket, t_log *logger)
 {
 	t_package *package = create_integer_package(PAGE_FAULT_COMMAND, 0);

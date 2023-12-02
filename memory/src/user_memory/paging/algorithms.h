@@ -3,7 +3,7 @@
 
 #include <user_memory/paging/pages.h>
 #include <initial_configuration/memory_config.h>
-#include <user_memory/page_entry.h>
+//#include <user_memory/page_entry.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <semaphore.h>

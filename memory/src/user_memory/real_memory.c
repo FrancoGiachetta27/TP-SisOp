@@ -14,6 +14,26 @@ static void init_frame_table(void *user_space)
     real_memory.frame_table = frame_table;
 }
 
+t_page_entry *reference_page(uint32_t pid, int page_number, t_log *logger)
+{
+	t_page_entry *page = get_page(pid, page_number);
+
+	if (page == NULL)
+		return NULL;
+
+	if (page->bit_precense == 1)
+		log_info(logger, "PID: %d - Pagina: %d - Marco: %d", page->pid, page->page_number, page->frame_number);
+
+	pthread_mutex_lock(&page_reference);
+	last_page_referenced = page;
+	pthread_mutex_unlock(&page_reference);
+
+	sem_post(&sort_pages);
+	usleep(memory_config.time_delay * 1000);
+
+	return page;
+}
+
 static void load_page_in_free_space(t_page_entry *page_referenced, int free_frame, void *page_data, t_log *logger)
 {
     swap_in(page_referenced, free_frame, page_data, logger);
