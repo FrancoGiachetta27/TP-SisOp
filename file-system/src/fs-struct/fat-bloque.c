@@ -342,7 +342,7 @@ t_list *reserve_swap_blocks(int blocks_count)
         }
 
         char *block_data = (char *)(block_map + block * fs_config->block_size);
-        memset(block_data, '1', fs_config->block_size);
+        memset(block_data, '\0', fs_config->block_size);
 
         list_add(blocks_swap, block);
     }
@@ -398,7 +398,7 @@ void write_to_swap_block(int block_index, void *data)
     // rellenar bloque con \0 - hace falta?
     if (format_length < fs_config->block_size)
     {
-        memset(block + format_length, '1', fs_config->block_size - format_length);
+        memset(block + format_length, '\0', fs_config->block_size - format_length);
     }
 
     // mem_hexdump(block_map, fs_config->block_total_count);

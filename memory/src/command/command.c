@@ -104,7 +104,7 @@ void *wait_for_command(t_thread *thread_info)
         case MOV_OUT_FS:
             t_mov_out_fs *mov_out_page_fs = receive_page_for_mov_out_fs(thread_info->port, thread_info->logger);
             page = reference_page(mov_out_page_fs->pid, mov_out_page_fs->page_number, thread_info->logger);
-            int address3 = page->frame_number * memory_config.page_size + mov_out_page_fs->displacement;
+            int address3 = page->frame_number * memory_config.page_size;
             page->bit_modified = 1;
             write_on_frame(address3, mov_out_page_fs->size, &mov_out_page_fs->register_value);
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address3);
@@ -116,7 +116,7 @@ void *wait_for_command(t_thread *thread_info)
         case MOV_IN_FS:
             received_page_mov_in = receive_page(thread_info->port, thread_info->logger);
             page_mov_in = reference_page(received_page_mov_in->pid, received_page_mov_in->page_number, thread_info->logger);
-            int address4 = page_mov_in->frame_number * memory_config.page_size + received_page_mov_in->displacement;
+            int address4 = page_mov_in->frame_number * memory_config.page_size;
             void *value_in_frame2 = read_frame(address4, memory_config.page_size);
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page_mov_in->pid, address4);
             t_package *result_package4 = create_void_package(MOV_IN_FS, memory_config.page_size, value_in_frame2);

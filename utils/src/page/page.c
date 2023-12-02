@@ -17,7 +17,7 @@ static int size_of_page_for_swap(int content_size)
 
 static int size_of_page_for_mov_out_fs(int content_size)
 {
-	return 3 * sizeof(int) + content_size + sizeof(uint32_t) * 2;
+	return 3 * sizeof(int) + content_size + sizeof(uint32_t);
 }
 
 t_pag *page_new(uint32_t pid, int page_number, int displacement)
@@ -209,6 +209,11 @@ void send_page_for_mov_out_fs(int op_code, t_mov_out_fs *page, int client_socket
 	t_package *package = create_empty_package(op_code);
 	package->size = size_of_page_for_mov_out_fs(page->size);
 	package->buffer = serialize_page_for_mov_out_fs(page);
+
+	log_debug(logger, "PACKAGE: %p");
+	log_debug(logger, "SIZE: %d", package->size);
+	log_debug(logger, "PACKAGE: %p", package->buffer);
+
 	send_package(package, client_socket, logger);
 }
 

@@ -122,11 +122,12 @@ void *wait_for_commands(t_thread *thread_info)
 				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
 			seek_data = list_find(pcb->open_files, _find_filename);
-			data = read_file(seek_data->file, seek_data->seek);
-			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data, fs_config->block_size);
+			void *data2 = read_file(seek_data->file, seek_data->seek);
+			log_debug(thread_info->logger, "Data leida: %d", *(uint32_t*)data2);
+			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data2, fs_config->block_size);
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
-			free(data);
+			free(data2);
 			free(mov_out->register_value);
 			free(mov_out);
 			break;
