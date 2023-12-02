@@ -87,6 +87,7 @@ void write_on_frame(int real_address, size_t size, void *data)
     memcpy(real_memory.frames + real_address, data, size);
     pthread_mutex_unlock(&mtx_frame_access);
     usleep(memory_config.time_delay * 1000);
+    free(data);
 }
 
 void init_real_memory(void)
@@ -99,12 +100,12 @@ void init_real_memory(void)
 
 void free_memory(t_log* logger)
 {
-    list_destroy_and_destroy_elements(active_processes, (void *)deallocate_porcess);
-    list_destroy_and_destroy_elements(pages_to_replace, (void *)destroy_page);
-    destroy_page_tables(logger);
-    free(real_memory.frames);
-    bitarray_destroy(real_memory.frame_table);
-
     working = 0;
     sem_post(&sort_pages);
+    // list_destroy_and_destroy_elements(pages_to_replace, (void *)destroy_page_entry);
+    destroy_page_tables(logger);
+    list_destroy_and_destroy_elements(active_processes, (void *)deallocate_process);
+    free(real_memory.frames);
+    bitarray_destroy(real_memory.frame_table);
+    list_destroy(pages_to_replace);
 }

@@ -97,6 +97,7 @@ t_pag* deserialize_page(void* buffer) {
 	offset += sizeof(int);
 	memcpy(&page->pid, buffer + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
+	free(buffer);
 	return page;
 }
 
@@ -111,6 +112,7 @@ static t_mov_out* deserialize_page_for_mov_out(void* buffer) {
 	offset += sizeof(uint32_t);
 	memcpy(&page->register_value, buffer + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
+	free(buffer);
 	return page;
 }
 
@@ -123,6 +125,7 @@ static t_pag_swap* deserialize_page_for_swap(void* buffer) {
 	offset += sizeof(int);
 	memcpy(page->page_content, buffer + offset, page->page_info_size);
 	offset += page->page_info_size;
+	free(buffer);
 	return page;
 }
 

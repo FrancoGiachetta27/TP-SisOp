@@ -38,9 +38,11 @@ void page_table_create(t_pcb *pcb, t_list *swap_blocks, t_log *logger)
 
 	for (int i = 0; i < total_pages; i++)
 	{
-		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, *(int *)list_get(swap_blocks, i)));
+		int* swap_block_ptr = (int *)list_get(swap_blocks, i);
+		list_add(page_table->pages, page_create(pcb->pid, 0, 0, 0, i, *swap_block_ptr));
+		free(swap_block_ptr);
 	}
-
+	list_destroy(swap_blocks);
 	list_add(page_tables, page_table);
 
 	log_info(logger, "PID: %d - Tamaño: %d", pcb->pid, total_pages);
@@ -104,4 +106,11 @@ void destroy_page_table(t_page_table *page_table, t_log* logger)
 	log_info(logger, "PID: %d - Tamaño: %d", page_table->process_pid, list_size(page_table->pages));
 	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page_entry);
 	free(page_table);
+}
+
+void destroy_page_tables(t_log* logger) {
+    for(int i = 0; i < list_size(page_tables); i++) {
+        destroy_page_table(list_get(page_tables, i), logger);
+    }
+	list_destroy(page_tables);
 }

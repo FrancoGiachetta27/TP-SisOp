@@ -76,7 +76,7 @@ t_list *deserialize_list(void *serialized_data)
 		list_add(result, block_index_ptr);
 		offset += sizeof(int);
 	}
-
+	free(serialized_data);
 	return result;
 }
 

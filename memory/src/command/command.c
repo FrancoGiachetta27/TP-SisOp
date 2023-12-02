@@ -87,15 +87,16 @@ void *wait_for_command(t_thread *thread_info)
                 received_page = receive_page(thread_info->port, thread_info->logger);
                 page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
                 int address2 = page->frame_number * memory_config.page_size + received_page->displacement;
-                uint32_t value_in_frame = *(uint32_t *)read_frame(address2, sizeof(uint32_t));
+                uint32_t* value_in_frame = (uint32_t *)read_frame(address2, sizeof(uint32_t));
                 log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address2);
-                t_package *result_package2 = create_uint32_package(MOV_IN, value_in_frame);
+                t_package *result_package2 = create_uint32_package(MOV_IN, *value_in_frame);
                 send_package(result_package2, thread_info->port, thread_info->logger);
+                free(value_in_frame);
                 destroy_page(received_page);
                 break;
             case END_PROCESS:
                 t_pcb *pcb_create = receive_pcb(thread_info->port, thread_info->logger);
-                deallocate_porcess(
+                deallocate_process(
                     pcb_create->pid, 
                     thread_info->conn->socket_filesystem, 
                     thread_info->logger
@@ -116,7 +117,6 @@ void *wait_for_command(t_thread *thread_info)
             return NULL;
         };
     }
-    destroy_page_entry(page);
     free(thread_info->dict_key);
     free(thread_info);
     sem_post(&wait);

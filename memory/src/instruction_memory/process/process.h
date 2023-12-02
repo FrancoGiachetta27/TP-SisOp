@@ -17,7 +17,7 @@ typedef struct
 
 int create_process(t_log *logger, t_pcb *pcb, t_list *swap_blocks);
 t_process *search_process(int pid);
-void deallocate_porcess(uint32_t pid, int fs_socket, t_log *logger);
+void deallocate_process(uint32_t pid, int fs_socket, t_log *logger);
 
 extern t_list *active_processes;
 

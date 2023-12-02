@@ -14,9 +14,10 @@ static bool page_has_been_referenced(t_page_entry *page)
 
 void sort_pages_by_fifo(void)
 {
-	while (working)
+	while (1)
 	{
 		sem_wait(&sort_pages);
+		if (!working) return;
 		pthread_mutex_lock(&mtx_select_page);
 		if (last_page_referenced->bit_precense != 1)
 		{
@@ -28,9 +29,10 @@ void sort_pages_by_fifo(void)
 
 void sort_pages_by_lru(void)
 {
-	while (working)
+	while (1)
 	{
 		sem_wait(&sort_pages);
+		if (!working) return;
 		pthread_mutex_lock(&mtx_select_page);
 		if(list_size(pages_to_replace) != 1) 
 		{

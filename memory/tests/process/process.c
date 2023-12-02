@@ -47,17 +47,17 @@
 
 //             pid = 2;
 //             t_process* process = search_process(pid);
-//             deallocate_porcess(process->pid);
+//             deallocate_process(process->pid);
 //             should_ptr(search_process(process->pid)) be null;
 
 //             pid = 3;
 //             process = search_process(pid);
-//             deallocate_porcess(process->pid);
+//             deallocate_process(process->pid);
 //             should_ptr(search_process(process->pid)) be null;
 
 //             pid = 4;
 //             process = search_process(pid);
-//             deallocate_porcess(process->pid);
+//             deallocate_process(process->pid);
 //             should_ptr(search_process(process->pid)) be null;
 //         }end
 //     }end

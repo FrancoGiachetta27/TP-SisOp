@@ -4,7 +4,7 @@ t_list *get_instructions_from_file(t_log *logger, char *file_path)
 {
     string_trim(&file_path);
     FILE *pseudo_code_file = fopen(file_path, "r");
-
+    free(file_path);
     if (pseudo_code_file == NULL)
     {
         log_error(logger, "Error al leer el archivo pseudo codigo");
