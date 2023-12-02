@@ -185,12 +185,10 @@ void close_lock(t_pcb* pcb, t_open_file* file, t_lock* lock) {
         {
             sem_post(&file->write_locked);
         }
+		file->quantity_blocked = 0;
         pthread_mutex_lock(&open_files_global_table_mutex);
         list_remove(file->locks, 0);
         pthread_mutex_unlock(&open_files_global_table_mutex);
-        if (lock->is_blocked) {
-            sem_destroy(&lock->locked);
-        }
         list_destroy(lock->participants);
         free(lock);
     } else {
@@ -206,16 +204,6 @@ void close_lock(t_pcb* pcb, t_open_file* file, t_lock* lock) {
             free(lock);
         }
     }
-    
-    pthread_mutex_lock(&open_files_global_table_mutex);
-    if (file->locks->elements_count != 0) {
-        t_lock* lock = list_get(file->locks, 0);
-        pthread_mutex_unlock(&open_files_global_table_mutex);
-        if (lock->is_write_lock && lock->is_blocked) {
-            sem_post(&lock->locked);
-        }
-    }
-    pthread_mutex_unlock(&open_files_global_table_mutex);
 }
 
 void eliminar_proceso(t_pcb* pcb, int socket, t_log* logger) {

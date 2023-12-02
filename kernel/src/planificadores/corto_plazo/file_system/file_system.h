@@ -12,7 +12,7 @@ typedef struct {
 typedef struct {
     t_pcb* pcb;
     t_log* logger;
-    t_lock* lock;
+    t_open_file* open_file;
 } t_wait_for_write_lock;
 
 typedef struct {

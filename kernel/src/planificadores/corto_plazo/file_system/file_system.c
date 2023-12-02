@@ -53,7 +53,8 @@ void* treat_wait_for_read_lock(t_wait_for_read_lock* interrupted_info) {
 }
 
 void* treat_wait_for_write_lock(t_wait_for_write_lock* interrupted_info) {
-    sem_wait(&interrupted_info->lock->locked);
+    interrupted_info->open_file->quantity_blocked++;
+    sem_wait(&interrupted_info->open_file->write_locked);
     sem_wait(&grd_mult);
     log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
@@ -124,20 +125,17 @@ void f_open(t_pcb* pcb, int fs_socket, t_log* logger) {
     } else if (strcmp(open_data->open_mode, "W") == 0) {
         t_lock* lock = create_lock(pcb, true);
         if (file->locks->elements_count != 0) {
-            lock->is_blocked = true;
-            sem_init(&lock->locked, 0, 0);
             pcb->estado = BLOCKED;
             log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, EXEC, BLOCKED);
             pthread_t wait_process_for_start_lock;
             t_wait_for_write_lock* interrupted_info = malloc(sizeof(*interrupted_info));
             interrupted_info->pcb = pcb;
             interrupted_info->logger = logger;
-            interrupted_info->lock = lock;
+            interrupted_info->open_file = file;
             pthread_create(&wait_process_for_start_lock, NULL, (void*)treat_wait_for_write_lock, interrupted_info);
             pthread_detach(wait_process_for_start_lock);
             sem_post(&proceso_en_cola_ready);
         } else {
-            lock->is_blocked = false;
             pthread_mutex_lock(&open_files_global_table_mutex);
             list_add(file->locks, lock);
             pthread_mutex_unlock(&open_files_global_table_mutex);

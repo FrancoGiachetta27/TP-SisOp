@@ -26,8 +26,6 @@ typedef struct {
 
 typedef struct {
     bool is_write_lock;
-    bool is_blocked;
-    sem_t locked;
     t_list* participants;
 } t_lock;
 
