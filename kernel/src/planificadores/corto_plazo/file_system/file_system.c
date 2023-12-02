@@ -16,17 +16,16 @@ t_lock* add_read_lock(t_open_file *file, t_pcb *pcb, bool is_blocked)
     {
         return lock->is_write_lock == false;
     };
+    pthread_mutex_lock(&open_files_global_table_mutex);
     t_lock *read_lock = list_find(file->locks, _is_read_lock);
     if (read_lock == NULL)
     {
         read_lock = create_lock(pcb, false);
-        pthread_mutex_lock(&open_files_global_table_mutex);
         list_add(file->locks, read_lock);
         pthread_mutex_unlock(&open_files_global_table_mutex);
     }
     else
     {
-        pthread_mutex_lock(&open_files_global_table_mutex);
         list_add(read_lock->participants, pcb->pid);
         pthread_mutex_unlock(&open_files_global_table_mutex);
     }
