@@ -69,6 +69,12 @@ void destroy_page_for_mov_out(t_mov_out *page)
 	free(page);
 }
 
+void destroy_page_for_mov_out_fs(t_mov_out_fs *page)
+{
+	free(page->register_value);
+	free(page);
+}
+
 static void destroy_page_for_swap(t_pag_swap *page)
 {
 	free(page->page_content);
@@ -90,7 +96,7 @@ static void *serialize_page_for_mov_out(t_mov_out *page)
 	return buffer;
 }
 
-static void *serialize_page_for_mov_out_fs(t_mov_out_fs *page)
+void *serialize_page_for_mov_out_fs(t_mov_out_fs *page)
 {
 	void *buffer = malloc(size_of_page_for_mov_out_fs(page->size));
 	int offset = 0;
@@ -102,7 +108,7 @@ static void *serialize_page_for_mov_out_fs(t_mov_out_fs *page)
 	offset += sizeof(uint32_t);
 	memcpy(buffer + offset, &page->size, sizeof(int));
 	offset += sizeof(int);
-	memcpy(buffer + offset, &page->register_value, page->size);
+	memcpy(buffer + offset, page->register_value, page->size);
 	offset += page->size;
 
 	return buffer;
@@ -121,7 +127,7 @@ void *serialize_page(t_pag *page)
 	return buffer;
 }
 
-static void *serialize_page_for_swap(t_pag_swap *page)
+void *serialize_page_for_swap(t_pag_swap *page)
 {
 	void *buffer = malloc(size_of_page_for_swap(page->page_info_size));
 	int offset = 0;
@@ -164,7 +170,7 @@ static t_mov_out *deserialize_page_for_mov_out(void *buffer)
 	return page;
 }
 
-static t_mov_out_fs *deserialize_page_for_mov_out_fs(void *buffer)
+t_mov_out_fs *deserialize_page_for_mov_out_fs(void *buffer)
 {
 	t_mov_out_fs *page = malloc(sizeof(*page));
 	int offset = 0;
@@ -176,13 +182,14 @@ static t_mov_out_fs *deserialize_page_for_mov_out_fs(void *buffer)
 	offset += sizeof(uint32_t);
 	memcpy(&page->size, buffer + offset, sizeof(int));
 	offset += sizeof(int);
-	memcpy(&page->register_value, buffer + offset, page->size);
+	page->register_value = malloc(page->size);
+	memcpy(page->register_value, buffer + offset, page->size);
 	offset += page->size;
 	free(buffer);
 	return page;
 }
 
-static t_pag_swap *deserialize_page_for_swap(void *buffer)
+t_pag_swap *deserialize_page_for_swap(void *buffer)
 {
 	t_pag_swap *page = malloc(sizeof(*page));
 	int offset = 0;
@@ -190,6 +197,7 @@ static t_pag_swap *deserialize_page_for_swap(void *buffer)
 	offset += sizeof(int);
 	memcpy(&page->page_info_size, buffer + offset, sizeof(int));
 	offset += sizeof(int);
+	page->page_content = malloc(page->page_info_size);
 	memcpy(page->page_content, buffer + offset, page->page_info_size);
 	offset += page->page_info_size;
 	free(buffer);
@@ -209,11 +217,6 @@ void send_page_for_mov_out_fs(int op_code, t_mov_out_fs *page, int client_socket
 	t_package *package = create_empty_package(op_code);
 	package->size = size_of_page_for_mov_out_fs(page->size);
 	package->buffer = serialize_page_for_mov_out_fs(page);
-
-	log_debug(logger, "PACKAGE: %p");
-	log_debug(logger, "SIZE: %d", package->size);
-	log_debug(logger, "PACKAGE: %p", package->buffer);
-
 	send_package(package, client_socket, logger);
 }
 

@@ -128,8 +128,7 @@ void *wait_for_commands(t_thread *thread_info)
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
 			free(data2);
-			free(mov_out->register_value);
-			free(mov_out);
+			destroy_page_for_mov_out_fs(mov_out);
 			break;
 
 		case MOV_OUT_FS:

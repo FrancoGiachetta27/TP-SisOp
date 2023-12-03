@@ -92,9 +92,11 @@ void load_page(uint32_t pid, int page_number, int fs_socket, void *page_data, t_
     result.available
         ? load_page_in_free_space(page, result.frame_number, page_data, logger)
         : page_replace(page, fs_socket, page_data, logger);
+    
+    free(page_data);
 }
 
-void *read_frame(int real_address, size_t size)
+void *read_frame(int real_address, int size)
 {
     void *data = malloc(size);
 
@@ -106,7 +108,7 @@ void *read_frame(int real_address, size_t size)
     return data;
 }
 
-void write_on_frame(int real_address, size_t size, void *data)
+void write_on_frame(int real_address, int size, void *data)
 {
     pthread_mutex_lock(&mtx_frame_access);
     memcpy(real_memory.frames + real_address, data, size);
