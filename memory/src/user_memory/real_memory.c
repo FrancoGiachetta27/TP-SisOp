@@ -5,10 +5,10 @@ t_user_space real_memory;
 
 static void init_frame_table(void *user_space)
 {
-    int total_frames = memory_config.memory_size / memory_config.page_size;
-    void *frames = malloc(total_frames / 8);
-    t_bitarray *frame_table = bitarray_create_with_mode(frames, total_frames / 8, LSB_FIRST);
-    free(frames);
+    int total_frames = memory_config.memory_size / memory_config.page_size; 
+    char *frames = string_repeat('0', total_frames);
+
+    t_bitarray *frame_table = bitarray_create_with_mode(frames, sizeof(frames), LSB_FIRST);
 
     real_memory.frames = user_space;
     real_memory.frame_table = frame_table;
@@ -43,8 +43,18 @@ static void load_page_in_free_space(t_page_entry *page_referenced, int free_fram
 static void page_replace(t_page_entry *page_referenced, int fs_socket, void *page_data, t_log *logger)
 {
     pthread_mutex_lock(&mtx_select_page);
-    t_page_entry *victim = (t_page_entry *)list_get(pages_to_replace, 0);
+    t_page_entry *victim = (t_page_entry *)list_remove(pages_to_replace, 0);
     pthread_mutex_unlock(&mtx_select_page);
+
+    log_debug(logger, "LIST-SIZE: %d");
+
+    log_debug(logger, "VICTIM: PID<%d>, FRAME<%d>, PAGE-NUM<%d, BIT-M<%d>, BIT-P<%d>, SWAP<%d>", 
+        victim->pid, 
+        victim->frame_number, 
+        victim->page_number, 
+        victim->bit_modified, 
+        victim->bit_precense, 
+        victim->swap_position);
 
     swap_out(victim, fs_socket, logger);
     swap_in(page_referenced, victim->frame_number, page_data, logger);
@@ -60,15 +70,17 @@ static void page_replace(t_page_entry *page_referenced, int fs_socket, void *pag
 
 t_frame_search check_available_frames(void)
 {
-    off_t i = 0;
-
+    int i = 0;
+    int frame_table_length = memory_config.memory_size / memory_config.page_size;
+    
     while (bitarray_test_bit(real_memory.frame_table, i))
     {
-        if (i > bitarray_get_max_bit(real_memory.frame_table))
+        if (i == frame_table_length)
         {
-            t_frame_search result = {.available = false};
+            t_frame_search result = {.available = false, .frame_number = 0};
             return result;
         }
+        
         i++;
     }
 
@@ -92,7 +104,7 @@ void load_page(uint32_t pid, int page_number, int fs_socket, void *page_data, t_
     result.available
         ? load_page_in_free_space(page, result.frame_number, page_data, logger)
         : page_replace(page, fs_socket, page_data, logger);
-    
+
     free(page_data);
 }
 

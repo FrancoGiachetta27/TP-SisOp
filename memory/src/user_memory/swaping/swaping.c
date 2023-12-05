@@ -14,6 +14,9 @@ static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
 
     page_to_swap = page_for_swap(page->swap_position, memory_config.page_size, page_content);
     send_page_for_swap(UPDATE_SWAP, page_to_swap, fs_socket, logger);
+
+    int opcode = receive_op_code(fs_socket, logger);
+
     int *buffer = (int *)receive_buffer(fs_socket, logger);
 
     if (*buffer != 0)
@@ -51,7 +54,7 @@ void swap_in(t_page_entry *page_referenced, int frame_number, void *page_data, t
     page_referenced->frame_number = frame_number;
     page_referenced->bit_precense = 1;
 
-    write_on_frame(frame_position, (size_t)memory_config.page_size, page_data);
+    write_on_frame(frame_position, memory_config.page_size, page_data);
 
     log_info(logger, "SWAP IN -  PID: %d - Marco: %d - Page In: %d-%d",
              page_referenced->pid,
@@ -74,6 +77,4 @@ void swap_out(t_page_entry *victim, int fs_socket, t_log *logger)
     }
     victim->bit_precense = 0;
     victim->bit_modified = 0;
-
-    remove_from_victims(victim);
 }

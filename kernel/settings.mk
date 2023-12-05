@@ -10,7 +10,7 @@ CDEBUG=-g -Wall -DDEBUG -fcommon -fdiagnostics-color=always
 CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 
 # Arguments when executing with start, memcheck or helgrind
-ARGS=./config/filesystem.config -lreadline
+ARGS=./config/memoria.config -lreadline
 
 # Valgrind flags
 MEMCHECK_FLAGS=--track-origins=yes --leak-check=full -s

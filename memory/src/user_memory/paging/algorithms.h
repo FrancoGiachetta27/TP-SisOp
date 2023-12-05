@@ -11,7 +11,6 @@
 pthread_mutex_t mtx_select_page;
 extern int working;
 
-void remove_from_victims(t_page_entry *victim);
 void sort_pages_by_fifo(void);
 void sort_pages_by_lru(void);
 void init_sorter_thread(void);

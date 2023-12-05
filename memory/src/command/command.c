@@ -48,7 +48,6 @@ void *wait_for_command(t_thread *thread_info)
         case GET_FROM_SWAP:
             void *page_data = receive_buffer(thread_info->port, thread_info->logger);
             load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
-            log_debug(thread_info->logger, "Cargo pagina swap");
             t_package *result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
             destroy_page(received_page);

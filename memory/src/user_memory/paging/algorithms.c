@@ -43,20 +43,6 @@ void sort_pages_by_lru(void)
 	}
 }
 
-void remove_from_victims(t_page_entry *victim)
-{
-	bool is_page(t_page_entry * page)
-	{
-		pthread_mutex_lock(&page_reference);
-		bool same_page_number = page->page_number == last_page_referenced->page_number;
-		bool same_pid = page->pid == last_page_referenced->pid;
-		pthread_mutex_unlock(&page_reference);
-
-		return same_pid && same_page_number;
-	};
-	list_remove_by_condition(pages_to_replace, (void *)is_page);
-}
-
 void init_sorter_thread(void)
 {
 	pthread_t page_replace_sorter_theard;
