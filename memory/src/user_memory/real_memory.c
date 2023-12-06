@@ -137,6 +137,7 @@ void free_memory(t_log *logger)
     destroy_page_tables(logger);
     list_destroy_and_destroy_elements(active_processes, (void *)deallocate_process);
     free(real_memory.frames);
+    free(real_memory.frame_table->bitarray);
     bitarray_destroy(real_memory.frame_table);
     list_destroy(pages_to_replace);
 }

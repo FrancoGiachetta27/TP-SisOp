@@ -45,7 +45,12 @@ int main(int argc, char *argv[])
 	wait_in_every_port(memory_socket, socket_kernel, utils->logger);
 
 	utils_destroy_with_connection(utils, memory_socket);
-	list_destroy(fcbs);
+	
+	void _destroy_fcbs(t_fcb* fcb) {
+		free(fcb->file_name);
+		free(fcb);
+	};
+	list_destroy_and_destroy_elements(fcbs, _destroy_fcbs);
 	destroy_fs();
 	destroy_fs_config(fs_config);
 

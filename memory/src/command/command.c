@@ -4,6 +4,7 @@ t_pcb *pcb_create;
 t_pag *received_page;
 t_page_entry *page;
 t_pag *received_page_mov_in;
+t_pag *received_page_load_page;
 t_page_entry *page_mov_in;
 sem_t wait;
 int size;
@@ -40,17 +41,17 @@ void *wait_for_command(t_thread *thread_info)
             destroy_pcb(pcb_create);
             break;
         case LOAD_PAGE:
-            received_page = receive_page(thread_info->port, thread_info->logger);
-            log_debug(thread_info->logger, "Se hace un page fault %d", received_page->page_number);
-            page = get_page(received_page->pid, received_page->page_number);
+            received_page_load_page = receive_page(thread_info->port, thread_info->logger);
+            log_debug(thread_info->logger, "Se hace un page fault %d", received_page_load_page->page_number);
+            page = get_page(received_page_load_page->pid, received_page_load_page->page_number);
             get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
             break;
         case GET_FROM_SWAP:
             void *page_data = receive_buffer(thread_info->port, thread_info->logger);
-            load_page(received_page->pid, received_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
+            load_page(received_page_load_page->pid, received_page_load_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
             t_package *result_package = create_integer_package(LOAD_PAGE, 0);
             send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
-            destroy_page(received_page);
+            destroy_page(received_page_load_page);
             break;
         case FREE_PAGES:
             int *ok = receive_buffer(thread_info->port, thread_info->logger);

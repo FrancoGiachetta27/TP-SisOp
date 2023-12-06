@@ -22,8 +22,8 @@ static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
     if (*buffer != 0)
     {
         log_error(logger, "Fail in response of page fault %d", *buffer);
-        free(buffer);
     }
+    free(buffer);
 }
 
 void free_swap_blocks(t_page_table *page_table, int fs_socket, t_log *logger)

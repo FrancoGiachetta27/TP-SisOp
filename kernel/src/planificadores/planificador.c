@@ -129,7 +129,6 @@ void execute_ready_process(t_pcb *pcb, t_log *logger)
 	estado_EXEC = pcb;
 	pthread_mutex_unlock(&mtx_execute_process);
 	sem_post(&executing_process);
-	sem_post(&grd_mult);
 }
 
 t_pcb *encontrar_proceso_por_PID(uint32_t pid)
@@ -292,6 +291,7 @@ void eliminar_proceso(t_pcb *pcb, int socket, t_log *logger)
 
 void send_to_exit(t_pcb *pcb, t_log *logger, int end_state)
 {
+	sem_post(&grd_mult);
 	pcb->estado = EXIT;
 	pcb->end_state = end_state;
 	pthread_mutex_lock(&cola_exit);

@@ -102,6 +102,7 @@ void *wait_for_commands(t_thread *thread_info)
 			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
 			package = create_integer_package(UPDATE_SWAP, 0);
 			send_package(package, thread_info->port, thread_info->logger);
+			destroy_page_for_swap(page_swap);
 			break;
 
 		// Recibo una lista o que de bloques a liberar - libero - devuelvo ok?

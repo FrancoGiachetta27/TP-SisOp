@@ -126,13 +126,13 @@ void load_FCBs_from_directory(char *directory_path)
             {
                 log_debug(utils->logger, "Archivo: %s", entry->d_name);
                 t_fcb *exist_fcb = malloc(sizeof(t_fcb));
-                t_config *fcb_config = create_config(string_from_format("%s/%s", directory_path, entry->d_name), utils->logger);
-
+                char* path = string_from_format("%s/%s", directory_path, entry->d_name);
+                t_config *fcb_config = create_config(path, utils->logger);
+                free(path);
                 exist_fcb->file_size = config_get_int_value(fcb_config, "TAMANIO_ARCHIVO");
                 exist_fcb->initial_block = config_get_int_value(fcb_config, "BLOQUE_INICIAL");
                 char *file_name = config_get_string_value(fcb_config, "NOMBRE_ARCHIVO");
-                exist_fcb->file_name = malloc(strlen(file_name) + 1);
-                strcpy(exist_fcb->file_name, file_name);
+                exist_fcb->file_name = string_duplicate(file_name);
                 list_add(fcbs, exist_fcb);
                 config_destroy(fcb_config);
             }

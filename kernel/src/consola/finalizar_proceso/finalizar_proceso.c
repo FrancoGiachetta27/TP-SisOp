@@ -10,6 +10,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 		estado_EXEC = NULL;
 		pthread_mutex_unlock(&mtx_execute_process);
 		eliminar_proceso(pcb, socket_memory, logger);
+		sem_post(&grd_mult);
 		sem_post(&proceso_en_cola_ready);
 		return;
 	}
@@ -42,6 +43,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	void _pcb_by_pid_in_dict(char* _, t_block* block) {
 		pcb = list_remove_by_condition(block->blocked_list, (void*) _pcb_by_pid_in_list);
 		if (pcb != NULL) {
+			sem_post(&grd_mult);
 			eliminar_proceso(pcb, socket_memory, logger);
 		}
     };

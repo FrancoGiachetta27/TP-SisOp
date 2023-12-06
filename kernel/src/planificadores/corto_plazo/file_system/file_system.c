@@ -60,7 +60,6 @@ void *treat_wait_for_read_lock(t_wait_for_read_lock *interrupted_info)
     t_lock* lock = add_read_lock(interrupted_info->open_file, interrupted_info->pcb, true);
     sem_wait(&lock->write_locked);
     log_debug(interrupted_info->logger, "Se desbloqueo %d dsps de un close", interrupted_info->pcb->pid);
-    sem_wait(&grd_mult);
     log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
     free(interrupted_info);
@@ -74,7 +73,6 @@ void *treat_wait_for_write_lock(t_wait_for_write_lock *interrupted_info)
     list_add(interrupted_info->open_file->locks, lock);
     pthread_mutex_unlock(&open_files_global_table_mutex);
     sem_wait(&lock->write_locked);
-    sem_wait(&grd_mult);
     log_info(interrupted_info->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", interrupted_info->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(interrupted_info->pcb, interrupted_info->logger);
     free(interrupted_info);

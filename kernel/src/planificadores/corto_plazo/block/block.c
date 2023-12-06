@@ -9,7 +9,6 @@ void unblock_processes(t_log* logger) {
             if (block->instances >= 1 && block->blocked_list->elements_count >= 1) {
                 t_pcb* pcb = list_remove(block->blocked_list, 0);
                 use_instance_of_resource(pcb, block, logger);
-                sem_wait(&grd_mult);
 	            log_info(logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", pcb->pid, BLOCKED, READY);
                 agregar_pcb_a_cola_READY(pcb, logger);
             }
@@ -30,7 +29,6 @@ void treat_interrupted_process(t_interrupted* interrupted_info) {
         list_add(lista_estado_INTERRUPT, interrupted_info->pcb);
         pthread_mutex_unlock(&cola_interrupt);
     }
-    sem_wait(&grd_mult);
     if (interrupted_info->pcb->instruccion == SLEEP) {
         pthread_mutex_lock(&cola_sleep);
         list_remove_element(lista_estado_SLEEP, interrupted_info->pcb);

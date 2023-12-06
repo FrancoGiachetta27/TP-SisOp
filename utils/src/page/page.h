@@ -48,6 +48,7 @@ void send_page(int op_code, t_pag *page, int client_socket, t_log *logger);
 void destroy_page(t_pag *page);
 void destroy_page_for_mov_out(t_mov_out *page);
 void destroy_page_for_mov_out_fs(t_mov_out_fs *page);
+void destroy_page_for_swap(t_pag_swap *page);
 t_pag *receive_page(int client_socket, t_log *logger);
 t_mov_out *receive_page_for_mov_out(int client_socket, t_log *logger);
 t_mov_out_fs *receive_page_for_mov_out_fs(int client_socket, t_log *logger);

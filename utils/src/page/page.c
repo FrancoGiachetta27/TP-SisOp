@@ -75,7 +75,7 @@ void destroy_page_for_mov_out_fs(t_mov_out_fs *page)
 	free(page);
 }
 
-static void destroy_page_for_swap(t_pag_swap *page)
+void destroy_page_for_swap(t_pag_swap *page)
 {
 	free(page->page_content);
 	free(page);
