@@ -1,6 +1,7 @@
 #include <command/command.h>
 
 t_pcb *pcb_create;
+t_pcb *pcb_create_fetch;
 t_pag *received_page;
 t_page_entry *page;
 t_pag *received_page_mov_in;
@@ -71,13 +72,13 @@ void *wait_for_command(t_thread *thread_info)
             destroy_page(received_page);
             break;
         case FETCH_INSTRUCTION:
-            pcb_create = receive_pcb(thread_info->port, thread_info->logger);
-            char *next_instruction = fetch_next_instruction(pcb_create->pid, pcb_create->programCounter, thread_info->logger);
+            pcb_create_fetch = receive_pcb(thread_info->port, thread_info->logger);
+            char *next_instruction = fetch_next_instruction(pcb_create_fetch->pid, pcb_create_fetch->programCounter, thread_info->logger);
             log_debug(thread_info->logger, "Next instruction: %s", next_instruction);
             t_package *package_instruct = create_string_package(FETCH_INSTRUCTION, next_instruction);
             usleep(memory_config.time_delay * 1000);
             send_package(package_instruct, thread_info->port, thread_info->logger);
-            destroy_pcb(pcb_create);
+            destroy_pcb(pcb_create_fetch);
             break;
         case MOV_OUT:
             t_mov_out *mov_out_page = receive_page_for_mov_out(thread_info->port, thread_info->logger);
@@ -94,8 +95,8 @@ void *wait_for_command(t_thread *thread_info)
             received_page = receive_page(thread_info->port, thread_info->logger);
             page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
             int address2 = page->frame_number * memory_config.page_size + received_page->displacement;
-            uint32_t *value_in_frame = (uint32_t *) read_frame(address2, sizeof(uint32_t));
-            //log_debug(thread_info->logger, "VALUE IN FRAME: %d", *value_in_frame);
+            uint32_t *value_in_frame = (uint32_t *)read_frame(address2, sizeof(uint32_t));
+            // log_debug(thread_info->logger, "VALUE IN FRAME: %d", *value_in_frame);
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address2);
             t_package *result_package2 = create_uint32_package(MOV_IN, *value_in_frame);
             send_package(result_package2, thread_info->port, thread_info->logger);
@@ -124,12 +125,12 @@ void *wait_for_command(t_thread *thread_info)
             destroy_page(received_page_mov_in);
             break;
         case END_PROCESS:
-            t_pcb *pcb_create = receive_pcb(thread_info->port, thread_info->logger);
+            t_pcb *pcb_create_end = receive_pcb(thread_info->port, thread_info->logger);
             deallocate_process(
-                pcb_create->pid,
+                pcb_create_end->pid,
                 thread_info->conn->socket_filesystem,
                 thread_info->logger);
-            destroy_pcb(pcb_create);
+            destroy_pcb(pcb_create_end);
             break;
         default:
             log_error(thread_info->logger, "Unknown OpCode %d - key %s", op_code, thread_info->dict_key);

@@ -47,7 +47,7 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			open_data = (t_fopen *)pcb->params;
 			int file_size = open_file(thread_info->logger, open_data->file_name);
-			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", open_data->file_name);
+			log_info(thread_info->logger, "Abrir Archivo: %s", open_data->file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
@@ -57,7 +57,7 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			open_data = (t_fopen *)pcb->params;
 			int ok = create_file(thread_info->logger, open_data->file_name);
-			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", open_data->file_name);
+			log_info(thread_info->logger, "Crear Archivo: %s", open_data->file_name);
 			package = create_integer_package(F_CREATE, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
@@ -67,45 +67,39 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			change_data = (t_fchange *)pcb->params;
 			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
-			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
+			log_info(thread_info->logger, "Truncar Archivo: %s - Tamaño: %d", change_data->file_name, change_data->value);
 			package = create_integer_package(F_TRUNCATE, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
 			break;
 
 		// SWAP
-		// Recibo cantidad de bloques (int) - reservo - devuelvo lista?
 		case GET_SWAP_BLOCKS:
 			int *block_count = (int *)receive_buffer(thread_info->port, thread_info->logger);
 			t_list *blocks_reserved = reserve_swap_blocks(*block_count);
-			log_debug(thread_info->logger, "GET_SWAP_BLOCKS Memoria necesita %d de bloques SWAP reservados", *block_count);
+			log_info(thread_info->logger, "Reservo %d bloques de Swap", *block_count);
 			send_list(GET_SWAP_BLOCKS, blocks_reserved, thread_info->port, thread_info->logger);
 			free(block_count);
 			break;
 
-		// Recibo bloque a leer (int) - leo data - devuelvo solo el void * con la informacion?
 		case GET_FROM_SWAP:
 			block = (int *)receive_buffer(thread_info->port, thread_info->logger);
 			void *data = read_from_swap_block(*block);
-			log_info(thread_info->logger, "Acceso a Bloque SWAP: “Acceso SWAP: %d”", *block);
-			// Ver como enviar un void *
+			log_info(thread_info->logger, "Acceso SWAP: %d", *block);
 			package = create_void_package(GET_FROM_SWAP, fs_config->block_size, data);
 			send_package(package, thread_info->port, thread_info->logger);
 			free(block);
 			break;
 
-		// Recibo t_pag_swap - devuelvo un ok?
 		case UPDATE_SWAP:
 			page_swap = receive_page_for_swap(thread_info->port, thread_info->logger);
 			write_to_swap_block(page_swap->swap_block, page_swap->page_content);
-			log_info(thread_info->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", page_swap->swap_block);
-			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
+			log_info(thread_info->logger, "Acceso SWAP: %d", page_swap->swap_block);
 			package = create_integer_package(UPDATE_SWAP, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_page_for_swap(page_swap);
 			break;
 
-		// Recibo una lista o que de bloques a liberar - libero - devuelvo ok?
 		case FREE_PAGES:
 			t_list *free_blocks = receive_list(thread_info->port, thread_info->logger);
 			free_swap_blocks(free_blocks);
@@ -123,8 +117,11 @@ void *wait_for_commands(t_thread *thread_info)
 				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
 			seek_data = list_find(pcb->open_files, _find_filename);
+			int memory_address1 = (modify_data->page->page_number * fs_config->block_size) + modify_data->page->displacement;
+
 			void *data2 = read_file(seek_data->file, seek_data->seek);
-			log_debug(thread_info->logger, "Data leida: %d", *(uint32_t*)data2);
+			log_info(thread_info->logger, "Leer Archivo: %s - Puntero: %d - Memoria: %d", seek_data->file, seek_data->seek / fs_config->block_size, memory_address1);
+
 			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data2, fs_config->block_size);
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
@@ -151,7 +148,9 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case MOV_IN_FS:
 			void *data_mov_in = receive_buffer(thread_info->port, thread_info->logger);
+			int memory_address = (modify_data->page->page_number * fs_config->block_size) + modify_data->page->displacement;
 			write_file(seek_data_write->file, seek_data_write->seek, data_mov_in);
+			log_info(thread_info->logger, "Escribir Archivo: %s - Puntero: %d - Memoria: %d", seek_data_write->file, floor(seek_data_write->seek / fs_config->block_size), memory_address);
 			package = create_integer_package(F_WRITE, 0);
 			send_package(package, thread_info->socket, thread_info->logger);
 			free(data_mov_in);
@@ -199,15 +198,12 @@ void *wait_for_commands(t_thread *thread_info)
 // Return informar que el archivo no existe
 int open_file(t_log *logger, char *file_name)
 {
-	log_info(logger, "Abrir Archivo: %s", file_name);
 	t_fcb *file = find_fcb_file(file_name);
 	if (file)
 	{
-		log_info(logger, "Archivo %s abierto", file_name);
 		return file->file_size;
 	}
 
-	log_info(logger, "Archivo %s no existe", file_name);
 	return -1;
 }
 

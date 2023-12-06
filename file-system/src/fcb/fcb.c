@@ -101,35 +101,21 @@ void update_fcb(t_fcb *fcb)
     free(full_path);
 }
 
-void print_fcb_list()
-{
-    log_debug(utils->logger, "Lista de archivos:");
-    // t_fcb *fcb = malloc(sizeof(fcb));
-    for (int i = 0; i < list_size(fcbs); i++)
-    {
-        t_fcb *fcb = list_get(fcbs, i);
-        log_debug(utils->logger, "FCB numero: %d\n\tNombre: %s\n\tTamanio: %d\n\tBloque inicial: %d", i, fcb->file_name, fcb->file_size, fcb->initial_block);
-    }
-    // free(fcb);
-}
-
 void load_FCBs_from_directory(char *directory_path)
 {
-    log_debug(utils->logger, "Path %s", directory_path);
 
     DIR *dir = opendir(directory_path);
 
     if (dir != NULL)
     {
         struct dirent *entry;
-
         while ((entry = readdir(dir)) != NULL)
         {
             if (string_contains(entry->d_name, ".fcb"))
             {
-                log_debug(utils->logger, "Archivo: %s", entry->d_name);
+                log_debug(utils->logger, "Archivo: %s ya existe. Lo cargo en la FCBs", entry->d_name);
                 t_fcb *exist_fcb = malloc(sizeof(t_fcb));
-                char* path = string_from_format("%s/%s", directory_path, entry->d_name);
+                char *path = string_from_format("%s/%s", directory_path, entry->d_name);
                 t_config *fcb_config = create_config(path, utils->logger);
                 free(path);
                 exist_fcb->file_size = config_get_int_value(fcb_config, "TAMANIO_ARCHIVO");
@@ -141,9 +127,6 @@ void load_FCBs_from_directory(char *directory_path)
             }
             // exist_fcb->file_size =
         }
-
         closedir(dir);
     }
-
-    log_debug(utils->logger, "Se inicio la lista con %d", list_size(fcbs));
 }

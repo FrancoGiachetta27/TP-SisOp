@@ -37,7 +37,7 @@ void page_table_create(t_pcb *pcb, t_list *swap_blocks, t_log *logger)
 
 	page_table->process_pid = pcb->pid;
 	page_table->pages = list_create();
-
+	log_info(logger, "Se crea una tabla de paginas");
 	for (int i = 0; i < total_pages; i++)
 	{
 		int *swap_block_ptr = (int *)list_get(swap_blocks, i);
@@ -95,6 +95,7 @@ void destroy_page_entry(t_page_entry *page)
 
 void destroy_page_table(t_page_table *page_table, t_log *logger)
 {
+	log_info(logger, "Se destruye tabla de pagina");
 	log_info(logger, "PID: %d - Tamaño: %d", page_table->process_pid, list_size(page_table->pages));
 	pthread_mutex_lock(&table);
 	list_destroy_and_destroy_elements(page_table->pages, (void *)destroy_page_entry);

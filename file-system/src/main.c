@@ -33,8 +33,6 @@ int main(int argc, char *argv[])
 	if (memory_socket == -1)
 		return EXIT_FAILURE;
 
-	log_debug(utils->logger, "Se conecto a memory");
-
 	int socket_kernel = start_server_port(utils);
 	if (socket_kernel == -1)
 	{
@@ -45,8 +43,9 @@ int main(int argc, char *argv[])
 	wait_in_every_port(memory_socket, socket_kernel, utils->logger);
 
 	utils_destroy_with_connection(utils, memory_socket);
-	
-	void _destroy_fcbs(t_fcb* fcb) {
+
+	void _destroy_fcbs(t_fcb * fcb)
+	{
 		free(fcb->file_name);
 		free(fcb);
 	};
