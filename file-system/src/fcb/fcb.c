@@ -89,6 +89,9 @@ void update_fcb(t_fcb *fcb)
         msync(mapped_data, content_size, MS_SYNC);
         munmap(mapped_data, content_size);
         close(fd);
+        free(content);
+        free(initial_block_str);
+        free(size_str);
     }
     else
     {

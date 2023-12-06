@@ -4,15 +4,16 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
     char** formatted_ins = string_split(instruction, " ");
     free(instruction);
     t_ins ins;
-    ins.instruction = formatted_ins[0];
+    ins.instruction = string_duplicate(formatted_ins[0]);
     ins.params = list_create();
     for (int i = 1; i < string_array_size(formatted_ins); i++)
     {
-        list_add(ins.params, formatted_ins[i]);
+        list_add(ins.params, string_duplicate(formatted_ins[i]));
     }
     if (strcmp(ins.instruction, "MOV_IN") == 0 || strcmp(ins.instruction, "F_READ")==0 || strcmp(ins.instruction, "F_WRITE")==0) {
         char* logic_direction = list_get(ins.params, 1);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
+        destroy_params(pcb);
         if (physical_direction->pid == 0) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
@@ -25,6 +26,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
     } else if (strcmp(ins.instruction, "MOV_OUT") == 0) {
         char* logic_direction = list_get(ins.params, 0);
         t_pag* physical_direction = mmu_translate(pcb->pid, logic_direction, page_size, logger, memory_socket);
+        destroy_params(pcb);
         if (physical_direction->pid == 0) {
             pcb->instruccion = PAGE_FAULT;
             pcb->params = physical_direction->page_number;
@@ -35,7 +37,7 @@ t_ins decode(t_pcb* pcb, char* instruction, int page_size, t_log* logger, int me
             list_replace(ins.params, 0, physical_direction);
         }
     }
-    free(formatted_ins);
+    string_array_destroy(formatted_ins);
     return ins;
 }
 

@@ -128,7 +128,6 @@ void *wait_for_commands(t_thread *thread_info)
 			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data2, fs_config->block_size);
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
-			free(data2);
 			destroy_page_for_mov_out_fs(mov_out);
 			break;
 

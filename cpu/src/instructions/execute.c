@@ -160,6 +160,7 @@ int execute(t_pcb *pcb, t_conn *conn, int memory_socket, t_reg *registers, t_ins
         pcb->instruccion = FREAD;
         pcb->params = fmodify;
         pcb->programCounter++;
+        free(ins.original_address);
         destroy_instruction(ins);
         return RETURN_CONTEXT;
     }
@@ -174,6 +175,7 @@ int execute(t_pcb *pcb, t_conn *conn, int memory_socket, t_reg *registers, t_ins
         pcb->instruccion = FWRITE;
         pcb->params = fmodify;
         pcb->programCounter++;
+        free(ins.original_address);
         destroy_instruction(ins);
         return RETURN_CONTEXT;
     }

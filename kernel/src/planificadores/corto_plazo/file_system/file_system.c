@@ -267,7 +267,6 @@ void *treat_fs_function(t_fs_call *data)
         log_warning(data->logger, "Invalid opCode: %d", data->command);
         break;
     }
-    sem_wait(&grd_mult);
     log_info(data->logger, "PID: %d - Estado Anterior: %d - Estado Actual: %d", data->pcb->pid, BLOCKED, READY);
     agregar_pcb_a_cola_READY(data->pcb, data->logger);
     free(data);
