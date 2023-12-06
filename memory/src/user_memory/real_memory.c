@@ -46,16 +46,6 @@ static void page_replace(t_page_entry *page_referenced, int fs_socket, void *pag
     t_page_entry *victim = (t_page_entry *)list_remove(pages_to_replace, 0);
     pthread_mutex_unlock(&mtx_select_page);
 
-    log_debug(logger, "LIST-SIZE: %d");
-
-    log_debug(logger, "VICTIM: PID<%d>, FRAME<%d>, PAGE-NUM<%d, BIT-M<%d>, BIT-P<%d>, SWAP<%d>", 
-        victim->pid, 
-        victim->frame_number, 
-        victim->page_number, 
-        victim->bit_modified, 
-        victim->bit_precense, 
-        victim->swap_position);
-
     swap_out(victim, fs_socket, logger);
     swap_in(page_referenced, victim->frame_number, page_data, logger);
 
@@ -93,7 +83,10 @@ t_frame_search check_available_frames(void)
 
 void free_frame(int frame)
 {
+    int frames_l = memory_config.memory_size / memory_config.page_size;
     bitarray_clean_bit(real_memory.frame_table, frame);
+    for(int i = 0; i < frames_l; i++)
+        printf("FRAME %d: %d", i, bitarray_test_bit(real_memory.frame_table, i));
 }
 
 void load_page(uint32_t pid, int page_number, int fs_socket, void *page_data, t_log *logger)

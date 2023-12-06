@@ -89,6 +89,7 @@ void destroy_page_entry(t_page_entry *page)
 	{
 		free_frame(page->frame_number);
 	}
+	list_remove_element(pages_to_replace, page);
 	free(page);
 }
 
