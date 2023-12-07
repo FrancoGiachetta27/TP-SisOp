@@ -95,8 +95,8 @@ void *wait_for_command(t_thread *thread_info)
             page = reference_page(received_page->pid, received_page->page_number, thread_info->logger);
             int address2 = page->frame_number * memory_config.page_size + received_page->displacement;
             uint32_t *value_in_frame = (uint32_t *) read_frame(address2, sizeof(uint32_t));
-            //log_debug(thread_info->logger, "VALUE IN FRAME: %d", *value_in_frame);
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page->pid, address2);
+            log_debug(thread_info->logger, "VALUE IN FRAME: %d", *value_in_frame);
             t_package *result_package2 = create_uint32_package(MOV_IN, *value_in_frame);
             send_package(result_package2, thread_info->port, thread_info->logger);
             free(value_in_frame);
@@ -107,7 +107,7 @@ void *wait_for_command(t_thread *thread_info)
             page = reference_page(mov_out_page_fs->pid, mov_out_page_fs->page_number, thread_info->logger);
             int address3 = page->frame_number * memory_config.page_size;
             page->bit_modified = 1;
-            write_on_frame(address3, mov_out_page_fs->size, &mov_out_page_fs->register_value);
+            write_on_frame(address3, mov_out_page_fs->size, mov_out_page_fs->register_value);
             log_info(thread_info->logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d", page->pid, address3);
             t_package *result_package3 = create_integer_package(MOV_OUT_FS, 0);
             send_package(result_package3, thread_info->port, thread_info->logger);

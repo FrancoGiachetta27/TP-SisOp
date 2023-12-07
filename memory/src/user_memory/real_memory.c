@@ -85,8 +85,6 @@ void free_frame(int frame)
 {
     int frames_l = memory_config.memory_size / memory_config.page_size;
     bitarray_clean_bit(real_memory.frame_table, frame);
-    for(int i = 0; i < frames_l; i++)
-        printf("FRAME %d: %d", i, bitarray_test_bit(real_memory.frame_table, i));
 }
 
 void load_page(uint32_t pid, int page_number, int fs_socket, void *page_data, t_log *logger)
@@ -101,10 +99,10 @@ void load_page(uint32_t pid, int page_number, int fs_socket, void *page_data, t_
     free(page_data);
 }
 
-void *read_frame(int real_address, int size)
+void *read_frame(int real_address, size_t size)
 {
     void *data = malloc(size);
-
+    printf("DATA_PUNTERO: %p", data);
     pthread_mutex_lock(&mtx_frame_access);
     memcpy(data, real_memory.frames + real_address, size);
     pthread_mutex_unlock(&mtx_frame_access);
@@ -113,7 +111,7 @@ void *read_frame(int real_address, int size)
     return data;
 }
 
-void write_on_frame(int real_address, int size, void *data)
+void write_on_frame(int real_address, size_t size, void *data)
 {
     pthread_mutex_lock(&mtx_frame_access);
     memcpy(real_memory.frames + real_address, data, size);
@@ -123,7 +121,7 @@ void write_on_frame(int real_address, int size, void *data)
 
 void init_real_memory(void)
 {
-    void *user_space = malloc((uint32_t)memory_config.memory_size);
+    void *user_space = malloc(memory_config.memory_size);
     page_tables = list_create();
 
     init_frame_table(user_space);

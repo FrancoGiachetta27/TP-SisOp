@@ -23,13 +23,14 @@ context (page) {
         it("Se serializa y se deserializa una pagina para el swap sin perdida de información") {
             t_pag_swap* page = malloc(sizeof(*page));
             page->swap_block= 0;
-            page->page_info_size=32;
+            page->page_info_size = strlen(page->page_content) - 1;
             page->page_content="00000000000000000000000000000000";
         	void* serialized_page = serialize_page_for_swap(page);
             t_pag_swap* deserialized_page = deserialize_page_for_swap(serialized_page);
             should_int(deserialized_page->swap_block) be equal to (0);
-            should_int(deserialized_page->page_info_size) be equal to (32);
+            should_int(deserialized_page->page_info_size) be equal to (33);
             should_string(deserialized_page->page_content) be equal to ("00000000000000000000000000000000");
+            free(page->page_content);
             free(page);
         } end
         it("Se serializa y se deserializa una pagina para el mov_out_fs sin perdida de información") {
@@ -38,7 +39,7 @@ context (page) {
             page->displacement = 0;
             page->pid = 0;
             page->register_value = "00000000000000000000000000000000";
-            page->size = 32;
+            page->size = strlen(page->register_value) - 1;
             void* serialized_page = serialize_page_for_mov_out_fs(page);
             t_mov_out_fs* deserialized_page = deserialize_page_for_mov_out_fs(serialized_page);
             should_int(deserialized_page->page_number) be equal to (0);
@@ -46,6 +47,7 @@ context (page) {
             should_int(deserialized_page->pid) be equal to (0);
             should_string(deserialized_page->register_value) be equal to ("00000000000000000000000000000000");
             should_int(deserialized_page->size) be equal to (32);
+            free(page->register_value);
             free(page);
         }end
     } end

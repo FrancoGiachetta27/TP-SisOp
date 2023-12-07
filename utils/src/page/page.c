@@ -182,7 +182,8 @@ t_mov_out_fs *deserialize_page_for_mov_out_fs(void *buffer)
 	offset += sizeof(uint32_t);
 	memcpy(&page->size, buffer + offset, sizeof(int));
 	offset += sizeof(int);
-	page->register_value = malloc(page->size);
+	int size = page->size + 1; // para que no lea el '\0'
+	page->register_value = malloc(size);
 	memcpy(page->register_value, buffer + offset, page->size);
 	offset += page->size;
 	free(buffer);
@@ -197,7 +198,8 @@ t_pag_swap *deserialize_page_for_swap(void *buffer)
 	offset += sizeof(int);
 	memcpy(&page->page_info_size, buffer + offset, sizeof(int));
 	offset += sizeof(int);
-	page->page_content = malloc(page->page_info_size);
+	int size = page->page_info_size + 1;
+	page->page_content = malloc(size); // para que no lea el '\0'
 	memcpy(page->page_content, buffer + offset, page->page_info_size);
 	offset += page->page_info_size;
 	free(buffer);
