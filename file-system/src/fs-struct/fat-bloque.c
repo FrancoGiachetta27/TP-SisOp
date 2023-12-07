@@ -389,21 +389,9 @@ void write_to_swap_block(int block_index, void *data)
     }
 
     void *block = block_map + block_index * fs_config->block_size;
+    memcpy(block, data, fs_config->block_size);
 
-    size_t data_length = strlen(data);
-    size_t format_length = (data_length < fs_config->block_size) ? data_length : fs_config->block_size;
-
-    memcpy(block, data, format_length);
-
-    // rellenar bloque con \0 - hace falta?
-    if (format_length < fs_config->block_size)
-    {
-        memset(block + format_length, '\0', fs_config->block_size - format_length);
-    }
-
-    // mem_hexdump(block_map, fs_config->block_total_count);
-
-    log_debug(utils->logger, "Datos escritos en el bloque %d de la swap", block_index);
+    log_debug(utils->logger, "Datos escritos en el bloque %d de la swap. Escribi %d", block_index, *(uint32_t *)data);
 }
 
 void *read_from_swap_block(int block_index)
@@ -420,7 +408,7 @@ void *read_from_swap_block(int block_index)
 
     memcpy(buffer, block, fs_config->block_size);
 
-    log_debug(utils->logger, "Datos leídos desde el bloque %d de la swap: %s", block_index, (char *)buffer);
+    log_debug(utils->logger, "Datos leídos desde el bloque %d de la swap: %d", block_index, *(uint32_t *)buffer);
 
     return buffer;
 }
@@ -487,7 +475,7 @@ void *read_file(char *file_name, int seek)
         }
     }
 
-    log_debug(utils->logger, "%s - Bloque %d, lei: %d", file_name, block_to_read, *(int *)(data));
+    log_debug(utils->logger, "%s - Bloque %d, lei: %d", file_name, block_to_read, *(uint32_t *)(data));
 
     return data;
 }
@@ -547,7 +535,7 @@ void write_file(char *file_name, int seek, void *data)
         usleep(fs_config->block_time_delay * 1000);
     }
 
-    log_debug(utils->logger, "%s - Bloque %d, escribi: %d", file_name, block_to_write, *(int *)(data));
+    log_debug(utils->logger, "%s - Bloque %d, escribi: %d", file_name, block_to_write, *(uint32_t *)(data));
 }
 
 // INIT

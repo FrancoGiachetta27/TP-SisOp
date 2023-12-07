@@ -34,6 +34,7 @@ t_pag_swap *page_for_swap(int swap_block, int page_info_size, void *page_content
 	t_pag_swap *page = malloc(sizeof(*page));
 	page->swap_block = swap_block;
 	page->page_info_size = page_info_size;
+	page->page_content = malloc(page_info_size);
 	page->page_content = page_content;
 	return page;
 }

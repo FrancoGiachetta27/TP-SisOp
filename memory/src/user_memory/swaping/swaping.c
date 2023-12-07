@@ -12,6 +12,8 @@ static void update_page(int fs_socket, t_page_entry *page, t_log *logger)
     int real_address = page->frame_number * memory_config.page_size;
     void *page_content = read_frame(real_address, memory_config.page_size);
 
+    log_debug(logger, "SWAP OUT PAGE CONTENT %d", *(uint32_t *)page_content);
+
     page_to_swap = page_for_swap(page->swap_position, memory_config.page_size, page_content);
     send_page_for_swap(UPDATE_SWAP, page_to_swap, fs_socket, logger);
 

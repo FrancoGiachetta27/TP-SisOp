@@ -99,7 +99,6 @@ void *wait_for_commands(t_thread *thread_info)
 			page_swap = receive_page_for_swap(thread_info->port, thread_info->logger);
 			write_to_swap_block(page_swap->swap_block, page_swap->page_content);
 			log_info(thread_info->logger, "Actualizando Bloque SWAP: “Acceso SWAP: %d”", page_swap->swap_block);
-			// QUE ENVIAR? YA QUE SOLO ACTUALIZO EN FILESYSTEM
 			package = create_integer_package(UPDATE_SWAP, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_page_for_swap(page_swap);
@@ -124,7 +123,7 @@ void *wait_for_commands(t_thread *thread_info)
 			};
 			seek_data = list_find(pcb->open_files, _find_filename);
 			void *data2 = read_file(seek_data->file, seek_data->seek);
-			log_debug(thread_info->logger, "Data leida: %d", *(uint32_t*)data2);
+			log_debug(thread_info->logger, "Data leida: %d", *(uint32_t *)data2);
 			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data2, fs_config->block_size);
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
