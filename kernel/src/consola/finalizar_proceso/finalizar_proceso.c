@@ -7,6 +7,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 		sem_wait(&finish_interrupted_process);
 		pthread_mutex_lock(&mtx_execute_process);
 		pcb = estado_EXEC;
+		log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 		estado_EXEC = NULL;
 		pthread_mutex_unlock(&mtx_execute_process);
 		eliminar_proceso(pcb, socket_memory, logger);
@@ -21,6 +22,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 
 	pcb = list_remove_by_condition(lista_estado_NEW, (void*) _pcb_by_pid_in_list);
 	if (pcb != NULL) {
+		log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 		eliminar_proceso(pcb, socket_memory, logger);
 		return;
 	}
@@ -28,6 +30,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	pcb = list_remove_by_condition(lista_estado_READY, (void*) _pcb_by_pid_in_list);
     pthread_mutex_unlock(&cola_ready);
 	if (pcb != NULL) {
+		log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 		sem_post(&grd_mult);
 		eliminar_proceso(pcb, socket_memory, logger);
 		return;
@@ -36,6 +39,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	pcb = list_remove_by_condition(lista_estado_EXIT, (void*) _pcb_by_pid_in_list);
     pthread_mutex_unlock(&cola_exit);
 	if (pcb != NULL) {
+		log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 		eliminar_proceso(pcb, socket_memory, logger);
 		return;
 	}
@@ -43,6 +47,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	void _pcb_by_pid_in_dict(char* _, t_block* block) {
 		pcb = list_remove_by_condition(block->blocked_list, (void*) _pcb_by_pid_in_list);
 		if (pcb != NULL) {
+			log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 			sem_post(&grd_mult);
 			eliminar_proceso(pcb, socket_memory, logger);
 		}
