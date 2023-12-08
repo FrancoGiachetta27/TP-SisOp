@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 	t_conn* conn = connect_to_modules(utils);
 	if (conn == NULL) return EXIT_FAILURE;
 
-	iniciar_planificador_largo_plazo(utils->logger);
+	iniciar_planificador_largo_plazo(utils->logger, conn->memory_socket);
 	iniciar_planificador_corto_plazo(utils, conn);
 	consola_interactiva(utils, conn);
 

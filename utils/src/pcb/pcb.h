@@ -5,6 +5,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <package/package.h>
+#include "fs.h"
+#include <commons/collections/list.h>
+#include <page/page.h>
 
 typedef struct {
     uint32_t AX;
@@ -29,7 +32,14 @@ enum INSTRUCCION {
     WAIT = 3,
     SLEEP = 4,
     INTERRUPTED = 5,
-    INTERRUPT_FINISH = 6
+    INTERRUPT_FINISH = 6,
+    PAGE_FAULT = 8,
+    FOPEN = 7,
+    FCLOSE = 9,
+    FSEEK = 10,
+    FREAD = 11,
+    FWRITE = 12,
+    FTRUNCATE = 13
 };
 
 enum END_STATE {
@@ -48,8 +58,14 @@ typedef struct pcb {
     t_reg registers;
     uint32_t estado;
     uint32_t instruccion;
-    void* params; 
+    void* params;
+    t_list* open_files;
 } t_pcb;
+
+typedef struct open_file {
+    char* file;
+    int seek;
+} t_openf;
 
 int serialized_pcb_size(t_pcb* pcb);
 t_reg create_empty_registers();
@@ -62,5 +78,7 @@ void destroy_pcb(t_pcb* pcb);
 void send_pcb(int op_code, t_pcb* pcb, int client_socket, t_log* logger);
 t_pcb* receive_pcb(int client_socket, t_log* logger);
 void destroy_params(t_pcb* pcb);
+int serialized_open_file_size(t_openf* open_file);
+void* serialize_open_file(t_openf* open_file);
 
 #endif /* SRC_PCB_PCB_H_ */

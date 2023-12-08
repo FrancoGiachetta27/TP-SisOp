@@ -10,23 +10,18 @@
 #include <initial_configuration/server_start.h>
 #include <instruction_memory/process/process.h>
 #include <instruction_memory/instructions/instructions.h>
+#include <user_memory/real_memory.h>
+#include <command/opcodes.h>
 #include <initial_configuration/memory_config.h>
 #include <pcb/pcb.h>
+#include <page/page.h>
 
 typedef struct {
-    t_dictionary* dict;
     t_log* logger;
     int port;
     char* dict_key;
+    t_conn* conn;
 } t_thread;
-
-enum MEMORY_CODE_OP {
-    CREATE_PROCESS = 2,
-    FETCH_INSTRUCTION = 3,
-    PAGE_SIZE = 4,
-    PROCESS_OK = 5,
-    END_PROCESS = 6,
-};
 
 void wait_in_every_port(t_conn* conn, t_log* logger);
 void* wait_for_command(t_thread* thread_info);

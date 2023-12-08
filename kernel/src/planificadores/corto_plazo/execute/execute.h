@@ -4,6 +4,7 @@
 #include <planificadores/planificador.h>
 #include <planificadores/corto_plazo/common/common.h>
 #include <planificadores/corto_plazo/block/block.h>
+#include <planificadores/corto_plazo/file_system/file_system.h>
 
 void execute_process(t_planificador* info);
 

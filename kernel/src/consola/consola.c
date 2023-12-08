@@ -16,7 +16,7 @@ void consola_interactiva(t_utils* utils, t_conn* conn){
 		}
 		else if(strcmp(parametros[0],"FINALIZAR_PROCESO")==0) {
 			char* param = string_duplicate(parametros[1]);
-			finalizar_proceso(atoi(param), utils->logger, conn->cpu_interrupt_socket);
+			finalizar_proceso(atoi(param), utils->logger, conn->cpu_interrupt_socket, conn->memory_socket);
 			free(param);
 		}
 		else if(strcmp(parametros[0],"DETENER_PLANIFICACION")==0){
@@ -26,10 +26,10 @@ void consola_interactiva(t_utils* utils, t_conn* conn){
 			iniciar_planificacion(utils, conn);
 		}
 		else if(strcmp(parametros[0],"MULTIPROGRAMACION")==0){
-			cambiar_grado_multiprogramacion(parametros[1]);
+			cambiar_grado_multiprogramacion(parametros[1], utils->logger);
 		}
 		else if(strcmp(parametros[0],"PROCESO_ESTADO")==0){
-			listar_procesos_por_estados();
+			listar_procesos_por_estados(utils->logger);
 		}
 		else if(strcmp(parametros[0],"ECHO")==0){
 			int number = atoi(parametros[1]);

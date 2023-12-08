@@ -4,7 +4,7 @@ t_list *get_instructions_from_file(t_log *logger, char *file_path)
 {
     string_trim(&file_path);
     FILE *pseudo_code_file = fopen(file_path, "r");
-
+    free(file_path);
     if (pseudo_code_file == NULL)
     {
         log_error(logger, "Error al leer el archivo pseudo codigo");
@@ -33,12 +33,7 @@ t_list *get_instructions_from_file(t_log *logger, char *file_path)
 
 char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
 {
-    int _is_pid(t_process *process)
-    {
-        return process->pid == pid;
-    };
-
-    t_process *current_process = (t_process*)list_find(active_processes, (void *)_is_pid);
+    t_process *current_process = search_process(pid);
 
     if(current_process == NULL) {
         log_error(logger, "Error al obtener el proceso en ejecucion");
@@ -49,5 +44,5 @@ char *fetch_next_instruction(int pid, int program_pointer, t_log* logger)
         return "";
     }
 
-    return list_get(current_process->instructions_set, program_pointer);
+    return string_duplicate(list_get(current_process->instructions_set, program_pointer));
 }
