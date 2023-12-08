@@ -233,11 +233,17 @@ void create_fat_file()
         exit(1);
     }
 
-    // TODO: Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    memset(fat_data, 0, fat_size);
-    msync(fat_data, fat_size, MS_SYNC);
-
-    log_info(utils->logger, "Archivo de la tabla FAT creado con éxito");
+    // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
+    if (access(path, F_OK) != 0) 
+    {
+        memset(fat_data, 0, fat_size);
+        msync(fat_data, fat_size, MS_SYNC);
+        log_debug(utils->logger, "Archivo de la tabla FAT creado con éxito");
+    }
+    else 
+    {
+        log_debug(utils->logger, "El archivo de la tabla FAT ya estaba creado");
+    }
 }
 
 void print_fat()
@@ -289,10 +295,17 @@ void create_block_file()
         exit(1);
     }
 
-    memset(block_map, '0', block_file_size);
-    msync(block_map, block_file_size, MS_SYNC);
-
-    log_info(utils->logger, "Archivo de bloques creado con éxito");
+    // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
+    if (access(path, F_OK) != 0) 
+    {
+        memset(fat_data, 0, block_file_size);
+        msync(fat_data, block_file_size, MS_SYNC);
+        log_debug(utils->logger, "Archivo de bloques creado con éxito");
+    }
+    else 
+    {
+        log_debug(utils->logger, "El archivo de bloques ya estaba creado");
+    }
 }
 
 int find_free_swap_block()
