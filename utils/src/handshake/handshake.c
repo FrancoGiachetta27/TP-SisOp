@@ -38,7 +38,7 @@ int check_handshake_result(int servidor, t_log* logger) {
 		return receive_result;
 	}
 	if (handshake_result == 0) {
-		log_trace(logger, "Hizo el handshake correctamente");
+		log_info(logger, "Hizo el handshake correctamente");
 		return receive_result;
 	} else {
 		log_error(logger, "Fallo en el handshake");
@@ -53,7 +53,7 @@ int wait_for_initial_handshake_from_kernel(int server_fd, t_log* logger) {
 	if (handshake == -1) return handshake;
 	if (handshake == KERNEL) {
 		send_handshake_success(socket_kernel, logger);
-		log_trace(logger, "Se conecto al Kernel");
+		log_info(logger, "Se conecto al Kernel");
 	} else {
 		send_handshake_error(socket_kernel, logger);
 		close(socket_kernel);

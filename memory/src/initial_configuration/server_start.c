@@ -14,7 +14,7 @@ t_conn* start_server_ports(t_utils* utils) {
 		free(conn);
 		return NULL;
 	}
-	log_trace(utils->logger, "Se inicio correctamente");
+	log_info(utils->logger, "Se inicio correctamente");
 
 	int connected_modules;
 	for (connected_modules = 0; connected_modules < MODULOS_A_CONECTAR; connected_modules++) {
@@ -26,17 +26,17 @@ t_conn* start_server_ports(t_utils* utils) {
 			case FILESYSTEM:
 				conn->socket_filesystem = socket_cliente;
 				send_handshake_success(conn->socket_filesystem, utils->logger);
-				log_trace(utils->logger, "Se conecto el FileSystem");
+				log_info(utils->logger, "Se conecto el FileSystem");
 				break;
 			case CPU:
 				conn->socket_cpu = socket_cliente;
 				send_handshake_success(conn->socket_cpu, utils->logger);
-				log_trace(utils->logger, "Se conecto la CPU");
+				log_info(utils->logger, "Se conecto la CPU");
 				break;
 			case KERNEL:
 				conn->socket_kernel = socket_cliente;
 				send_handshake_success(conn->socket_kernel, utils->logger);
-				log_trace(utils->logger, "Se conecto el Kernel");
+				log_info(utils->logger, "Se conecto el Kernel");
 				break;
 			default:
 				send_handshake_error(socket_cliente, utils->logger);

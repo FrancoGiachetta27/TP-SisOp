@@ -23,7 +23,7 @@ int connect_to_server(char *ip, char* puerto, t_log* logger)
 		log_error(logger, "Fallo en la conexion al servidor");
 		return -1;
 	}
-	log_trace(logger, "Conecto correctamente al servidor");
+	log_info(logger, "Conecto correctamente al servidor");
 	return socket_cliente;
 }
 
@@ -70,7 +70,7 @@ int wait_for_client(int server_fd, t_log* logger) {
 
 int check_recv(int result, t_log* logger) {
 	if (result == 0) {
-		log_trace(logger, "Se corto la conexion con el cliente");
+		log_info(logger, "Se corto la conexion con el cliente");
 		return -1;
 	}
 	if (result == -1) {

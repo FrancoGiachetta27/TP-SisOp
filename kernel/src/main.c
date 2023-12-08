@@ -5,7 +5,7 @@
 #define LOGS_KERNEL "kernel.log"
 
 int main(int argc, char* argv[]) {
-	t_utils* utils = create_initial_config(argc, argv, LOGS_KERNEL, false, LOG_LEVEL_TRACE);
+	t_utils* utils = create_initial_config(argc, argv, LOGS_KERNEL, false, argv[2]);
 	if (utils == NULL) return EXIT_FAILURE;
 
 	iniciar_estructuras_planificadores(utils);
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	iniciar_planificador_corto_plazo(utils, conn);
 	consola_interactiva(utils, conn);
 
-	log_trace(utils->logger, "Finalizando Kernel");
+	log_info(utils->logger, "Finalizando Kernel");
 	terminar_estructuras_planificadores();
 	close_conn(conn);
     utils_destroy(utils);

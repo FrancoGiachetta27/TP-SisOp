@@ -14,11 +14,11 @@ t_conn* start_server_ports(t_utils* utils) {
 		switch (i) {
 			case 0:
 				conn->dispatch_fd = fd;
-				log_trace(utils->logger, "Se inicio correctamente el server de dispatch");
+				log_info(utils->logger, "Se inicio correctamente el server de dispatch");
 			break;
 			case 1:
 				conn->interrupt_fd = fd;
-				log_trace(utils->logger, "Se inicio correctamente el server de interrupt");
+				log_info(utils->logger, "Se inicio correctamente el server de interrupt");
 			break;
 		}
 	}

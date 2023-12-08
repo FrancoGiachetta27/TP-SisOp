@@ -10,7 +10,7 @@ int start_server_port(t_utils* utils) {
 		utils_destroy(utils);
 		return -1;
 	}
-	log_trace(utils->logger, "Se inicio correctamente el server");
+	log_info(utils->logger, "Se inicio correctamente el server");
 	int socket_kernel = wait_for_initial_handshake_from_kernel(server_fd, utils->logger);
 	if (socket_kernel == -1) {
 		utils_destroy(utils);

@@ -22,7 +22,7 @@ void *wait_for_commands(t_thread *thread_info)
 	{
 		if (strcmp(thread_info->dict_key, "KRL") == 0)
 		{
-			log_trace(thread_info->logger, "Se corta por caida en Kernel");
+			log_info(thread_info->logger, "Se corta por caida en Kernel");
 			shutdown(thread_info->memory, SHUT_RDWR);
 			close(thread_info->memory);
 		}
@@ -163,7 +163,7 @@ void *wait_for_commands(t_thread *thread_info)
 		default:
 			if (strcmp(thread_info->dict_key, "KRL") == 0)
 			{
-				log_trace(thread_info->logger, "Se corta por caida en Kernel");
+				log_info(thread_info->logger, "Se corta por caida en Kernel");
 				shutdown(thread_info->memory, SHUT_RDWR);
 				close(thread_info->memory);
 			}
@@ -177,7 +177,7 @@ void *wait_for_commands(t_thread *thread_info)
 		{
 			if (strcmp(thread_info->dict_key, "KRL") == 0)
 			{
-				log_trace(thread_info->logger, "Se corta por caida en Kernel");
+				log_info(thread_info->logger, "Se corta por caida en Kernel");
 				shutdown(thread_info->memory, SHUT_RDWR);
 				close(thread_info->memory);
 			}
@@ -188,7 +188,7 @@ void *wait_for_commands(t_thread *thread_info)
 	}
 	if (strcmp(thread_info->dict_key, "KRL") == 0)
 	{
-		log_trace(thread_info->logger, "Se corta por caida en Kernel");
+		log_info(thread_info->logger, "Se corta por caida en Kernel");
 		shutdown(thread_info->memory, SHUT_RDWR);
 		close(thread_info->memory);
 	}
@@ -284,13 +284,13 @@ void wait_in_every_port(int memory, int kernel, t_log *logger)
 		{
 		case 0:
 			thread_info->dict_key = "MRY";
-			log_trace(logger, "Iniciada thread de Memory");
+			log_info(logger, "Iniciada thread de Memory");
 			thread_info->port = memory;
 			thread_info->socket = kernel;
 			break;
 		case 1:
 			thread_info->dict_key = "KRL";
-			log_trace(logger, "Iniciada thread de Kernel");
+			log_info(logger, "Iniciada thread de Kernel");
 			thread_info->port = kernel;
 			thread_info->memory = memory;
 			break;

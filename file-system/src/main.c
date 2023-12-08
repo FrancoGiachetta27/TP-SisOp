@@ -18,7 +18,7 @@ extern t_list *fat_list;
 
 int main(int argc, char *argv[])
 {
-	utils = create_initial_config(argc, argv, LOGS_FILE_SYSTEM, true, LOG_LEVEL_TRACE);
+	utils = create_initial_config(argc, argv, LOGS_FILE_SYSTEM, true, argv[2]);
 	if (utils == NULL)
 		return EXIT_FAILURE;
 

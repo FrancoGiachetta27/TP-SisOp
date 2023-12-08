@@ -165,17 +165,17 @@ void wait_in_every_port(t_conn *conn, t_log *logger)
         switch (i)
         {
         case 0:
-            log_trace(logger, "Iniciada thread de FileSystem");
+            log_info(logger, "Iniciada thread de FileSystem");
             thread_info->port = conn->socket_filesystem;
             thread_info->dict_key = "FS";
             break;
         case 1:
-            log_trace(logger, "Iniciada thread de Kernel");
+            log_info(logger, "Iniciada thread de Kernel");
             thread_info->port = conn->socket_kernel;
             thread_info->dict_key = "KRL";
             break;
         case 2:
-            log_trace(logger, "Iniciada thread de CPU");
+            log_info(logger, "Iniciada thread de CPU");
             thread_info->port = conn->socket_cpu;
             thread_info->dict_key = "CPU";
             break;

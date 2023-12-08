@@ -11,7 +11,7 @@
 #define LOGS_MEMORIA "memoria.log"
 
 int main(int argc, char* argv[]) {
-	t_utils* utils = create_initial_config(argc, argv, LOGS_MEMORIA, true, LOG_LEVEL_TRACE);
+	t_utils* utils = create_initial_config(argc, argv, LOGS_MEMORIA, true, argv[2]);
 	if (utils == NULL) return EXIT_FAILURE;
 
 	t_conn* conn = start_server_ports(utils);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
 	wait_in_every_port(conn, utils->logger);
 
-	log_trace(utils->logger, "Se termina el programa");
+	log_info(utils->logger, "Se termina el programa");
 	free_memory(utils->logger);
 	free(conn);
 	utils_destroy(utils);

@@ -13,7 +13,7 @@ typedef struct {
 	t_config* config;
 } t_utils;
 
-t_utils* create_initial_config(int arg_count, char* argv[], char* logger_path, bool log_in_console, t_log_level log_level);
+t_utils* create_initial_config(int arg_count, char* argv[], char* logger_path, bool log_in_console, char* log_level);
 t_log* create_logger(char* file, bool is_active_console, t_log_level log_level);
 t_config* create_config(char* file, t_log* logger);
 bool check_if_config_value_exists(t_utils* utils, char* key);

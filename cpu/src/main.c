@@ -8,7 +8,7 @@
 #define LOGS_CPU "cpu.log"
 
 int main(int argc, char* argv[]) {
-	t_utils* utils = create_initial_config(argc, argv, LOGS_CPU, true, LOG_LEVEL_TRACE);
+	t_utils* utils = create_initial_config(argc, argv, LOGS_CPU, true, argv[2]);
 	if (utils == NULL) return EXIT_FAILURE;
 
 	int memory_socket = connect_to_memory(utils);

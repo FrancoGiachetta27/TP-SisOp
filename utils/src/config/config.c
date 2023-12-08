@@ -15,12 +15,12 @@ t_config* create_config(char* file, t_log* logger)
 	return nuevo_config;
 }
 
-t_utils* create_initial_config(int arg_count, char* argv[], char* logger_path, bool log_in_console, t_log_level log_level)
+t_utils* create_initial_config(int arg_count, char* argv[], char* logger_path, bool log_in_console, char* log_level)
 {
 	t_utils* utils = malloc(sizeof(t_utils));
-	utils->logger = create_logger(logger_path, log_in_console, log_level);
+	utils->logger = create_logger(logger_path, log_in_console, atoi(log_level));
 	if (utils->logger == NULL) return NULL;
-	if (arg_count < NUMERO_DE_ARGUMENTOS_NECESARIOS) {
+	if (arg_count == NUMERO_DE_ARGUMENTOS_NECESARIOS) {
 		log_error(utils->logger, "Cantidad de argumentos invalida.");
 	    log_destroy(utils->logger);
 	    free(utils);

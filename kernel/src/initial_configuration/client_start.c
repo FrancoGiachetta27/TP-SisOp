@@ -25,19 +25,19 @@ t_conn* connect_to_modules(t_utils* utils) {
 		switch (connected_modules) {
 			case 0:
 				conn->memory_socket = conexion;
-				log_trace(utils->logger, "Conectado a Memory");
+				log_info(utils->logger, "Conectado a Memory");
 			break;
 			case 2:
 				conn->filesystem_socket = conexion;
-				log_trace(utils->logger, "Conectado al FileSystem");
+				log_info(utils->logger, "Conectado al FileSystem");
 			break;
 			case 4:
 				conn->cpu_dispatcher_socket = conexion;
-				log_trace(utils->logger, "Conectado al Dispatcher de la CPU");
+				log_info(utils->logger, "Conectado al Dispatcher de la CPU");
 			break;
 			case 6:
 				conn->cpu_interrupt_socket = conexion;
-				log_trace(utils->logger, "Conectado al Interrupt de la CPU");
+				log_info(utils->logger, "Conectado al Interrupt de la CPU");
 			break;
 		}
 	}
