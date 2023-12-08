@@ -68,6 +68,10 @@ int assign_block_size(int file_size)
     }
 
     int current_block = find_free_current_block();
+    // ACCEDO A FAT
+    usleep(fs_config->fat_time_delay * 1000);
+    log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", current_block, 0);
+
     int first_block = current_block;
     int blocks_assigned = 0;
     int blocks_needed = (file_size + fs_config->block_size - 1) / fs_config->block_size;
@@ -76,6 +80,7 @@ int assign_block_size(int file_size)
 
     while (blocks_assigned < blocks_needed)
     {
+        usleep(fs_config->block_time_delay * 1000);
 
         int free_block = find_free_block(current_block);
 
@@ -88,7 +93,6 @@ int assign_block_size(int file_size)
         if (list_get(fat_list, current_block) == 0)
         {
             assign_block(current_block, free_block);
-            // printf("Asigno a current_block %d el bloque libre %d\n", current_block, free_block);
         }
 
         current_block = free_block;
@@ -136,11 +140,15 @@ void add_blocks(int initial_block, int additional_blocks)
     // }
 
     int last_block = find_last_block(initial_block);
+    usleep(fs_config->fat_time_delay * 1000);
+    log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", last_block, UINT32_MAX);
 
     int blocks_added = 0;
 
     while (blocks_added < additional_blocks)
     {
+        usleep(fs_config->block_time_delay * 1000);
+
         int new_block = find_free_block(last_block);
         if (new_block == -1)
         {
@@ -191,8 +199,13 @@ void free_blocks(int initial_block, int blocks_needed)
 {
     t_list *blocks = recorrer_blocks(initial_block);
 
+    usleep(fs_config->fat_time_delay * 1000);
+    log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", initial_block, list_get(fat_list, initial_block));
+
     for (int i = list_size(blocks) - 1; i > blocks_needed; i--)
     {
+        usleep(fs_config->block_time_delay * 1000);
+
         printf("Bloques a liberar %d\n", list_get(blocks, i));
         list_replace(fat_list, list_get(blocks, i), 0);
     }
@@ -235,13 +248,13 @@ void create_fat_file()
     }
 
     // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    if (path_exists != 0) 
+    if (path_exists != 0)
     {
         memset(fat_data, '0', fat_size);
         msync(fat_data, fat_size, MS_SYNC);
         log_debug(utils->logger, "Archivo de la tabla FAT creado con éxito");
     }
-    else 
+    else
     {
         log_debug(utils->logger, "El archivo de la tabla FAT ya estaba creado");
     }
@@ -298,14 +311,16 @@ void create_block_file()
     }
 
     // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    if (path_exists != 0) 
+    if (path_exists != 0)
     {
         memset(block_map, '0', block_file_size);
         msync(block_map, block_file_size, MS_SYNC);
         log_debug(utils->logger, "Archivo de bloques creado con éxito");
     }
-    else 
+    else
     {
+        memset(block_map, '0', block_swap);
+        msync(block_map, block_file_size, MS_SYNC);
         log_debug(utils->logger, "El archivo de bloques ya estaba creado");
     }
 }
@@ -314,6 +329,8 @@ int find_free_swap_block()
 {
     for (int i = 0; i < fs_config->block_swap_count; i++)
     {
+        usleep(fs_config->block_time_delay * 1000);
+
         char *block = (char *)(block_map + i * fs_config->block_size);
 
         int is_free = 1;
@@ -347,6 +364,8 @@ t_list *reserve_swap_blocks(int blocks_count)
 
     for (int i = 0; i < blocks_count; i++)
     {
+        usleep(fs_config->block_time_delay * 1000);
+
         int block = find_free_swap_block();
         log_debug(utils->logger, "Bloque libre de swap %d - Pasa a '\\0'", block);
 
@@ -375,6 +394,8 @@ void free_swap_blocks(t_list *blocks_to_release)
 
     for (int i = 0; i < list_size(blocks_to_release); i++)
     {
+        usleep(fs_config->block_time_delay * 1000);
+
         int *block_index = (int *)list_get(blocks_to_release, i);
 
         if (*block_index < 0 || *block_index >= fs_config->block_swap_count)
@@ -403,6 +424,7 @@ void write_to_swap_block(int block_index, void *data)
         return;
     }
 
+    usleep(fs_config->block_time_delay * 1000);
     void *block = block_map + block_index * fs_config->block_size;
     memcpy(block, data, fs_config->block_size);
 
@@ -421,6 +443,7 @@ void *read_from_swap_block(int block_index)
 
     void *block = block_map + block_index * fs_config->block_size;
 
+    usleep(fs_config->block_time_delay * 1000);
     memcpy(buffer, block, fs_config->block_size);
 
     log_debug(utils->logger, "Datos leídos desde el bloque %d de la swap: %d", block_index, *(uint32_t *)buffer);
@@ -447,15 +470,16 @@ void *read_file(char *file_name, int seek)
     uint32_t fat_block = fcb->initial_block;
     uint32_t index_fat = 0;
 
+    usleep(fs_config->fat_time_delay * 1000);
+
     if (block_to_read == index_fat)
     {
         index_fat = fat_block;
         fat_block = (uint32_t)list_get(fat_list, index_fat);
 
-        usleep(fs_config->fat_time_delay * 1000);
-        log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
+        log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", index_fat, fat_block);
 
-        log_info(utils->logger, "Acceso a Bloque Archivo: “Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d”", file_name, fat_block + fs_config->block_swap_count, fat_block);
+        log_info(utils->logger, "Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d", file_name, block_to_read, fs_config->block_swap_count + fat_block);
         void *data_to_read = block_map + fs_config->block_swap_count + (block_to_read * fs_config->block_size);
         memcpy(data, data_to_read, fs_config->block_size);
         usleep(fs_config->block_time_delay * 1000);
@@ -478,16 +502,13 @@ void *read_file(char *file_name, int seek)
 
             index_fat = fat_block;
             fat_block = (uint32_t)list_get(fat_list, index_fat);
-            usleep(fs_config->fat_time_delay * 1000);
-            usleep(fs_config->fat_time_delay * 1000);
-            log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
-
-            log_info(utils->logger, "Acceso a Bloque Archivo: “Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d”", file_name, fat_block + fs_config->block_swap_count, fat_block);
-
-            void *data_to_read = block_map + fs_config->block_swap_count + (block_to_read * fs_config->block_size);
-            memcpy(data, data_to_read, fs_config->block_size);
-            usleep(fs_config->block_time_delay * 1000);
+            log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", index_fat, fat_block);
         }
+
+        log_info(utils->logger, "Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d", file_name, block_to_read, fs_config->block_swap_count + fat_block);
+        void *data_to_read = block_map + fs_config->block_swap_count + (block_to_read * fs_config->block_size);
+        memcpy(data, data_to_read, fs_config->block_size);
+        usleep(fs_config->block_time_delay * 1000);
     }
 
     log_debug(utils->logger, "%s - Bloque %d, lei: %d", file_name, block_to_read, *(uint32_t *)(data));
@@ -512,12 +533,14 @@ void write_file(char *file_name, int seek, void *data)
 
     uint32_t index_fat = 0;
 
+    usleep(fs_config->fat_time_delay * 1000);
+
     if (block_to_write == index_fat)
     {
         index_fat = fat_block;
         fat_block = (uint32_t)list_get(fat_list, index_fat);
-        log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
-        log_info(utils->logger, "Acceso a Bloque Archivo: “Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d”", file_name, fat_block + fs_config->block_swap_count, fat_block);
+        log_info(utils->logger, "Acceso FAT - Entrada: %d - Valor: %d", index_fat, fat_block);
+        log_info(utils->logger, "Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d", file_name, block_to_write, fs_config->block_swap_count + fat_block);
 
         void *data_to_write = block_map + fs_config->block_swap_count + (block_to_write * fs_config->block_size);
         memcpy(data_to_write, data, fs_config->block_size);
@@ -540,10 +563,9 @@ void write_file(char *file_name, int seek, void *data)
                 log_debug(utils->logger, "BLOQUE %d NULO", index_fat);
             }
 
-            usleep(fs_config->fat_time_delay * 1000);
+            log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
         }
-        log_info(utils->logger, "Acceso a FAT: “Acceso FAT - Entrada: %d - Valor: %d”", index_fat, fat_block);
-        log_info(utils->logger, "Acceso a Bloque Archivo: “Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d”", file_name, fat_block + fs_config->block_swap_count, fat_block);
+        log_info(utils->logger, "Acceso Bloque - Archivo: %s - Bloque Archivo: %d - Bloque FS: %d", file_name, block_to_write, fs_config->block_swap_count + fat_block);
 
         void *data_to_write = block_map + fs_config->block_swap_count + (block_to_write * fs_config->block_size);
         memcpy(data_to_write, data, fs_config->block_size);

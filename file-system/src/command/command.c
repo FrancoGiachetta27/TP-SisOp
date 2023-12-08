@@ -47,7 +47,7 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			open_data = (t_fopen *)pcb->params;
 			int file_size = open_file(thread_info->logger, open_data->file_name);
-			log_info(thread_info->logger, "F_OPEN Kernel con archivo %s", open_data->file_name);
+			log_info(thread_info->logger, "Abrir Archivo: %s", open_data->file_name);
 			package = create_integer_package(F_OPEN, file_size);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
@@ -57,7 +57,7 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			open_data = (t_fopen *)pcb->params;
 			int ok = create_file(thread_info->logger, open_data->file_name);
-			log_info(thread_info->logger, "F_CREATE Kernel con archivo %s", open_data->file_name);
+			log_info(thread_info->logger, "Crear Archivo: %s", open_data->file_name);
 			package = create_integer_package(F_CREATE, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
@@ -67,7 +67,7 @@ void *wait_for_commands(t_thread *thread_info)
 			pcb = receive_pcb(thread_info->port, thread_info->logger);
 			change_data = (t_fchange *)pcb->params;
 			truncate_file(thread_info->logger, change_data->file_name, change_data->value);
-			log_info(thread_info->logger, "F_TRUNCATE Kernel con archivo %s y tamaño %d", change_data->file_name, change_data->value);
+			log_info(thread_info->logger, "Truncar Archivo: %s - Tamaño: %d", change_data->file_name, change_data->value);
 			package = create_integer_package(F_TRUNCATE, 0);
 			send_package(package, thread_info->port, thread_info->logger);
 			destroy_pcb(pcb);
@@ -122,8 +122,9 @@ void *wait_for_commands(t_thread *thread_info)
 				return strcmp(openf->file, modify_data->file_name) == 0;
 			};
 			seek_data = list_find(pcb->open_files, _find_filename);
+			int memory_address1 = (modify_data->page->page_number * fs_config->block_size) + modify_data->page->displacement;
 			void *data2 = read_file(seek_data->file, seek_data->seek);
-			log_debug(thread_info->logger, "Data leida: %d", *(uint32_t *)data2);
+			log_info(thread_info->logger, "Leer Archivo: %s - Puntero: %d - Memoria: %d", seek_data->file, floor(seek_data->seek / fs_config->block_size), memory_address1);
 			t_mov_out_fs *mov_out = page_for_mov_out_fs(pcb->pid, modify_data->page->page_number, modify_data->page->displacement, data2, fs_config->block_size);
 			send_page_for_mov_out_fs(MOV_OUT_FS, mov_out, thread_info->memory, thread_info->logger);
 			destroy_pcb(pcb);
@@ -150,7 +151,9 @@ void *wait_for_commands(t_thread *thread_info)
 
 		case MOV_IN_FS:
 			void *data_mov_in = receive_buffer(thread_info->port, thread_info->logger);
+			int memory_address = (modify_data->page->page_number * fs_config->block_size) + modify_data->page->displacement;
 			write_file(seek_data_write->file, seek_data_write->seek, data_mov_in);
+			log_info(thread_info->logger, "Escribir Archivo: %s - Puntero: %d - Memoria: %d", seek_data_write->file, floor(seek_data_write->seek / fs_config->block_size), memory_address);
 			package = create_integer_package(F_WRITE, 0);
 			send_package(package, thread_info->socket, thread_info->logger);
 			free(data_mov_in);
@@ -198,15 +201,15 @@ void *wait_for_commands(t_thread *thread_info)
 // Return informar que el archivo no existe
 int open_file(t_log *logger, char *file_name)
 {
-	log_info(logger, "Abrir Archivo: %s", file_name);
+	log_debug(logger, "Abrir Archivo: %s", file_name);
 	t_fcb *file = find_fcb_file(file_name);
 	if (file)
 	{
-		log_info(logger, "Archivo %s abierto", file_name);
+		log_debug(logger, "Archivo %s abierto", file_name);
 		return file->file_size;
 	}
 
-	log_info(logger, "Archivo %s no existe", file_name);
+	log_debug(logger, "Archivo %s no existe", file_name);
 	return -1;
 }
 
@@ -242,8 +245,8 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 	// Tamanio nuevo mayor que al del archivo
 	else if (fcb->file_size < new_size)
 	{
-		int current_size = ceil(fcb->file_size / fs_config->block_size) + 1;
-		int new_block_count = ceil(new_size / fs_config->block_size) + 1;
+		int current_size = (fcb->file_size / fs_config->block_size) + 1;
+		int new_block_count = (new_size / fs_config->block_size) + 1;
 
 		log_debug(logger, "Cantidad de bloques actuales: %d - Cantidad de bloques total nuevos %d", current_size, new_block_count);
 
@@ -255,8 +258,8 @@ void truncate_file(t_log *logger, char *file_name, int new_size)
 	}
 	else
 	{
-		int current_size = ceil(fcb->file_size / fs_config->block_size) + 1;
-		int blocks_needed = ceil(new_size / fs_config->block_size) + 1;
+		int current_size = (fcb->file_size / fs_config->block_size) + 1;
+		int blocks_needed = (new_size / fs_config->block_size) + 1;
 
 		log_debug(logger, "Cantidad de bloques actuales: %d - Cantidad de bloques nuevos %d", current_size, blocks_needed);
 
