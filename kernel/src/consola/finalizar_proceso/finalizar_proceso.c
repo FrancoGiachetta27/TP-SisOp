@@ -44,13 +44,34 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 		return;
 	}
 
+	pthread_mutex_lock(&cola_sleep);
+	pcb = list_find(lista_estado_SLEEP, (void*) _pcb_by_pid_in_list);
+	if (pcb != NULL) {
+		pcb->end_state = SUCCESS;
+		return;
+	}
+	pthread_mutex_unlock(&cola_sleep);
+
+	pthread_mutex_lock(&cola_interrupt);
+	pcb = list_find(lista_estado_INTERRUPT, (void*) _pcb_by_pid_in_list);
+	if (pcb != NULL) {
+		pcb->end_state = SUCCESS;
+		return;
+	}
+	pthread_mutex_unlock(&cola_interrupt);
+
+	bool eliminado = false;
 	void _pcb_by_pid_in_dict(char* _, t_block* block) {
 		pcb = list_remove_by_condition(block->blocked_list, (void*) _pcb_by_pid_in_list);
 		if (pcb != NULL) {
+			eliminado = true;
 			log_info(logger, "Finaliza el proceso %d - Motivo: MANUAL", pcb->pid);
 			sem_post(&grd_mult);
 			eliminar_proceso(pcb, socket_memory, logger);
 		}
     };
 	dictionary_iterator(colas_BLOCKED, (void*) _pcb_by_pid_in_dict);
+	if (!eliminado) {
+		printf("No fue encontrado el proceso con el pid %d\n", pid);
+	}
 };

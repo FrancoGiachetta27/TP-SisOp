@@ -32,7 +32,7 @@ void execute_process(t_planificador* info) {
                 case INTERRUPTED:
                 case SLEEP:
                     destroy_executing_process();
-                    interrupt_process(pcb, info->utils->logger);
+                    interrupt_process(pcb, info->conn->memory_socket, info->utils->logger);
                 break;
                 case INTERRUPT_FINISH:
                     sem_post(&finish_interrupted_process);

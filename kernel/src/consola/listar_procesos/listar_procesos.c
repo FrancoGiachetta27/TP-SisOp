@@ -9,8 +9,8 @@ void listar_procesos(char* name, t_list* list, t_log* logger, pthread_mutex_t mu
 }
 
 void listar_procesos_por_estados(t_log* logger){
-	listar_procesos("SLEEP", lista_estado_INTERRUPT, logger, cola_sleep);
-	listar_procesos("INTERRUPT", lista_estado_SLEEP, logger, cola_interrupt);
+	listar_procesos("SLEEP", lista_estado_SLEEP, logger, cola_sleep);
+	listar_procesos("INTERRUPT", lista_estado_INTERRUPT, logger, cola_interrupt);
 	listar_procesos("NEW", lista_estado_NEW, logger, cola_new);
 	listar_procesos("READY", lista_estado_READY, logger, cola_ready);
 	listar_procesos("EXIT", lista_estado_EXIT, logger, cola_exit);
