@@ -214,6 +214,7 @@ void create_fat_file()
 
     log_debug(utils->logger, "Path %s", path);
 
+    int path_exists = access(path, F_OK);
     fd_fat = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_fat == -1)
     {
@@ -234,9 +235,9 @@ void create_fat_file()
     }
 
     // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    if (access(path, F_OK) != 0) 
+    if (path_exists != 0) 
     {
-        memset(fat_data, 0, fat_size);
+        memset(fat_data, '0', fat_size);
         msync(fat_data, fat_size, MS_SYNC);
         log_debug(utils->logger, "Archivo de la tabla FAT creado con éxito");
     }
@@ -276,6 +277,7 @@ void create_block_file()
 
     char *path = fs_config->path_block;
 
+    int path_exists = access(path, F_OK);
     fd_block = open(path, O_CREAT | O_RDWR, S_IRWXU);
     if (fd_block == -1)
     {
@@ -296,10 +298,10 @@ void create_block_file()
     }
 
     // Chequear si el file fue creado o abierto -> creado, llenar todo a 0s
-    if (access(path, F_OK) != 0) 
+    if (path_exists != 0) 
     {
-        memset(fat_data, 0, block_file_size);
-        msync(fat_data, block_file_size, MS_SYNC);
+        memset(block_map, '0', block_file_size);
+        msync(block_map, block_file_size, MS_SYNC);
         log_debug(utils->logger, "Archivo de bloques creado con éxito");
     }
     else 
