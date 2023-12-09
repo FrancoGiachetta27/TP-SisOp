@@ -20,6 +20,7 @@ t_pcb* crear_pcb(uint32_t pid, char* name, uint32_t tamanio, uint32_t priority) 
 	nuevoPCB->registers=create_empty_registers();
 	nuevoPCB->instruccion=NORMAL;
 	nuevoPCB->params=NULL;
+	nuevoPCB->end_state = NULL;
 	nuevoPCB->open_files=list_create();
 	return nuevoPCB;
 }
@@ -305,6 +306,7 @@ t_pcb* deserialize_pcb(void* buffer) {
 		list_add(pcb->open_files, open_file);
 	}
 	free(buffer);
+	pcb->end_state = NULL;
 	return pcb;
 }
 
