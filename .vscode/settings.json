@@ -35,6 +35,7 @@
         "pthread.h": "c",
         "stdio.h": "c",
         "typeinfo": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "page_fault.h": "c"
     }
 }

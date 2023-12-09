@@ -6,6 +6,8 @@ t_dictionary *colas_BLOCKED;
 t_list *lista_estado_EXIT;
 t_pcb *estado_EXEC = NULL;
 
+t_list *list_treat_page_fault;
+
 t_list *lista_estado_SLEEP;
 t_list *lista_estado_INTERRUPT;
 t_dictionary *open_files_global_table;
@@ -34,6 +36,7 @@ int actual_grd_mult;
 
 void iniciar_estructuras_planificadores(t_utils *config_kernel)
 {
+
 	sig_PID = 1;
 	lista_estado_NEW = list_create();
 	lista_estado_READY = list_create();
@@ -198,7 +201,7 @@ char *get_string_of_pids_in_list(t_list *list)
 	return pids;
 }
 
-void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log* logger)
+void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log *logger)
 {
 	if (lock->is_write_lock)
 	{
@@ -210,8 +213,9 @@ void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log* logger)
 		free(lock);
 		if (file->locks->elements_count != 0)
 		{
-			t_lock* next_lock = list_get(file->locks, 0);
-			if (next_lock->is_blocked) {
+			t_lock *next_lock = list_get(file->locks, 0);
+			if (next_lock->is_blocked)
+			{
 				log_debug(logger, "Se desbloqueo %d participants", next_lock->participants->elements_count);
 				for (int i = 0; i < next_lock->participants->elements_count; i++)
 				{
@@ -236,9 +240,10 @@ void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log* logger)
 			free(lock);
 			if (file->locks->elements_count != 0)
 			{
-				t_lock* next_lock = list_get(file->locks, 0);
-    			log_debug(logger, "Se desbloqueo %d participants", next_lock->participants->elements_count);
-				if (next_lock->is_blocked) {
+				t_lock *next_lock = list_get(file->locks, 0);
+				log_debug(logger, "Se desbloqueo %d participants", next_lock->participants->elements_count);
+				if (next_lock->is_blocked)
+				{
 					for (int i = 0; i < next_lock->participants->elements_count; i++)
 					{
 						sem_post(&next_lock->write_locked);
@@ -247,7 +252,6 @@ void close_lock(t_pcb *pcb, t_open_file *file, t_lock *lock, t_log* logger)
 			}
 		}
 	}
-
 }
 
 void eliminar_proceso(t_pcb *pcb, int socket, t_log *logger)

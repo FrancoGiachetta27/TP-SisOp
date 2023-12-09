@@ -6,14 +6,17 @@ t_pcb *pcb_fetch;
 t_pag *received_page;
 t_page_entry *page;
 t_pag *received_page_mov_in;
-t_pag *received_page_mov_in_fs;
 t_pag *received_page_load_page;
 t_page_entry *page_mov_in;
+t_list *list_page;
 sem_t wait;
 int size;
 
+pthread_mutex_t *mutex_load_page;
+
 void *wait_for_command(t_thread *thread_info)
 {
+    list_page = list_create();
     int op_code = receive_op_code(thread_info->port, thread_info->logger);
     if (op_code == -1)
     {
@@ -45,16 +48,34 @@ void *wait_for_command(t_thread *thread_info)
             break;
         case LOAD_PAGE:
             received_page_load_page = receive_page(thread_info->port, thread_info->logger);
+
+            pthread_mutex_lock(&mutex_load_page);
+            list_add(list_page, received_page_load_page);
+            pthread_mutex_unlock(&mutex_load_page);
             log_debug(thread_info->logger, "Se hace un page fault %d", received_page_load_page->page_number);
             page = reference_page(received_page_load_page->pid, received_page_load_page->page_number, thread_info->logger);
             get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
             break;
         case GET_FROM_SWAP:
             void *page_data = receive_buffer(thread_info->port, thread_info->logger);
-            load_page(received_page_load_page->pid, received_page_load_page->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
-            t_package *result_package = create_integer_package(LOAD_PAGE, 0);
-            send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
-            destroy_page(received_page_load_page);
+            t_pag *page_swap;
+            pthread_mutex_lock(&mutex_load_page);
+            if (list_page->elements_count != 0)
+            {
+                page_swap = list_remove(list_page, 0);
+                pthread_mutex_unlock(&mutex_load_page);
+                load_page(page_swap->pid, page_swap->page_number, thread_info->conn->socket_filesystem, page_data, thread_info->logger);
+                t_package *result_package = create_integer_package(LOAD_PAGE, 0);
+                send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
+                destroy_page(page_swap);
+            }
+            else
+            {
+                log_warning(thread_info->logger, "No hay page en lista");
+                pthread_mutex_unlock(&mutex_load_page);
+                t_package *result_package = create_integer_package(LOAD_PAGE, 0);
+                send_package(result_package, thread_info->conn->socket_kernel, thread_info->logger);
+            }
             break;
         case FREE_PAGES:
             int *ok = receive_buffer(thread_info->port, thread_info->logger);
@@ -118,15 +139,15 @@ void *wait_for_command(t_thread *thread_info)
             destroy_page_for_mov_out_fs(mov_out_page_fs);
             break;
         case MOV_IN_FS:
-            received_page_mov_in_fs = receive_page(thread_info->port, thread_info->logger);
-            page_mov_in = reference_page(received_page_mov_in_fs->pid, received_page_mov_in_fs->page_number, thread_info->logger);
+            received_page_mov_in = receive_page(thread_info->port, thread_info->logger);
+            page_mov_in = reference_page(received_page_mov_in->pid, received_page_mov_in->page_number, thread_info->logger);
             int address4 = page_mov_in->frame_number * memory_config.page_size;
             void *value_in_frame2 = read_frame(address4, memory_config.page_size);
             log_info(thread_info->logger, "PID: %d - Accion: LEER - Direccion fisica: %d", page_mov_in->pid, address4);
             log_debug(thread_info->logger, "[FS] VALUE IN FRAME: %d", *(uint32_t *)value_in_frame2);
             t_package *result_package4 = create_void_package(MOV_IN_FS, memory_config.page_size, value_in_frame2);
             send_package(result_package4, thread_info->port, thread_info->logger);
-            destroy_page(received_page_mov_in_fs);
+            destroy_page(received_page_mov_in);
             break;
         case END_PROCESS:
             pcb_end = receive_pcb(thread_info->port, thread_info->logger);
