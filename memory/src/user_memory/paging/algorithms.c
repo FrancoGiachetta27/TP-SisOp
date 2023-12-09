@@ -17,7 +17,8 @@ void sort_pages_by_fifo(void)
 	while (1)
 	{
 		sem_wait(&sort_pages);
-		if (!working) return;
+		if (!working)
+			return;
 		pthread_mutex_lock(&mtx_select_page);
 		if (last_page_referenced->bit_precense != 1)
 		{
@@ -32,13 +33,14 @@ void sort_pages_by_lru(void)
 	while (1)
 	{
 		sem_wait(&sort_pages);
-		if (!working) return;
+		if (!working)
+			return;
 		pthread_mutex_lock(&mtx_select_page);
-		if(list_size(pages_to_replace) != 1) 
-		{
-			list_remove_element(pages_to_replace, last_page_referenced);
-			list_add(pages_to_replace, last_page_referenced);
-		};
+		// if(list_size(pages_to_replace) != 1)
+		// {
+		list_remove_element(pages_to_replace, last_page_referenced);
+		list_add(pages_to_replace, last_page_referenced);
+		// };
 		pthread_mutex_unlock(&mtx_select_page);
 	}
 }
