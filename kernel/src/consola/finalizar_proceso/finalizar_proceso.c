@@ -47,7 +47,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	pthread_mutex_lock(&cola_sleep);
 	pcb = list_find(lista_estado_SLEEP, (void*) _pcb_by_pid_in_list);
 	if (pcb != NULL) {
-		pcb->end_state = SUCCESS;
+		pcb->end_state = MANUAL;
 		return;
 	}
 	pthread_mutex_unlock(&cola_sleep);
@@ -55,7 +55,7 @@ void finalizar_proceso(uint32_t pid, t_log* logger, int socket_interrupt, int so
 	pthread_mutex_lock(&cola_interrupt);
 	pcb = list_find(lista_estado_INTERRUPT, (void*) _pcb_by_pid_in_list);
 	if (pcb != NULL) {
-		pcb->end_state = SUCCESS;
+		pcb->end_state = MANUAL;
 		return;
 	}
 	pthread_mutex_unlock(&cola_interrupt);

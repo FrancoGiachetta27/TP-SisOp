@@ -41,7 +41,7 @@ void treat_interrupted_process(t_interrupted* interrupted_info) {
 
     if (interrupted_info->pcb->instruccion == SLEEP) {
         pthread_mutex_lock(&cola_sleep);
-        if (interrupted_info->pcb->end_state == SUCCESS) {
+        if (interrupted_info->pcb->end_state == MANUAL) {
             pthread_mutex_unlock(&cola_sleep);
             log_info(interrupted_info->logger, "Finaliza el proceso %d - Motivo: MANUAL", interrupted_info->pcb->pid);
 			sem_post(&grd_mult);
@@ -52,7 +52,7 @@ void treat_interrupted_process(t_interrupted* interrupted_info) {
         pthread_mutex_unlock(&cola_sleep);
     } else {
         pthread_mutex_lock(&cola_interrupt);
-        if (interrupted_info->pcb->end_state == SUCCESS) {
+        if (interrupted_info->pcb->end_state == MANUAL) {
             pthread_mutex_unlock(&cola_interrupt);
 			log_info(interrupted_info->logger, "Finaliza el proceso %d - Motivo: MANUAL", interrupted_info->pcb->pid);
 			sem_post(&grd_mult);

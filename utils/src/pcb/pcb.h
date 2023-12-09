@@ -45,7 +45,8 @@ enum INSTRUCCION {
 enum END_STATE {
     SUCCESS = 0,
     INVALID_RESOURCE  = 1,
-    INVALID_WRITE = 2
+    INVALID_WRITE = 2,
+    MANUAL = 3
 };
 
 typedef struct pcb {
