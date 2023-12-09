@@ -45,7 +45,7 @@ void *wait_for_command(t_thread *thread_info)
         case LOAD_PAGE:
             received_page_load_page = receive_page(thread_info->port, thread_info->logger);
             log_debug(thread_info->logger, "Se hace un page fault %d", received_page_load_page->page_number);
-            page = get_page(received_page_load_page->pid, received_page_load_page->page_number);
+            page = reference_page(received_page_load_page->pid, received_page_load_page->page_number, thread_info->logger);
             get_page_info(page->swap_position, thread_info->conn->socket_filesystem, thread_info->logger);
             break;
         case GET_FROM_SWAP:
